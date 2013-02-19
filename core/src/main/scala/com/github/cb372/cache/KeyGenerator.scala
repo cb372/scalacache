@@ -2,17 +2,21 @@ package com.github.cb372.cache
 
 trait KeyGenerator {
 
-  def toCacheKey(className: String, method: String, paramss: Seq[Seq[Any]]): String
+  def toCacheKey(className: String, methodName: String, paramss: Seq[Seq[Any]]): String
   
 }
 
 object KeyGenerator {
 
   implicit val defaultGenerator: KeyGenerator = new KeyGenerator {
-    val shortSeparator = "_"
-    val longSeparator = "__"
-    def toCacheKey(className: String, method: String, paramss: Seq[Seq[Any]]): String = 
-      className + longSeparator + method + longSeparator + paramss.map(_.mkString(shortSeparator)).mkString(longSeparator)
+    private def classNamePart(className: String) =
+      if (className.isEmpty) "" else className + "."
+
+    private def paramssPart(paramss: Seq[Seq[Any]]) =
+      paramss.map(_.mkString("(", ", ", ")")).mkString("", "", "")
+
+    def toCacheKey(className: String, methodName: String, paramss: Seq[Seq[Any]]): String =
+      s"${classNamePart(className)}${methodName}${paramssPart(paramss)}"
   }
 
 }
