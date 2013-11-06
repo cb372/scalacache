@@ -1,7 +1,7 @@
 package com.github.cb372.cache
 
 import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.ShouldMatchers
 
 /**
  * Author: chris
