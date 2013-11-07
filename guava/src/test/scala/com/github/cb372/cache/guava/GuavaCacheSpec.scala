@@ -22,8 +22,7 @@ class GuavaCacheSpec extends FlatSpec with ShouldMatchers {
 
   it should "return None if the given key does not exist in the underlying cache" in {
     val underlying = newGCache
-    underlying.put("key1", 123: java.lang.Integer)
-    GuavaCache(underlying).get("key1") should be(Some(123))
+    GuavaCache(underlying).get("non-existent key") should be(None)
   }
 
   behavior of "put"

@@ -10,7 +10,7 @@ object CacheableBuild extends Build {
   lazy val root = Project(
     id = "cacheable",
     base = file("."),
-    settings = standardSettings) aggregate(core, guava)
+    settings = standardSettings) aggregate(core, guava, memcached)
 
   lazy val core = Project(
     id = "cacheable-core",
@@ -32,6 +32,17 @@ object CacheableBuild extends Build {
       )
     )
   ) dependsOn(core)
+
+  lazy val memcached = Project(
+    id = "cacheable-memcached",
+    base = file("memcached"),
+    settings = standardSettings ++ Seq(
+      libraryDependencies ++= Seq(
+        "net.spy" % "spymemcached" % "2.10.2"
+      )
+    )
+  ) dependsOn(core)
+
 
   lazy val standardSettings = Defaults.defaultSettings ++ Seq(
     organization := "com.github.cb372",

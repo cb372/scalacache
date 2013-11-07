@@ -23,5 +23,6 @@ The cache key is built automatically from the class name, the name of the enclos
 
 * <del>If possible include full package name in cache key</del>
 * <del>Write some tests</del>
-* Provide a few useful cache implementations: <del>Guava,</del> Redis, Memached, ...
+* Provide a few useful cache implementations: <del>Guava,</del> Redis, <del>Memached<del>, Ehcache
+* Add per-entry TTL support
 * Improve error messages, expand README
