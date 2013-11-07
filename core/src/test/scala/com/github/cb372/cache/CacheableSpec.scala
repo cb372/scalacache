@@ -12,7 +12,9 @@ import scala.collection.mutable.ArrayBuffer
  */
 class CacheableSpec extends FlatSpec with ShouldMatchers {
 
-  behavior of "cacheable"
+  behavior of "cacheable block"
+
+  val expectedKey = "com.github.cb372.cache.CacheableSpec.MyMockClass.myLongRunningMethod(123, abc)"
 
   it should "execute the block and cache the result, if there is a cache miss" in {
     val emptyCache = new LoggingCache {
@@ -26,8 +28,6 @@ class CacheableSpec extends FlatSpec with ShouldMatchers {
     // should return the block's result
     val result = new MyMockClass(mockDbCall)(cacheConfig).myLongRunningMethod(123, "abc")
     result should be("hello")
-
-    val expectedKey = "MyMockClass.myLongRunningMethod(123, abc)"
 
     // should check the cache first
     emptyCache.getCalledWithArgs should be(Seq(expectedKey))
@@ -51,8 +51,6 @@ class CacheableSpec extends FlatSpec with ShouldMatchers {
     // should return the cached result
     val result = new MyMockClass(mockDbCall)(cacheConfig).myLongRunningMethod(123, "abc")
     result should be("cache hit")
-
-    val expectedKey = "MyMockClass.myLongRunningMethod(123, abc)"
 
     // should check the cache first
     fullCache.getCalledWithArgs should be(Seq(expectedKey))

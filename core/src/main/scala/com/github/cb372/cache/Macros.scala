@@ -47,9 +47,10 @@ object Macros {
 
   private def getClassName(c: Context): c.Expr[String] = {
     import c.universe._
+
     val className = c.enclosingClass match {
-      case ClassDef(_, name, _, _) => name.toString
-      case ModuleDef(_, name, _) => name.toString
+      case clazz @ ClassDef(_, _, _, _) => clazz.symbol.asClass.fullName
+      case module @ ModuleDef(_, _, _) => module.symbol.asModule.fullName
       case _ => "" // not inside a class or a module. package object, REPL, somewhere else weird
     }
     c.literal(className)
@@ -60,7 +61,7 @@ object Macros {
      */
     private def listToTree(c: Context)(ts: List[c.Tree]): c.Tree = { 
       import c.universe._
-      Apply(Select(Select(Select(Select(Ident("scala"), newTermName("collection")), newTermName("immutable")), newTermName("List")), newTermName("apply")), ts)
+      Apply(Select(Select(Select(Select(Ident(newTermName("scala")), newTermName("collection")), newTermName("immutable")), newTermName("List")), newTermName("apply")), ts)
     }
 
 }

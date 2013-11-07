@@ -24,19 +24,3 @@ object Sample extends App {
   }
 }
 
-class SimpleCache extends Cache {
-
-  private val mmap = collection.mutable.Map[String, Any]()
-
-  def get[V](key: String): Option[V] = {
-    val value = mmap.get(key)
-    println(s"get(key = ${key}, return: ${value})")
-    value.asInstanceOf[Option[V]]
-  }
-
-  def put[V](key: String, value: V): Unit = {
-    println(s"put(${key} -> ${value}")
-    mmap.put(key, value)
-  }
-
-}

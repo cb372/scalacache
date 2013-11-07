@@ -21,7 +21,7 @@ The cache key is built automatically from the class name, the name of the enclos
 
 ## TODO
 
-* If possible include full package name in cache key
+* <del>If possible include full package name in cache key</del>
 * <del>Write some tests</del>
 * Provide a few useful cache implementations: <del>Guava,</del> Redis, Memached, ...
 * Improve error messages, expand README
