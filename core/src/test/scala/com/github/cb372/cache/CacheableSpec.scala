@@ -37,7 +37,6 @@ class CacheableSpec extends FlatSpec with ShouldMatchers {
 
     // and finally store the result in the cache
     emptyCache.putCalledWithArgs should be(Seq((expectedKey, result)))
-
   }
 
   it should "not execute the block if there is a cache hit" in {

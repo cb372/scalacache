@@ -8,6 +8,10 @@ import com.google.common.cache.{Cache => GCache, CacheBuilder => GCacheBuilder}
  * Created: 2/19/13
  */
 
+/*
+Note: Would be nice to use Any here, but that doesn't conform to GCache's type bounds,
+because Any does not extend java.lang.Object.
+ */
 class GuavaCache(underlying: GCache[String, Object]) extends Cache {
   def get[V](key: String) =  Option(underlying.getIfPresent(key).asInstanceOf[V])
 
