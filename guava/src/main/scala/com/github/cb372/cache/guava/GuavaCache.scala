@@ -19,7 +19,7 @@ class GuavaCache(underlying: GCache[String, Object]) extends Cache {
   def get[V](key: String) =  {
     val entry = Option(underlying.getIfPresent(key).asInstanceOf[Entry[V]])
     /*
-     Note: we could delete the entry from the cache if it is expired,
+     Note: we could delete the entry from the cache if it has expired,
      but that would lead to nasty race conditions in case of concurrent access.
      We might end up deleting an entry that another thread has just inserted.
      */
