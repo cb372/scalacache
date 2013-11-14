@@ -2,13 +2,16 @@ package com.github.cb372.cache.memcached
 
 import org.scalatest.{ShouldMatchers, FlatSpec}
 import net.spy.memcached.{AddrUtil, MemcachedClient}
+import scala.concurrent.duration._
+import org.scalatest.concurrent.Eventually
+import org.scalatest.time.{Span, Seconds}
 
 /**
  *
  * Author: c-birchall
  * Date:   13/11/07
  */
-class MemcachedCacheSpec extends FlatSpec with ShouldMatchers {
+class MemcachedCacheSpec extends FlatSpec with ShouldMatchers with Eventually {
 
   val client = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
 
@@ -37,8 +40,20 @@ class MemcachedCacheSpec extends FlatSpec with ShouldMatchers {
     behavior of "put"
 
     it should "store the given key-value pair in the underlying cache" in {
-      MemcachedCache(client).put("key1", 123)
+      MemcachedCache(client).put("key1", 123, None)
       client.get("key1") should be(123)
+    }
+
+    behavior of "put with TTL"
+
+    it should "store the given key-value pair in the underlying cache" in {
+      MemcachedCache(client).put("key1", 123, Some(1 second))
+      client.get("key1") should be(123)
+
+      // Should expire after 1 second
+      eventually(timeout(Span(2, Seconds))) {
+        client.get("key1") should be(null)
+      }
     }
 
   }

@@ -2,6 +2,7 @@ package com.github.cb372.cache.guava
 
 import com.github.cb372.cache.Cache
 import com.google.common.cache.{Cache => GCache, CacheBuilder => GCacheBuilder}
+import scala.concurrent.duration.Duration
 
 /**
  * Author: chris
@@ -15,7 +16,7 @@ because Any does not extend java.lang.Object.
 class GuavaCache(underlying: GCache[String, Object]) extends Cache {
   def get[V](key: String) =  Option(underlying.getIfPresent(key).asInstanceOf[V])
 
-  def put[V](key: String, value: V) {
+  def put[V](key: String, value: V, ttl: Option[Duration]) {
     underlying.put(key, value.asInstanceOf[Object])
   }
 }

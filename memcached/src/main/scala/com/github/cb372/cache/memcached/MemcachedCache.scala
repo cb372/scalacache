@@ -2,19 +2,20 @@ package com.github.cb372.cache.memcached
 
 import com.github.cb372.cache.Cache
 import net.spy.memcached.{AddrUtil, BinaryConnectionFactory, MemcachedClient}
+import scala.concurrent.duration.Duration
 
 /**
  * Author: chris
  * Created: 2/19/13
  */
 
-class MemcachedCache(client: MemcachedClient) extends Cache {
+class MemcachedCache(client: MemcachedClient) extends Cache with MemcachedTTLConvertor {
   val keySanitizer = new MemcachedKeySanitizer
 
   def get[V](key: String) =  Option(client.get(keySanitizer.toValidMemcachedKey(key)).asInstanceOf[V])
 
-  def put[V](key: String, value: V) {
-    client.set(keySanitizer.toValidMemcachedKey(key), 0, value)
+  def put[V](key: String, value: V, ttl: Option[Duration]) {
+    client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), value)
   }
 }
 

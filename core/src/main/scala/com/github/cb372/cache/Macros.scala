@@ -2,10 +2,15 @@ package com.github.cb372.cache
 
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
+import scala.concurrent.duration.Duration
 
 object Macros {
 
   def cacheableImpl[A : c.WeakTypeTag](c: Context)(f: c.Expr[A])(cacheConfig: c.Expr[CacheConfig]): c.Expr[A] = {
+    cacheableImplWithTTL[A](c)(c.Expr[Duration](c.parse("scala.concurrent.duration.Duration.Zero")))(f)(cacheConfig)
+  }
+
+  def cacheableImplWithTTL[A : c.WeakTypeTag](c: Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(cacheConfig: c.Expr[CacheConfig]): c.Expr[A] = {
     import c.universe._
 
     c.enclosingMethod match {
@@ -27,7 +32,8 @@ object Macros {
           cachedValue.fold[A] {
             // cache miss
             val calculatedValue = f.splice
-            cacheConfig.splice.cache.put(key, calculatedValue)
+            val ttlOpt = if (ttl.splice == Duration.Zero) None else Some(ttl.splice)
+            cacheConfig.splice.cache.put(key, calculatedValue, ttlOpt)
             calculatedValue
           } { v =>
             // cache hit

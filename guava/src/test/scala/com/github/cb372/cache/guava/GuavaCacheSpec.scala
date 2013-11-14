@@ -29,7 +29,7 @@ class GuavaCacheSpec extends FlatSpec with ShouldMatchers {
 
   it should "store the given key-value pair in the underlying cache" in {
     val underlying = newGCache
-    GuavaCache(underlying).put("key1", 123)
+    GuavaCache(underlying).put("key1", 123, None)
     underlying.getIfPresent("key1") should be(123)
   }
   

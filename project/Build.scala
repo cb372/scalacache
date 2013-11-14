@@ -38,7 +38,9 @@ object CacheableBuild extends Build {
     base = file("memcached"),
     settings = standardSettings ++ Seq(
       libraryDependencies ++= Seq(
-        "net.spy" % "spymemcached" % "2.10.2"
+        "net.spy" % "spymemcached" % "2.10.2",
+        "joda-time" % "joda-time" % "2.3",
+        "org.joda" % "joda-convert" % "1.2"
       )
     )
   ) dependsOn(core)
@@ -50,6 +52,7 @@ object CacheableBuild extends Build {
     scalaVersion := Versions.scala,
     scalacOptions ++= Seq("-unchecked", "-deprecation"),
     libraryDependencies ++= Seq(
+      "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
       "org.scalatest" %% "scalatest" % "2.0" % "test"
       //"org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test"
     ),

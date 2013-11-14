@@ -5,6 +5,7 @@ import org.scalatest.FlatSpec
 
 import Cacheable.cacheable
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.duration._
 
 /**
  * Author: chris
@@ -36,7 +37,7 @@ class CacheableSpec extends FlatSpec with ShouldMatchers {
     mockDbCall.calledWithArgs should be(Seq(123))
 
     // and finally store the result in the cache
-    emptyCache.putCalledWithArgs should be(Seq((expectedKey, result)))
+    emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
   }
 
   it should "not execute the block if there is a cache hit" in {
@@ -62,16 +63,43 @@ class CacheableSpec extends FlatSpec with ShouldMatchers {
     fullCache.putCalledWithArgs should be(empty)
   }
 
+  behavior of "cacheable block with TTL"
+
+  it should "pass the TTL parameter to the cache" in {
+    val expectedKey = "com.github.cb372.cache.CacheableSpec.MyMockClass.withTTL(123, abc)"
+
+    val emptyCache = new LoggingCache {
+      def _get[V](key: String): Option[V] = { None }
+      def _put[V](key: String, value: V): Unit = { }
+    }
+    val cacheConfig = CacheConfig(emptyCache, KeyGenerator.defaultGenerator)
+
+    val mockDbCall = new MockDbCall("hello")
+
+    // should return the block's result
+    val result = new MyMockClass(mockDbCall)(cacheConfig).withTTL(123, "abc")
+    result should be("hello")
+
+    // should check the cache first
+    emptyCache.getCalledWithArgs should be(Seq(expectedKey))
+
+    // then execute the block
+    mockDbCall.calledWithArgs should be(Seq(123))
+
+    // and finally store the result in the cache
+    emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, Some(10 seconds))))
+  }
+
   trait LoggingCache extends Cache {
-    var (getCalledWithArgs, putCalledWithArgs) = (ArrayBuffer.empty[String], ArrayBuffer.empty[(String, Any)])
+    var (getCalledWithArgs, putCalledWithArgs) = (ArrayBuffer.empty[String], ArrayBuffer.empty[(String, Any, Option[Duration])])
 
     def get[V](key: String): Option[V] = {
       getCalledWithArgs.append(key)
       _get(key)
     }
 
-    def put[V](key: String, value: V): Unit = {
-      putCalledWithArgs.append((key, value))
+    def put[V](key: String, value: V, ttl: Option[Duration]): Unit = {
+      putCalledWithArgs.append((key, value, ttl))
       _put(key, value)
     }
 
@@ -89,10 +117,12 @@ class CacheableSpec extends FlatSpec with ShouldMatchers {
 
   class MyMockClass(dbCall: Int => String)(implicit val cacheConfig: CacheConfig) {
 
-    def myLongRunningMethod(a: Int, b: String): String = {
-      cacheable {
-        dbCall(a)
-      }
+    def myLongRunningMethod(a: Int, b: String): String = cacheable {
+      dbCall(a)
+    }
+
+    def withTTL(a: Int, b: String): String = cacheable(10 seconds) {
+      dbCall(a)
     }
 
   }
