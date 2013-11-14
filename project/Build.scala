@@ -26,7 +26,7 @@ object CacheableBuild extends Build {
     id = "cacheable-guava",
     base = file("guava"),
     settings = standardSettings ++ Seq(
-      libraryDependencies ++= Seq(
+      libraryDependencies ++= jodaTime ++ Seq(
         "com.google.guava" % "guava" % "15.0",
         "com.google.code.findbugs" % "jsr305" % "1.3.9"
       )
@@ -37,14 +37,16 @@ object CacheableBuild extends Build {
     id = "cacheable-memcached",
     base = file("memcached"),
     settings = standardSettings ++ Seq(
-      libraryDependencies ++= Seq(
-        "net.spy" % "spymemcached" % "2.10.2",
-        "joda-time" % "joda-time" % "2.3",
-        "org.joda" % "joda-convert" % "1.2"
+      libraryDependencies ++= jodaTime ++ Seq(
+        "net.spy" % "spymemcached" % "2.10.2"
       )
     )
   ) dependsOn(core)
 
+  lazy val jodaTime = Seq(
+    "joda-time" % "joda-time" % "2.3",
+    "org.joda" % "joda-convert" % "1.2"
+  )
 
   lazy val standardSettings = Defaults.defaultSettings ++ Seq(
     organization := "com.github.cb372",
