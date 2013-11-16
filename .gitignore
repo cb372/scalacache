@@ -3,3 +3,5 @@
 *.iml
 *.ipr
 target
+coveralls-token.txt
+/*.html
