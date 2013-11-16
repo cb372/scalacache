@@ -1,6 +1,6 @@
 package cacheable.memcached
 
-import org.scalatest.{ShouldMatchers, FlatSpec}
+import org.scalatest.{BeforeAndAfter, ShouldMatchers, FlatSpec}
 import net.spy.memcached.{AddrUtil, MemcachedClient}
 import scala.concurrent.duration._
 import org.scalatest.concurrent.Eventually
@@ -13,7 +13,7 @@ import scala.language.postfixOps
  * Author: c-birchall
  * Date:   13/11/07
  */
-class MemcachedCacheSpec extends FlatSpec with ShouldMatchers with Eventually {
+class MemcachedCacheSpec extends FlatSpec with ShouldMatchers with Eventually with BeforeAndAfter {
 
   val client = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
 
@@ -27,6 +27,12 @@ class MemcachedCacheSpec extends FlatSpec with ShouldMatchers with Eventually {
   if (!memcachedIsRunning) {
     alert("Skipping tests because Memcached does not appear to be running on localhost.")
   } else {
+
+    before {
+      client.delete("key1")
+      client.delete("key2")
+      client.delete("key3")
+    }
 
     behavior of "get"
 
@@ -42,19 +48,19 @@ class MemcachedCacheSpec extends FlatSpec with ShouldMatchers with Eventually {
     behavior of "put"
 
     it should "store the given key-value pair in the underlying cache" in {
-      MemcachedCache(client).put("key1", 123, None)
-      client.get("key1") should be(123)
+      MemcachedCache(client).put("key2", 123, None)
+      client.get("key2") should be(123)
     }
 
     behavior of "put with TTL"
 
     it should "store the given key-value pair in the underlying cache" in {
-      MemcachedCache(client).put("key1", 123, Some(1 second))
-      client.get("key1") should be(123)
+      MemcachedCache(client).put("key3", 123, Some(1 second))
+      client.get("key3") should be(123)
 
       // Should expire after 1 second
       eventually(timeout(Span(2, Seconds))) {
-        client.get("key1") should be(null)
+        client.get("key3") should be(null)
       }
     }
 
