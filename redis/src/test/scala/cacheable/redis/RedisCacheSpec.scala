@@ -31,7 +31,7 @@ class RedisCacheSpec extends FlatSpec with ShouldMatchers with Eventually with B
     val cache = RedisCache(client)
 
     before {
-      client.del("key1", "key2", "key3")
+      client.del("key1", "key2", "key3", "key4", "key5")
     }
 
     behavior of "get"
@@ -61,6 +61,27 @@ class RedisCacheSpec extends FlatSpec with ShouldMatchers with Eventually with B
       // Should expire after 1 second
       eventually(timeout(Span(2, Seconds))) {
         client.get("key3") should be(None)
+      }
+    }
+
+    behavior of "put with TTL of zero"
+
+    it should "store the given key-value pair in the underlying cache with no expiry" in {
+      cache.put("key4", 123, Some(Duration.Zero))
+      client.get("key4") should be(Some(123))
+      client.ttl("key4") should be(Some(-1))
+    }
+
+    behavior of "put with TTL of less than 1 second"
+
+    it should "store the given key-value pair in the underlying cache" in {
+      cache.put("key5", 123, Some(100 milliseconds))
+      client.get("key5") should be(Some(123))
+      client.pttl("key5").get should be > 0L
+
+      // Should expire after 1 second
+      eventually(timeout(Span(2, Seconds))) {
+        client.get("key5") should be(None)
       }
     }
 
