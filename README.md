@@ -32,7 +32,7 @@ Did you spot the magic word 'cacheable' in the 'getUser' method? Just adding thi
 
 ## How it works
 
-Like Spring Cache and similar frameworks, Cacheable automatically builds a cache key based on the method being called. However, it does *not* use AOP. Instead it makes use of Scala macros, so the cache key generation is performed at compile time. Runtime performance overhead is zero, and there is no need to fiddle with AOP configuration.
+Like Spring Cache and similar frameworks, Cacheable automatically builds a cache key based on the method being called. However, it does *not* use AOP. Instead it makes use of Scala macros, so most of the information needed to build the cache key is gathered at compile time. No reflection or AOP magic at runtime.
 
 ### Cache key generation
 
