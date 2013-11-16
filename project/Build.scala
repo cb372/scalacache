@@ -52,7 +52,7 @@ object CacheableBuild extends Build {
     organization := "com.github.cb372",
     version      := "0.1-SNAPSHOT",
     scalaVersion := Versions.scala,
-    scalacOptions ++= Seq("-unchecked", "-deprecation"),
+    scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     libraryDependencies ++= Seq(
       "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
       "org.scalatest" %% "scalatest" % "2.0" % "test"

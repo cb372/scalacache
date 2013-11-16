@@ -1,0 +1,62 @@
+package cacheable.guava
+
+import org.scalatest.{BeforeAndAfter, ShouldMatchers, FlatSpec}
+import com.google.common.cache.CacheBuilder
+import org.joda.time.{DateTimeUtils, DateTime}
+import scala.concurrent.duration._
+
+/**
+ *
+ * Author: c-birchall
+ * Date:   13/11/07
+ */
+class GuavaCacheSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
+
+  def newGCache = CacheBuilder.newBuilder().build[String, Object]
+
+  behavior of "get"
+
+  it should "return the value stored in the underlying cache" in {
+    val underlying = newGCache
+    val entry = Entry("hello", expiresAt = None)
+    underlying.put("key1", entry)
+    GuavaCache(underlying).get("key1") should be(Some("hello"))
+  }
+
+  it should "return None if the given key does not exist in the underlying cache" in {
+    val underlying = newGCache
+    GuavaCache(underlying).get("non-existent key") should be(None)
+  }
+
+  it should "return None if the given key exists but the value has expired" in {
+    val underlying = newGCache
+    val expiredEntry = Entry("hello", expiresAt = Some(DateTime.now.minusSeconds(1)))
+    underlying.put("key1", expiredEntry)
+    GuavaCache(underlying).get("non-existent key") should be(None)
+  }
+
+  behavior of "put"
+
+  it should "store the given key-value pair in the underlying cache with no TTL" in {
+    val underlying = newGCache
+    GuavaCache(underlying).put("key1", "hello", None)
+    underlying.getIfPresent("key1") should be(Entry("hello", None))
+  }
+
+  behavior of "put with TTL"
+
+  it should "store the given key-value pair in the underlying cache with the given TTL" in {
+    val now = DateTime.now
+    DateTimeUtils.setCurrentMillisFixed(now.getMillis)
+
+    val underlying = newGCache
+    GuavaCache(underlying).put("key1", "hello", Some(10.seconds))
+    underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(now.plusSeconds(10))))
+  }
+
+  after {
+    DateTimeUtils.setCurrentMillisSystem()
+  }
+
+
+}
