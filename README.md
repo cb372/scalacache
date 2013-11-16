@@ -12,7 +12,7 @@ The following cache implementations are supported, and it's super-easy to plugin
 * Google Guava
 * Memcached
 * Ehcache
-* Redis (TODO)
+* Redis
 
 ## How to use
 
@@ -140,3 +140,30 @@ val underlying: net.sf.ehcache.Cache = cacheManager.getCache("myCache")
 implicit val cacheConfig = CacheConfig(EhcacheCache(underlying))
 ```
 
+### Redis
+
+SBT:
+
+```
+libraryDependencies += "com.github.cb372" %% "cacheable-redis" % "0.1"
+```
+
+Usage:
+
+```scala
+import cacheable._
+import redis._
+
+implicit val cacheConfig = CacheConfig(RedisCache("host1", 6379))
+```
+
+or provide your own Redis client, like this:
+
+```scala
+import cacheable._
+import redis._
+import com.redis.RedisClient
+
+val redisClient = new RedisClient(...)
+implicit val cacheConfig = CacheConfig(RedisCache(redisClient))
+```

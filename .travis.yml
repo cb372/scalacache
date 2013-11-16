@@ -5,3 +5,5 @@ jdk:
   - oraclejdk7
 services:
   - memcached
+  - redis
+script: "sbt coveralls"
