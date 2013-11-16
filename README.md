@@ -113,3 +113,26 @@ import net.spy.memcached.MemcachedClient
 val memcachedClient = new MemcachedClient(...)
 implicit val cacheConfig = CacheConfig(MemcachedCache(memcachedClient))
 ```
+
+### Ehcache
+
+SBT:
+
+```
+libraryDependencies += "com.github.cb372" %% "cacheable-ehcache" % "0.1"
+```
+
+Usage:
+
+```scala
+import cacheable._
+import ehcache._
+
+// We assume you've already taken care of Ehcache config, 
+// and you have an initialized Ehcache cache.
+val cacheManager: net.sf.ehcache.CacheManager = ...
+val underlying: net.sf.ehcache.Cache = cacheManager.getCache("myCache")
+
+implicit val cacheConfig = CacheConfig(EhcacheCache(underlying))
+```
+

@@ -13,7 +13,7 @@ object CacheableBuild extends Build {
     .settings(ScctPlugin.mergeReportSettings: _*)
     .settings(CoverallsPlugin.multiProject: _*)
     .settings(coverallsTokenFile := "coveralls-token.txt")
-    .aggregate(core, guava, memcached)
+    .aggregate(core, guava, memcached, ehcache)
 
   lazy val core = Project(id = "cacheable-core", base = file("core"))
     .settings(standardSettings: _*)
@@ -41,6 +41,17 @@ object CacheableBuild extends Build {
     .settings(
       libraryDependencies ++= jodaTime ++ Seq(
         "net.spy" % "spymemcached" % "2.10.2"
+      )
+    )
+    .dependsOn(core)
+
+  lazy val ehcache = Project(id = "cacheable-ehcache", base = file("ehcache"))
+    .settings(standardSettings: _*)
+    .settings(ScctPlugin.instrumentSettings: _*) 
+    .settings(
+      libraryDependencies ++= jodaTime ++ Seq(
+        "net.sf.ehcache" % "ehcache" % "2.7.4",
+        "javax.transaction" % "jta" % "1.1"
       )
     )
     .dependsOn(core)

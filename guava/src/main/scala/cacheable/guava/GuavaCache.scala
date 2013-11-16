@@ -16,6 +16,12 @@ because Any does not extend java.lang.Object.
  */
 class GuavaCache(underlying: GCache[String, Object]) extends Cache {
 
+  /**
+   * Get the value corresponding to the given key from the cache
+   * @param key cache key
+   * @tparam V the type of the corresponding value
+   * @return the value, if there is one
+   */
   def get[V](key: String) =  {
     val entry = Option(underlying.getIfPresent(key).asInstanceOf[Entry[V]])
     /*
@@ -29,6 +35,13 @@ class GuavaCache(underlying: GCache[String, Object]) extends Cache {
     }
   }
 
+  /**
+   * Insert the given key-value pair into the cache, with an optional Time To Live.
+   * @param key cache key
+   * @param value corresponding value
+   * @param ttl Time To Live
+   * @tparam V the type of the corresponding value
+   */
   def put[V](key: String, value: V, ttl: Option[Duration]) {
     val entry = Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
