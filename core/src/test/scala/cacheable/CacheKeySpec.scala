@@ -1,7 +1,6 @@
 package cacheable
 
 import org.scalatest._
-import cacheable.Cacheable._
 
 /**
  *
@@ -12,7 +11,7 @@ class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
 
   behavior of "cache key generation"
 
-  val cache = new SimpleCache
+  val cache = new MockCache
   implicit val cacheConfig = CacheConfig(cache, KeyGenerator.defaultGenerator)
 
   before {

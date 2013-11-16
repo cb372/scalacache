@@ -3,7 +3,6 @@ package cacheable
 import org.scalatest.ShouldMatchers
 import org.scalatest.FlatSpec
 
-import Cacheable.cacheable
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 

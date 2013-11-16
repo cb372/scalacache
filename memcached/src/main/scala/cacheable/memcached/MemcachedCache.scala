@@ -22,10 +22,16 @@ class MemcachedCache(client: MemcachedClient) extends Cache with MemcachedTTLCon
 object MemcachedCache {
 
   /**
-   * Create a Memcached client connecting to localhost:11211 and use that for caching
+   * Create a Memcached client connecting to localhost:11211 and use it for caching
    */
-  def apply: MemcachedCache =
-    apply(new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses("localhost:11211")))
+  def apply(): MemcachedCache = apply("localhost:11211")
+
+  /**
+   * Create a Memcached client connecting to the given host(s) and use it for caching
+   * @param addressString Address string, with addresses separated by spaces, e.g. "host1:11211 host2:22322"
+   */
+  def apply(addressString: String): MemcachedCache =
+    apply(new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(addressString)))
 
   /**
    * Create a cache that uses the given Memcached client

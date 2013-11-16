@@ -1,9 +1,7 @@
-package cacheable
-
 import scala.language.experimental.macros
 import scala.concurrent.duration._
 
-object Cacheable {
+package object cacheable {
 
   /**
    * Perform the given operation and memoize its result to a cache before returning it.

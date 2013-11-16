@@ -43,7 +43,7 @@ object GuavaCache {
   /**
    * Create a new Guava cache
    */
-  def apply: GuavaCache = apply(GCacheBuilder.newBuilder().build[String, Object]())
+  def apply(): GuavaCache = apply(GCacheBuilder.newBuilder().build[String, Object]())
 
   /**
    * Create a new cache utilizing the given underlying Guava cache.

@@ -1,28 +1,115 @@
 # Cacheable
 
-An experimental attempt to recreate the behaviour of Spring's `@Cacheable` annotation, using Scala macros instead of AOP.
+A simple and handy library for adding caching to any Scala app with the minimum of fuss.
 
-Example usage:
+Cacheable is ideal for caching DB lookups, API calls, or anything else that takes a long time to compute.
+
+The following cache implementations are supported, and it's super-easy to plugin your own implementation:
+* Google Guava
+* Memcached
+* Redis (TODO)
+* Ehcache (TODO)
+
+## How to use
 
 ```scala 
+import cacheable._
+
+// Configuration: the cache implementation to use, and how to generate cache keys
 implicit val cacheConfig = CacheConfig(new MyCache(), KeyGenerator.defaultGenerator)
 
-def getUser(id: Int): User = {  
-  cacheable { 
-    // Do DB lookup here...
-    User(id, s"user${id}")
-  }                    
+def getUser(id: Int): User = cacheable { 
+  // Do DB lookup here...
+  User(id, s"user${id}")
 }
 ```
 
-This will memoize the result of the `cacheable` block in a cache of your choice.
+Did you spot the magic word 'cacheable' in the 'getUser' method? Just adding this keyword will cause the result of the method to be memoized to a cache, so the next time you call the method the result will be retrieved from the cache.
+
+## How it works
+
+Like Spring Cache and similar frameworks, Cacheable automatically builds a cache key based on the method being called. However, it does *not* use AOP. Instead it makes use of Scala macros, so the cache key generation is performed at compile time. Runtime performance overhead is zero, and there is no need to fiddle with AOP configuration.
+
+### Cache key generation
 
 The cache key is built automatically from the class name, the name of the enclosing method (`getUser`), and the values of all of the method's parameters.
 
-## TODO
+For example, given the following method:
 
-* <del>If possible include full package name in cache key</del>
-* <del>Write some tests</del>
-* Provide a few useful cache implementations: <del>Guava,</del> <del>Memached</del>, Redis, Ehcache
-* <del>Add per-entry TTL support<del>
-* Improve error messages, expand README
+```scala 
+package foo
+
+object Bar {
+  def baz(a: Int, b: String)(c: String): Int = cacheable { 
+    // Reticulating splines...   
+    123
+  }
+}
+```
+
+the result of the method call
+```scala 
+val result = Bar.baz(1, "hello")("world")
+```
+
+would be cached with the key: `foo.bar.Baz(1, hello)(world)`.
+
+Note that the cache key generation logic is customizable.
+
+## Cache implementations
+
+### Google Guava
+
+SBT:
+
+```
+libraryDependencies += "com.github.cb372" %% "cacheable-guava" % "0.1"
+```
+
+Usage:
+
+```scala
+import cacheable._
+import guava._
+
+implicit val cacheConfig = CacheConfig(GuavaCache())
+```
+
+This will build a Guava cache with all the default settings. If you want to customize your Guava cache, then build it yourself and pass it to `GuavaCache` like this:
+
+```scala
+import cacheable._
+import guava._
+import com.google.common.cache.CacheBuilder
+
+val underlyingGuavaCache = CacheBuilder.newBuilder().maximumSize(10000L).build[String, Object]
+implicit val cacheConfig = CacheConfig(GuavaCache(underlyingGuavaCache))
+```
+
+### Memcached
+
+SBT:
+
+```
+libraryDependencies += "com.github.cb372" %% "cacheable-memcached" % "0.1"
+```
+
+Usage:
+
+```scala
+import cacheable._
+import memcached._
+
+implicit val cacheConfig = CacheConfig(MemcachedCache("host:port"))
+```
+
+or provide your own Memcached client, like this:
+
+```scala
+import cacheable._
+import memcached._
+import net.spy.memcached.MemcachedClient
+
+val memcachedClient = new MemcachedClient(...)
+implicit val cacheConfig = CacheConfig(MemcachedCache(memcachedClient))
+```

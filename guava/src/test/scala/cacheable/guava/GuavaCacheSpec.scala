@@ -12,7 +12,7 @@ import scala.concurrent.duration._
  */
 class GuavaCacheSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
 
-  def newGCache = CacheBuilder.newBuilder().build[String, Object]
+  def newGCache = CacheBuilder.newBuilder.build[String, Object]
 
   behavior of "get"
 

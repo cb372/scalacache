@@ -3,13 +3,13 @@ package cacheable
 import scala.concurrent.duration.Duration
 
 /**
- * A mock cache for use in Sample.scala.
+ * A mock cache for use in tests and samples.
  * Does not support TTL.
  *
  * Author: c-birchall
  * Date:   13/11/07
  */
-class SimpleCache extends Cache {
+class MockCache extends Cache {
 
   val mmap = collection.mutable.Map[String, Any]()
 

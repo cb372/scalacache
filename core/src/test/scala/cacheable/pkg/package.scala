@@ -1,7 +1,5 @@
 package cacheable
 
-import cacheable.Cacheable._
-
 /**
  *
  * Author: c-birchall

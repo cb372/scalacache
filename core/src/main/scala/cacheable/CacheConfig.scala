@@ -7,6 +7,6 @@ package cacheable
  */
 case class CacheConfig (
   cache: Cache,
-  keyGenerator: KeyGenerator
+  keyGenerator: KeyGenerator = KeyGenerator.defaultGenerator
 )
 
