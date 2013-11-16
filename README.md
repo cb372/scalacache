@@ -28,7 +28,7 @@ def getUser(id: Int): User = cacheable {
 }
 ```
 
-Did you spot the magic word 'cacheable' in the 'getUser' method? Just adding this keyword will cause the result of the method to be memoized to a cache, so the next time you call the method the result will be retrieved from the cache.
+Did you spot the magic word 'cacheable' in the `getUser` method? Just adding this keyword will cause the result of the method to be memoized to a cache, so the next time you call the method the result will be retrieved from the cache.
 
 ## How it works
 
@@ -36,7 +36,7 @@ Like Spring Cache and similar frameworks, Cacheable automatically builds a cache
 
 ### Cache key generation
 
-The cache key is built automatically from the class name, the name of the enclosing method (`getUser`), and the values of all of the method's parameters.
+The cache key is built automatically from the class name, the name of the enclosing method, and the values of all of the method's parameters.
 
 For example, given the following method:
 
