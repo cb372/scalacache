@@ -30,6 +30,22 @@ def getUser(id: Int): User = cacheable {
 
 Did you spot the magic word 'cacheable' in the `getUser` method? Just adding this keyword will cause the result of the method to be memoized to a cache, so the next time you call the method the result will be retrieved from the cache.
 
+### Time To Live 
+
+You can optionally specify a Time To Live for the cached result:
+
+```scala 
+import concurrent.duration._
+import language.postfixOps
+
+def getUser(id: Int): User = cacheable(60 seconds) { 
+  // Do DB lookup here...
+  User(id, s"user${id}")
+}
+```
+
+In the above sample, the retrieved User object will be evicted from the cache after 60 seconds.
+
 ## How it works
 
 Like Spring Cache and similar frameworks, Cacheable automatically builds a cache key based on the method being called. However, it does *not* use AOP. Instead it makes use of Scala macros, so most of the information needed to build the cache key is gathered at compile time. No reflection or AOP magic at runtime.
