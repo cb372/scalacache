@@ -13,6 +13,7 @@ object CacheableBuild extends Build {
     .settings(ScctPlugin.mergeReportSettings: _*)
     .settings(CoverallsPlugin.multiProject: _*)
     .settings(coverallsTokenFile := "coveralls-token.txt")
+    .settings(publishArtifact := false)
     .aggregate(core, guava, memcached, ehcache, redis)
 
   lazy val core = Project(id = "cacheable-core", base = file("core"))
@@ -71,7 +72,7 @@ object CacheableBuild extends Build {
     "org.joda" % "joda-convert" % "1.2"
   )
 
-  lazy val standardSettings = Defaults.defaultSettings ++ Seq(
+  lazy val standardSettings = Defaults.defaultSettings ++ mavenSettings ++ Seq(
     organization := "com.github.cb372",
     version      := "0.1-SNAPSHOT",
     scalaVersion := Versions.scala,
@@ -82,6 +83,39 @@ object CacheableBuild extends Build {
       //"org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test"
     ),
     parallelExecution in Test := false
+  )
+
+  lazy val mavenSettings = Seq(
+    pomExtra :=
+      <url>https://github.com/cb372/cacheable</url>
+      <licenses>
+        <license>
+          <name>Apache License, Version 2.0</name>
+          <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+          <distribution>repo</distribution>
+        </license>
+      </licenses>
+      <scm>
+        <url>git@github.com:cb372/cacheable.git</url>
+        <connection>scm:git:git@github.com:cb372/cacheable.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>cb372</id>
+          <name>Chris Birchall</name>
+          <url>https://github.com/cb372</url>
+        </developer>
+      </developers>,
+    publishTo <<= version { v =>
+      val nexus = "https://oss.sonatype.org/"
+      if (v.trim.endsWith("SNAPSHOT"))
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    },
+    publishMavenStyle := true,
+    publishArtifact in Test := false,
+    pomIncludeRepository := { _ => false }
   )
 }
 
