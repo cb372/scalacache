@@ -80,7 +80,7 @@ object CacheableBuild extends Build {
     libraryDependencies ++= Seq(
       "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
       "org.scalatest" %% "scalatest" % "2.0" % "test",
-      "com.github.scct" %% "scct" % "0.2.1" % "test"  // overwrite scope
+      "com.github.scct" %% "scct" % "0.2.2" % "test"  // overwrite scope
       //"org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test"
     ),
     parallelExecution in Test := false
