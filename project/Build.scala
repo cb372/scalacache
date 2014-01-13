@@ -6,6 +6,7 @@ object CacheableBuild extends Build {
   
   object Versions {
     val scala = "2.10.3"
+    val project = "0.1.1"
   }
 
   lazy val root = Project(id = "cacheable",base = file("."))
@@ -74,7 +75,7 @@ object CacheableBuild extends Build {
 
   lazy val standardSettings = Defaults.defaultSettings ++ mavenSettings ++ Seq(
     organization := "com.github.cb372",
-    version      := "0.2-SNAPSHOT",
+    version      := Versions.project,
     scalaVersion := Versions.scala,
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     libraryDependencies ++= Seq(
