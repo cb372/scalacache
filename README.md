@@ -83,7 +83,7 @@ Note that the cache key generation logic is customizable.
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "cacheable-guava" % "0.1"
+libraryDependencies += "com.github.cb372" %% "cacheable-guava" % "0.1.1"
 ```
 
 Usage:
@@ -111,7 +111,7 @@ implicit val cacheConfig = CacheConfig(GuavaCache(underlyingGuavaCache))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "cacheable-memcached" % "0.1"
+libraryDependencies += "com.github.cb372" %% "cacheable-memcached" % "0.1.1"
 ```
 
 Usage:
@@ -139,7 +139,7 @@ implicit val cacheConfig = CacheConfig(MemcachedCache(memcachedClient))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "cacheable-ehcache" % "0.1"
+libraryDependencies += "com.github.cb372" %% "cacheable-ehcache" % "0.1.1"
 ```
 
 Usage:
@@ -161,7 +161,7 @@ implicit val cacheConfig = CacheConfig(EhcacheCache(underlying))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "cacheable-redis" % "0.1"
+libraryDependencies += "com.github.cb372" %% "cacheable-redis" % "0.1.1"
 ```
 
 Usage:
