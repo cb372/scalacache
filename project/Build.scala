@@ -1,6 +1,6 @@
 import sbt._
 import Keys._
-import CoverallsPlugin.CoverallsKeys._
+//import CoverallsPlugin.CoverallsKeys._
 
 object CacheableBuild extends Build {
   
@@ -11,24 +11,24 @@ object CacheableBuild extends Build {
 
   lazy val root = Project(id = "cacheable",base = file("."))
     .settings(standardSettings: _*)
-    .settings(ScctPlugin.mergeReportSettings: _*)
-    .settings(CoverallsPlugin.multiProject: _*)
-    .settings(coverallsTokenFile := "coveralls-token.txt")
+    //.settings(ScctPlugin.mergeReportSettings: _*)
+    //.settings(CoverallsPlugin.multiProject: _*)
+    //.settings(coverallsTokenFile := "coveralls-token.txt")
     .settings(publishArtifact := false)
     .aggregate(core, guava, memcached, ehcache, redis)
 
   lazy val core = Project(id = "cacheable-core", base = file("core"))
     .settings(standardSettings: _*)
-    .settings(ScctPlugin.instrumentSettings: _*) 
+    //.settings(ScctPlugin.instrumentSettings: _*) 
     .settings(
-      libraryDependencies ++= Seq(
-        "org.scala-lang" % "scala-reflect" % Versions.scala
-      )
+      libraryDependencies <+= scalaVersion { s =>
+        "org.scala-lang" % "scala-reflect" % s
+      }
     )
 
   lazy val guava = Project(id = "cacheable-guava", base = file("guava"))
     .settings(standardSettings: _*)
-    .settings(ScctPlugin.instrumentSettings: _*) 
+    //.settings(ScctPlugin.instrumentSettings: _*) 
     .settings(
       libraryDependencies ++= jodaTime ++ Seq(
         "com.google.guava" % "guava" % "15.0",
@@ -39,7 +39,7 @@ object CacheableBuild extends Build {
 
   lazy val memcached = Project(id = "cacheable-memcached", base = file("memcached"))
     .settings(standardSettings: _*)
-    .settings(ScctPlugin.instrumentSettings: _*) 
+    //.settings(ScctPlugin.instrumentSettings: _*) 
     .settings(
       libraryDependencies ++= jodaTime ++ Seq(
         "net.spy" % "spymemcached" % "2.10.2"
@@ -49,7 +49,7 @@ object CacheableBuild extends Build {
 
   lazy val ehcache = Project(id = "cacheable-ehcache", base = file("ehcache"))
     .settings(standardSettings: _*)
-    .settings(ScctPlugin.instrumentSettings: _*) 
+    //.settings(ScctPlugin.instrumentSettings: _*) 
     .settings(
       libraryDependencies ++= jodaTime ++ Seq(
         "net.sf.ehcache" % "ehcache" % "2.7.4",
@@ -60,10 +60,10 @@ object CacheableBuild extends Build {
 
   lazy val redis = Project(id = "cacheable-redis", base = file("redis"))
     .settings(standardSettings: _*)
-    .settings(ScctPlugin.instrumentSettings: _*) 
+    //.settings(ScctPlugin.instrumentSettings: _*) 
     .settings(
       libraryDependencies ++= jodaTime ++ Seq(
-        "net.debasishg" %% "redisclient" % "2.11"
+        "net.debasishg" % "redisclient_2.10" % "2.11"
       )
     )
     .dependsOn(core)
@@ -77,11 +77,12 @@ object CacheableBuild extends Build {
     organization := "com.github.cb372",
     version      := Versions.project,
     scalaVersion := Versions.scala,
+    crossScalaVersions := Seq("2.10.3", "2.11.0-M8"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     libraryDependencies ++= Seq(
-      "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
-      "org.scalatest" %% "scalatest" % "2.0" % "test",
-      "com.github.scct" %% "scct" % "0.2.1" % "test"  // overwrite scope
+      "com.typesafe" % "scalalogging-slf4j_2.10" % "1.0.1",
+      "org.scalatest" % "scalatest_2.10" % "2.0" % "test"
+      //"com.github.scct" % "scct_2.10" % "0.2.1" % "test",  // overwrite scope
       //"org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test"
     ),
     parallelExecution in Test := false
