@@ -67,7 +67,7 @@ object Macros {
      */
     private def listToTree(c: Context)(ts: List[c.Tree]): c.Tree = { 
       import c.universe._
-      Apply(Select(Select(Select(Select(Ident(newTermName("scala")), newTermName("collection")), newTermName("immutable")), newTermName("List")), newTermName("apply")), ts)
+      Apply(Select(Select(Select(Select(Ident(TermName("scala")), TermName("collection")), TermName("immutable")), TermName("List")), TermName("apply")), ts)
     }
 
 }
