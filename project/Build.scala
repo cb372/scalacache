@@ -5,7 +5,7 @@ import Keys._
 object CacheableBuild extends Build {
   
   object Versions {
-    val scala = "2.10.3"
+    val scala = "2.11.0-RC1"
     val project = "0.2-SNAPSHOT"
   }
 
