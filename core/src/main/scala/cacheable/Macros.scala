@@ -21,7 +21,7 @@ object Macros {
       Apply(Select(Select(Select(Select(Ident(TermName("scala")), TermName("collection")), TermName("immutable")), TermName("List")), TermName("apply")), ts)
     }
 
-    c.prefix match {
+    c.enclosingMethod match {
       case DefDef(mods, methodName, tparams, vparamss, tpt, rhs) => {
 
         /*
@@ -31,25 +31,46 @@ object Macros {
         //val classNameExpr: Expr[String] = getClassName(c)
         //val methodNameExpr: Expr[String] = c.literal(methodName.toString)
         val classNameTree = getClassName(c)
-        val methodNameTree = q"$methodName"
+        val methodNameTree = getMethodName(c)
         val paramIdents: List[List[Ident]] = vparamss.map(ps => ps.map(p => Ident(p.name)))
         val paramssTree: Tree = listToTree(c)(paramIdents.map(ps => listToTree(c)(ps)))
         //val paramssExpr: Expr[List[List[Any]]] = c.Expr[List[List[Any]]](paramssTree)
 
-        q"""
-          val key = cacheConfig.splice.keyGenerator.toCacheKey($classNameTree, $methodNameTree, $paramssTree)
-          val cachedValue = cacheConfig.splice.cache.get[A](key)
-          cachedValue.fold[A] {
+        //q"123"
+
+        val tree = q"""
+          val key = $cacheConfig.keyGenerator.toCacheKey($classNameTree, $methodNameTree, $paramssTree)
+          val cachedValue = $cacheConfig.cache.get(key)
+          cachedValue.fold {
             // cache miss
-            val calculatedValue = f.splice
-            val ttlOpt = if (ttl.splice == Duration.Zero) None else Some(ttl.splice)
-            cacheConfig.splice.cache.put(key, calculatedValue, ttlOpt)
+            val calculatedValue = $f
+            val ttlOpt = if ($ttl == scala.concurrent.duration.Duration.Zero) None else Some($ttl)
+            $cacheConfig.cache.put(key, calculatedValue, ttlOpt)
             calculatedValue
           } { v =>
             // cache hit
             v
           }
         """
+
+        println(showCode(tree))
+
+        tree
+//        q"""
+//          val key = $cacheConfig.keyGenerator.toCacheKey($classNameTree, $methodNameTree, $paramssTree)
+//          val cachedValue = $cacheConfig.cache.get(key)
+//          cachedValue.fold {
+//            // cache miss
+//            val calculatedValue = $f
+//            val ttlOpt = if ($ttl == scala.concurrent.duration.Duration.Zero) None else Some($ttl)
+//            $cacheConfig.cache.put(key, calculatedValue, ttlOpt)
+//            calculatedValue
+//          } { v =>
+//            // cache hit
+//            v
+//          }
+//        """
+
 //        reify {
 //          val key = cacheConfig.splice.keyGenerator.toCacheKey(classNameExpr.splice, methodNameExpr.splice, paramssExpr.splice)
 //          val cachedValue = cacheConfig.splice.cache.get[A](key)
@@ -99,11 +120,9 @@ object Macros {
 
     def getMethodNameRecursively(sym: Symbol): String = {
       if (sym.isMethod)
-        sym.asMethod.fullName
-      else if (sym.isModule)
-        sym.asModule.fullName
+        sym.asMethod.name.toString
       else
-      // TODO null check
+        // TODO null check
         getMethodNameRecursively(sym.owner)
     }
 
