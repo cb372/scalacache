@@ -16,11 +16,21 @@ object Macros {
     /**
      * Convert a List[Tree] to a Tree by calling scala.collection.immutable.list.apply()
      */
-    def listToTree(c: Context)(ts: List[Tree]): Tree = {
-      // TODO could write like this? q"_root_.scala.collection.immutable.List(..$ts)"
-      Apply(Select(Select(Select(Select(Ident(TermName("scala")), TermName("collection")), TermName("immutable")), TermName("List")), TermName("apply")), ts)
-    }
+    def listToTree(c: Context)(ts: List[Tree]): Tree =
+      q"_root_.scala.collection.immutable.List(..$ts)"
 
+    /*
+     Unfortunately this is a huge, hairy and unfixable deprecation warning :(
+
+     c.enclosingMethod is due to be removed in Scala 2.12, meaning that there will be no
+     way to access the enclosing tree of the macro's call site.
+     (c.encosingOwner returns only a Symbol, not a Tree.)
+
+     Apparently this is an intentional API change, as the macro API designers do not want people
+     to write macros that care too much about their surroundings.
+
+     Is Cacheable doomed in 2.12 ??!
+     */
     c.enclosingMethod match {
       case DefDef(mods, methodName, tparams, vparamss, tpt, rhs) => {
 
@@ -28,15 +38,10 @@ object Macros {
          * Gather all the info needed to build the cache key:
          * class name, method name and the method parameters lists
          */
-        //val classNameExpr: Expr[String] = getClassName(c)
-        //val methodNameExpr: Expr[String] = c.literal(methodName.toString)
         val classNameTree = getClassName(c)
         val methodNameTree = getMethodName(c)
         val paramIdents: List[List[Ident]] = vparamss.map(ps => ps.map(p => Ident(p.name)))
         val paramssTree: Tree = listToTree(c)(paramIdents.map(ps => listToTree(c)(ps)))
-        //val paramssExpr: Expr[List[List[Any]]] = c.Expr[List[List[Any]]](paramssTree)
-
-        //q"123"
 
         val tree = q"""
           val key = $cacheConfig.keyGenerator.toCacheKey($classNameTree, $methodNameTree, $paramssTree)
@@ -49,40 +54,8 @@ object Macros {
             calculatedValue
           }
         """
-
-        println(showCode(tree))
-
+        //println(showCode(tree))
         tree
-//        q"""
-//          val key = $cacheConfig.keyGenerator.toCacheKey($classNameTree, $methodNameTree, $paramssTree)
-//          val cachedValue = $cacheConfig.cache.get(key)
-//          cachedValue.fold {
-//            // cache miss
-//            val calculatedValue = $f
-//            val ttlOpt = if ($ttl == scala.concurrent.duration.Duration.Zero) None else Some($ttl)
-//            $cacheConfig.cache.put(key, calculatedValue, ttlOpt)
-//            calculatedValue
-//          } { v =>
-//            // cache hit
-//            v
-//          }
-//        """
-
-//        reify {
-//          val key = cacheConfig.splice.keyGenerator.toCacheKey(classNameExpr.splice, methodNameExpr.splice, paramssExpr.splice)
-//          val cachedValue = cacheConfig.splice.cache.get[A](key)
-//          cachedValue.fold[A] {
-//            // cache miss
-//            val calculatedValue = f.splice
-//            val ttlOpt = if (ttl.splice == Duration.Zero) None else Some(ttl.splice)
-//            cacheConfig.splice.cache.put(key, calculatedValue, ttlOpt)
-//            calculatedValue
-//          } { v =>
-//            // cache hit
-//            v
-//          }
-//        }
-      
       }
 
       case _ => {
@@ -97,12 +70,13 @@ object Macros {
     import c.universe._
 
     def getClassNameRecursively(sym: Symbol): String = {
-      if (sym.isClass)
+      if (sym == null)
+        c.abort(c.enclosingPosition, "Encountered a null symbol while searching for enclosing class")
+      else if (sym.isClass)
         sym.asClass.fullName
       else if (sym.isModule)
         sym.asModule.fullName
       else
-        // TODO null check
         getClassNameRecursively(sym.owner)
     }
 
@@ -116,10 +90,11 @@ object Macros {
     import c.universe._
 
     def getMethodNameRecursively(sym: Symbol): String = {
+      if (sym == null)
+        c.abort(c.enclosingPosition, "Encountered a null symbol while searching for enclosing method")
       if (sym.isMethod)
         sym.asMethod.name.toString
       else
-        // TODO null check
         getMethodNameRecursively(sym.owner)
     }
 
