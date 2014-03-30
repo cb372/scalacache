@@ -25,7 +25,7 @@ object CacheableBuild extends Build {
     .settings(standardSettings: _*)
     .settings(
       libraryDependencies ++= jodaTime ++ Seq(
-        "com.google.guava" % "guava" % "15.0",
+        "com.google.guava" % "guava" % "16.0.1",
         "com.google.code.findbugs" % "jsr305" % "1.3.9"
       )
     )
@@ -35,7 +35,7 @@ object CacheableBuild extends Build {
     .settings(standardSettings: _*)
     .settings(
       libraryDependencies ++= jodaTime ++ Seq(
-        "net.spy" % "spymemcached" % "2.10.2"
+        "net.spy" % "spymemcached" % "2.10.6"
       )
     )
     .dependsOn(core)
@@ -44,7 +44,7 @@ object CacheableBuild extends Build {
     .settings(standardSettings: _*)
     .settings(
       libraryDependencies ++= jodaTime ++ Seq(
-        "net.sf.ehcache" % "ehcache" % "2.7.4",
+        "net.sf.ehcache" % "ehcache" % "2.8.1",
         "javax.transaction" % "jta" % "1.1"
       )
     )
@@ -61,7 +61,7 @@ object CacheableBuild extends Build {
 
   lazy val jodaTime = Seq(
     "joda-time" % "joda-time" % "2.3",
-    "org.joda" % "joda-convert" % "1.2"
+    "org.joda" % "joda-convert" % "1.6"
   )
 
   lazy val standardSettings = Defaults.defaultSettings ++ mavenSettings ++ Seq(
