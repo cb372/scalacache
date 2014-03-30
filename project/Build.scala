@@ -80,7 +80,7 @@ object CacheableBuild extends Build {
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.1",
-      "org.scalatest" % "scalatest_2.11.0-RC1" % "2.1.0" % "test"
+      "org.scalatest" % "scalatest_2.11.0-RC3" % "2.1.2" % "test"
       //"com.github.scct" % "scct_2.10" % "0.2.1" % "test",  // overwrite scope
       //"org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test"
     ),
