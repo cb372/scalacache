@@ -5,7 +5,7 @@ import Keys._
 object CacheableBuild extends Build {
   
   object Versions {
-    val scala = "2.11.0-RC1"
+    val scala = "2.11.0-RC3"
     val project = "0.2-SNAPSHOT"
   }
 
@@ -77,10 +77,9 @@ object CacheableBuild extends Build {
     organization := "com.github.cb372",
     version      := Versions.project,
     scalaVersion := Versions.scala,
-    crossScalaVersions := Seq("2.10.3", "2.11.0-M8"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     libraryDependencies ++= Seq(
-      "com.typesafe" % "scalalogging-slf4j_2.10" % "1.0.1",
+      "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.1",
       "org.scalatest" % "scalatest_2.11.0-RC1" % "2.1.0" % "test"
       //"com.github.scct" % "scct_2.10" % "0.2.1" % "test",  // overwrite scope
       //"org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test"

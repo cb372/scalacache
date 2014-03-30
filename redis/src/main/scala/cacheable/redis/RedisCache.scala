@@ -3,13 +3,13 @@ package cacheable.redis
 import com.redis.RedisClient
 import cacheable.Cache
 import scala.concurrent.duration._
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
 /**
  * Author: chris
  * Created: 11/16/13
  */
-class RedisCache(client: RedisClient) extends Cache with Logging with RedisSerialization {
+class RedisCache(client: RedisClient) extends Cache with StrictLogging with RedisSerialization {
 
   /**
    * Get the value corresponding to the given key from the cache
@@ -30,7 +30,7 @@ class RedisCache(client: RedisClient) extends Cache with Logging with RedisSeria
     case None => client.set(key, value)
     case Some(Duration.Zero) => client.set(key, value)
     case Some(d) if d < 1.second => {
-      logger.warn(s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
+      logger.warn("Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
       client.setex(key, 1, value)
     }
     case Some(d) => client.setex(key, d.toSeconds.toInt, value)
