@@ -12,6 +12,16 @@ The following cache implementations are supported, and it's super-easy to plugin
 * Ehcache
 * Redis
 
+## Versioning
+
+Because of the use of Scala macros, only specific Scala versions are supported:
+
+<table>
+  <tr><th>Cacheable</th><th>Scala</th></tr>
+  <tr><td>0.1.x</td><td>2.10.3</td></tr>
+  <tr><td>0.2.x</td><td>2.11.0</td></tr>
+</table>
+
 ## How to use
 
 ```scala 
