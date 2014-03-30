@@ -1,10 +1,11 @@
 resolvers ++= Seq(
-  Classpaths.typesafeResolver,
-  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+  Classpaths.sbtPluginReleases
 )
 
-//addSbtPlugin("com.github.scct" %% "sbt-scct" % "0.2")
+// TODO uncomment once plugins are published for 2.11
 
-//addSbtPlugin("com.github.theon" %% "xsbt-coveralls-plugin" % "0.0.5-SNAPSHOT")
+//addSbtPlugin("org.scoverage" %% "sbt-scoverage" % "0.98")
+
+//addSbtPlugin("org.scoverage" %% "sbt-coveralls" % "0.0.5")
 
 

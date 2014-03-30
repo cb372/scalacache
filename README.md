@@ -2,8 +2,6 @@
 
 [![Build Status](https://travis-ci.org/cb372/cacheable.png)](https://travis-ci.org/cb372/cacheable)
 
-[![Coverage Status](https://coveralls.io/repos/cb372/cacheable/badge.png?branch=master)](https://coveralls.io/r/cb372/cacheable?branch=master)
-
 A simple and handy library for adding caching to any Scala app with the minimum of fuss.
 
 Cacheable is ideal for caching DB lookups, API calls, or anything else that takes a long time to compute.

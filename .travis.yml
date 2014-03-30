@@ -6,4 +6,4 @@ jdk:
 services:
   - memcached
   - redis
-script: "sbt coveralls"
+script: "sbt test"
