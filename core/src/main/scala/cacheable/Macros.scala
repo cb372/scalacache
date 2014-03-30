@@ -41,15 +41,12 @@ object Macros {
         val tree = q"""
           val key = $cacheConfig.keyGenerator.toCacheKey($classNameTree, $methodNameTree, $paramssTree)
           val cachedValue = $cacheConfig.cache.get(key)
-          cachedValue.fold {
+          cachedValue.getOrElse {
             // cache miss
             val calculatedValue = $f
             val ttlOpt = if ($ttl == scala.concurrent.duration.Duration.Zero) None else Some($ttl)
             $cacheConfig.cache.put(key, calculatedValue, ttlOpt)
             calculatedValue
-          } { v =>
-            // cache hit
-            v
           }
         """
 
