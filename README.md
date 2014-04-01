@@ -191,3 +191,24 @@ import com.redis.RedisClient
 val redisClient = new RedisClient(...)
 implicit val cacheConfig = CacheConfig(RedisCache(redisClient))
 ```
+
+## Troubleshooting/Restrictions
+
+Methods containing cacheable blocks must have an explicit return type.
+If you don't specify the return type, you'll get a confusing compiler error along the lines of `recursive method withExpiry needs result type`.
+
+For example, this is OK
+
+```scala
+def getUser(id: Int): User = cacheable {
+  // Do stuff...
+}
+```
+
+but this is not
+
+```scala
+def getUser(id: Int) = cacheable {
+  // Do stuff...
+}
+```
