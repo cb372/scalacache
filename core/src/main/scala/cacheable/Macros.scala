@@ -10,40 +10,23 @@ object Macros {
     cacheableImplWithTTL[A](c)(c.Expr[Duration](c.parse("scala.concurrent.duration.Duration.Zero")))(f)(cacheConfig)
   }
 
+
   def cacheableImplWithTTL[A : c.WeakTypeTag](c: Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(cacheConfig: c.Expr[CacheConfig]) = {
     import c.universe._
 
-    /**
-     * Convert a List[Tree] to a Tree by calling scala.collection.immutable.list.apply()
-     */
-    def listToTree(c: Context)(ts: List[Tree]): Tree =
-      q"_root_.scala.collection.immutable.List(..$ts)"
+    val enclosingMethodSymbol = getMethodSymbol(c)
 
     /*
-     Unfortunately this is a huge, hairy and unfixable deprecation warning :(
-
-     c.enclosingMethod is due to be removed in Scala 2.12, meaning that there will be no
-     way to access the enclosing tree of the macro's call site.
-     (c.encosingOwner returns only a Symbol, not a Tree.)
-
-     Apparently this is an intentional API change, as the macro API designers do not want people
-     to write macros that care too much about their surroundings.
-
-     Is Cacheable doomed in 2.12 ??!
+     * Gather all the info needed to build the cache key:
+     * class name, method name and the method parameters lists
      */
-    c.enclosingMethod match {
-      case DefDef(mods, methodName, tparams, vparamss, tpt, rhs) => {
+    val classNameTree = getClassName(c)
+    val methodNameTree = getMethodName(c)(enclosingMethodSymbol)
+    val paramssSymbols = c.internal.enclosingOwner.info.paramLists
+    val paramssIdents: List[List[Ident]] = paramssSymbols.map(ps => ps.map(p => Ident(p.name)))
+    val paramssTree = listToTree(c)(paramssIdents.map(ps => listToTree(c)(ps)))
 
-        /*
-         * Gather all the info needed to build the cache key:
-         * class name, method name and the method parameters lists
-         */
-        val classNameTree = getClassName(c)
-        val methodNameTree = getMethodName(c)
-        val paramIdents: List[List[Ident]] = vparamss.map(ps => ps.map(p => Ident(p.name)))
-        val paramssTree: Tree = listToTree(c)(paramIdents.map(ps => listToTree(c)(ps)))
-
-        val tree = q"""
+    val tree = q"""
           val key = $cacheConfig.keyGenerator.toCacheKey($classNameTree, $methodNameTree, $paramssTree)
           val cachedValue = $cacheConfig.cache.get(key)
           cachedValue.getOrElse {
@@ -54,19 +37,32 @@ object Macros {
             calculatedValue
           }
         """
-        //println(showCode(tree))
-        tree
-      }
-
-      case _ => {
-        // not inside a method
-        c.abort(c.enclosingPosition, "This macro must be called from within a method, so that it can generate a cache key. TODO: more useful error message")
-      }
-    }
-
+    //println(showCode(tree))
+    tree
   }
 
-  private def getClassName(c: Context) = {
+  /**
+   * Get the symbol of the method that encloses the macro,
+   * or abort the compilation if we can't find one.
+   */
+  private def getMethodSymbol(c: Context): c.Symbol = {
+    import c.universe._
+
+    def getMethodSymbolRecursively(sym: Symbol): Symbol = {
+      if (sym == null || sym == NoSymbol || sym.owner == sym)
+        c.abort(c.enclosingPosition,
+          "This cacheable block does not appear to be inside a method. " +
+            "Cacheable blocks must be placed inside methods, so that a cache key can be generated.")
+      else if (sym.isMethod)
+        sym
+      else
+        getMethodSymbolRecursively(sym.owner)
+    }
+
+    getMethodSymbolRecursively(c.internal.enclosingOwner)
+  }
+
+  private def getClassName(c: Context): c.Tree = {
     import c.universe._
 
     def getClassNameRecursively(sym: Symbol): String = {
@@ -86,23 +82,27 @@ object Macros {
     q"$className"
   }
 
-  private def getMethodName(c: Context) = {
+  /**
+   * Convert the given method symbol to a tree representing the method name.
+   */
+  private def getMethodName(c: Context)(methodSymbol: c.Symbol): c.Tree = {
     import c.universe._
 
-    def getMethodNameRecursively(sym: Symbol): String = {
-      if (sym == null)
-        c.abort(c.enclosingPosition, "Encountered a null symbol while searching for enclosing method")
-      if (sym.isMethod)
-        sym.asMethod.name.toString
-      else
-        getMethodNameRecursively(sym.owner)
-    }
-
-    val methodName = getMethodNameRecursively(c.internal.enclosingOwner)
+    val methodName = methodSymbol.asMethod.name.toString
 
     // return a Tree
     q"$methodName"
   }
+
+  /**
+   * Convert a List[Tree] to a Tree by calling scala.collection.immutable.list.apply()
+   */
+  private def listToTree(c: Context)(ts: List[c.Tree]): c.Tree = {
+    import c.universe._
+
+    q"_root_.scala.collection.immutable.List(..$ts)"
+  }
+
 
 
 
