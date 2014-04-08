@@ -91,6 +91,18 @@ class CacheableSpec extends FlatSpec with ShouldMatchers {
     emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, Some(10 seconds))))
   }
 
+  behavior of "invalidate"
+
+  it should "work" in {
+    val emptyCache = new LoggingCache {
+      def _get[V](key: String): Option[V] = { None }
+      def _put[V](key: String, value: V): Unit = { }
+    }
+    implicit val cacheConfig = CacheConfig(emptyCache, KeyGenerator.defaultGenerator)
+
+    invalidate(classOf[MyMockClass], "myLongRunningMethod", Seq(Seq("foo", "bar")))
+  }
+
   trait LoggingCache extends Cache {
     var (getCalledWithArgs, putCalledWithArgs) = (ArrayBuffer.empty[String], ArrayBuffer.empty[(String, Any, Option[Duration])])
 

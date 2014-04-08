@@ -33,5 +33,45 @@ package object cacheable {
    */
   def cacheable[A](ttl: Duration)(f: => A)(implicit cacheConfig: CacheConfig): A = macro Macros.cacheableImplWithTTL[A]
 
+
+  /**
+   * Remove the given method call's result from the cache.
+   * A check will be performed (at compile time) to ensure that the cache key matches an actual method.
+   *
+   * e.g. to remove the result of `UserRepository.getUser(123)` from the cache,
+   * you would call `invalidate(classOf[UserRepository], "getUser", Seq(Seq(123))`.
+   *
+   * @param clazz
+   * @param cacheConfig
+   * @return
+   */
+  def invalidate(clazz: Class[_], methodName: String, paramss: Seq[Seq[Any]])(implicit cacheConfig: CacheConfig): Unit = {
+    // TODO make all of this a macro
+
+
+    import scala.reflect.runtime.{universe => ru}
+
+    def paramListsMatch(symbols: List[List[ru.Symbol]], paramss: Seq[Seq[Any]]): Boolean = {
+      // TODO can check types are correct using <:<
+      symbols.length == paramss.length && symbols.zip(paramss).forall { case (syms, params) => syms.length == params.length }
+    }
+
+    val m = ru.runtimeMirror(getClass.getClassLoader)
+    val classType = m.staticClass(clazz.getCanonicalName).selfType
+    val methodTerm = classType.decl(ru.TermName(methodName))
+    if (methodTerm.isTerm) {
+      val methodExists = methodTerm.alternatives.exists { sym => sym.isMethod && paramListsMatch(sym.asMethod.paramLists, paramss) }
+      if (methodExists) {
+        // Found a matching method, let's make a cache key and do the invalidation
+        val cacheKey = cacheConfig.keyGenerator.toCacheKey(classType.termSymbol.fullName, methodName, paramss)
+        println(s"Invalidating cache value with key $cacheKey")
+        // TODO the actual invalidation
+      }
+    } else {
+      throw new IllegalArgumentException(s"$methodName is not a method of class ${clazz.getCanonicalName}")
+    }
+
+
+  }
 }
 

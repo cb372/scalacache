@@ -24,6 +24,12 @@ object Sample extends App {
       User(id, s"user${id}")
     }
 
+    def updateUser(id: Int, newUserName: String): Unit = {
+      // Save the updated user to DB here...
+
+      invalidate(classOf[UserRepository], "getUser", Seq(Seq(id)))
+    }
+
   }
 
 }
