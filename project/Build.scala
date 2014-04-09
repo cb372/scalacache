@@ -56,7 +56,7 @@ object CacheableBuild extends Build {
     .settings(standardSettings: _*)
     .settings(
       libraryDependencies ++= jodaTime ++ Seq(
-        "net.debasishg" % "redisclient_2.10" % "2.11"
+        "redis.clients" % "jedis" % "2.4.2"
       )
     )
     .dependsOn(core)
