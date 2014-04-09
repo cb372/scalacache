@@ -5,8 +5,7 @@ package cacheable
  * @param cache The cache itself
  * @param keyGenerator The cache key generator
  */
-case class CacheConfig (
+case class CacheConfig(
   cache: Cache,
-  keyGenerator: KeyGenerator = KeyGenerator.defaultGenerator
-)
+  keyGenerator: KeyGenerator = KeyGenerator.defaultGenerator)
 

@@ -1,8 +1,8 @@
 package cacheable.memcached
 
-import org.scalatest.{BeforeAndAfter, ShouldMatchers, FlatSpec}
+import org.scalatest.{ BeforeAndAfter, ShouldMatchers, FlatSpec }
 import scala.concurrent.duration._
-import org.joda.time.{DateTime, DateTimeUtils}
+import org.joda.time.{ DateTime, DateTimeUtils }
 
 /**
  *
@@ -45,6 +45,5 @@ class MemcachedTTLConvertorSpec extends FlatSpec with ShouldMatchers with Before
   after {
     DateTimeUtils.setCurrentMillisSystem()
   }
-
 
 }

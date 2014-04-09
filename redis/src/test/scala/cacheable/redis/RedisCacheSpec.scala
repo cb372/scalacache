@@ -1,14 +1,13 @@
 package cacheable.redis
 
-import org.scalatest.{BeforeAndAfter, ShouldMatchers, FlatSpec}
+import org.scalatest.{ BeforeAndAfter, ShouldMatchers, FlatSpec }
 import scala.concurrent.duration._
 import org.scalatest.concurrent.Eventually
-import org.scalatest.time.{Span, Seconds}
+import org.scalatest.time.{ Span, Seconds }
 
 import scala.language.postfixOps
 import com.redis.RedisClient
-import scala.util.{Success, Failure, Try}
-
+import scala.util.{ Success, Failure, Try }
 
 /**
  *
@@ -116,5 +115,4 @@ class RedisCacheSpec extends FlatSpec with ShouldMatchers with Eventually with B
   }
 
 }
-
 

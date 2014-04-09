@@ -21,7 +21,7 @@ class CacheableSpec extends FlatSpec with ShouldMatchers {
   it should "execute the block and cache the result, if there is a cache miss" in {
     val emptyCache = new LoggingCache {
       def _get[V](key: String): Option[V] = { None }
-      def _put[V](key: String, value: V): Unit = { }
+      def _put[V](key: String, value: V): Unit = {}
     }
     val cacheConfig = CacheConfig(emptyCache, KeyGenerator.defaultGenerator)
 
@@ -44,7 +44,7 @@ class CacheableSpec extends FlatSpec with ShouldMatchers {
   it should "not execute the block if there is a cache hit" in {
     val fullCache = new LoggingCache {
       def _get[V](key: String): Option[V] = { Some("cache hit").asInstanceOf[Option[V]] }
-      def _put[V](key: String, value: V): Unit = { }
+      def _put[V](key: String, value: V): Unit = {}
     }
     val cacheConfig = CacheConfig(fullCache, KeyGenerator.defaultGenerator)
 
@@ -71,7 +71,7 @@ class CacheableSpec extends FlatSpec with ShouldMatchers {
 
     val emptyCache = new LoggingCache {
       def _get[V](key: String): Option[V] = { None }
-      def _put[V](key: String, value: V): Unit = { }
+      def _put[V](key: String, value: V): Unit = {}
     }
     val cacheConfig = CacheConfig(emptyCache, KeyGenerator.defaultGenerator)
 

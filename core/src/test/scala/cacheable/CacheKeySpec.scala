@@ -89,12 +89,12 @@ class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
   }
 
   def multipleArgLists(a: Int, b: String)(c: String, d: Int): Int = cacheable {
-      123
+    123
   }
 
   case class CaseClass(a: Int) { override def toString = "custom toString" }
   def takesCaseClass(cc: CaseClass): Int = cacheable {
-      123
+    123
   }
 
   def lazyArg(a: => Int): Int = cacheable {

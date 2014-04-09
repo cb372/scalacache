@@ -1,10 +1,10 @@
 package cacheable.memcached
 
-import org.scalatest.{BeforeAndAfter, ShouldMatchers, FlatSpec}
-import net.spy.memcached.{AddrUtil, MemcachedClient}
+import org.scalatest.{ BeforeAndAfter, ShouldMatchers, FlatSpec }
+import net.spy.memcached.{ AddrUtil, MemcachedClient }
 import scala.concurrent.duration._
 import org.scalatest.concurrent.Eventually
-import org.scalatest.time.{Span, Seconds}
+import org.scalatest.time.{ Span, Seconds }
 
 import scala.language.postfixOps
 
@@ -65,6 +65,5 @@ class MemcachedCacheSpec extends FlatSpec with ShouldMatchers with Eventually wi
     }
 
   }
-
 
 }

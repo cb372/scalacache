@@ -44,7 +44,7 @@ trait MemcachedTTLConvertor extends StrictLogging {
 
     case d if d <= 30.days => d.toSeconds.toInt
 
-    case d  => {
+    case d => {
       val expiryTime = DateTime.now.plusSeconds(d.toSeconds.toInt)
       (expiryTime.getMillis / 1000).toInt
     }

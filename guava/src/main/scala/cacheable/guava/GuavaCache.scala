@@ -1,7 +1,7 @@
 package cacheable.guava
 
-import cacheable.{LoggingSupport, Cache}
-import com.google.common.cache.{Cache => GCache, CacheBuilder => GCacheBuilder}
+import cacheable.{ LoggingSupport, Cache }
+import com.google.common.cache.{ Cache => GCache, CacheBuilder => GCacheBuilder }
 import scala.concurrent.duration.Duration
 import org.joda.time.DateTime
 import com.typesafe.scalalogging.slf4j.StrictLogging

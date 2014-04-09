@@ -1,7 +1,7 @@
 package cacheable.redis
 
 import java.io._
-import com.redis.serialization.{Parse, Format}
+import com.redis.serialization.{ Parse, Format }
 
 /**
  * Custom serialization for caching arbitrary objects in Redis.

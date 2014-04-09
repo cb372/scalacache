@@ -1,8 +1,8 @@
 package cacheable.guava
 
-import org.scalatest.{BeforeAndAfter, ShouldMatchers, FlatSpec}
+import org.scalatest.{ BeforeAndAfter, ShouldMatchers, FlatSpec }
 import com.google.common.cache.CacheBuilder
-import org.joda.time.{DateTimeUtils, DateTime}
+import org.joda.time.{ DateTimeUtils, DateTime }
 import scala.concurrent.duration._
 
 /**
@@ -57,6 +57,5 @@ class GuavaCacheSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
   after {
     DateTimeUtils.setCurrentMillisSystem()
   }
-
 
 }

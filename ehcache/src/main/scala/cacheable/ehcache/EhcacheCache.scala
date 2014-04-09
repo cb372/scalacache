@@ -1,8 +1,8 @@
 package cacheable.ehcache
 
-import cacheable.{LoggingSupport, Cache}
+import cacheable.{ LoggingSupport, Cache }
 import scala.concurrent.duration.Duration
-import net.sf.ehcache.{Cache => Ehcache, Element}
+import net.sf.ehcache.{ Cache => Ehcache, Element }
 import com.typesafe.scalalogging.slf4j.StrictLogging
 
 /**

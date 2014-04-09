@@ -1,6 +1,6 @@
 package cacheable.memcached
 
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{ FlatSpec, ShouldMatchers }
 
 /**
  *

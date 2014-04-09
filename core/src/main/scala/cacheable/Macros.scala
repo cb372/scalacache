@@ -6,12 +6,11 @@ import scala.concurrent.duration.Duration
 
 object Macros {
 
-  def cacheableImpl[A : c.WeakTypeTag](c: Context)(f: c.Expr[A])(cacheConfig: c.Expr[CacheConfig]) = {
+  def cacheableImpl[A: c.WeakTypeTag](c: Context)(f: c.Expr[A])(cacheConfig: c.Expr[CacheConfig]) = {
     cacheableImplWithTTL[A](c)(c.Expr[Duration](c.parse("scala.concurrent.duration.Duration.Zero")))(f)(cacheConfig)
   }
 
-
-  def cacheableImplWithTTL[A : c.WeakTypeTag](c: Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(cacheConfig: c.Expr[CacheConfig]) = {
+  def cacheableImplWithTTL[A: c.WeakTypeTag](c: Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(cacheConfig: c.Expr[CacheConfig]) = {
     import c.universe._
 
     val enclosingMethodSymbol = getMethodSymbol(c)
@@ -102,8 +101,5 @@ object Macros {
 
     q"_root_.scala.collection.immutable.List(..$ts)"
   }
-
-
-
 
 }

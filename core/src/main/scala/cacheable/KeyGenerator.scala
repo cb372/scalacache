@@ -3,7 +3,7 @@ package cacheable
 trait KeyGenerator {
 
   def toCacheKey(fullClassName: String, methodName: String, paramss: Seq[Seq[Any]]): String
-  
+
 }
 
 object KeyGenerator {

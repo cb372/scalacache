@@ -13,7 +13,7 @@ object Sample extends App {
 
   class UserRepository {
     implicit val cacheConfig = CacheConfig(new MockCache(), KeyGenerator.defaultGenerator)
-  
+
     def getUser(id: Int): User = cacheable {
       // Do DB lookup here...
       User(id, s"user${id}")

@@ -1,9 +1,9 @@
 package cacheable.memcached
 
-import net.spy.memcached.{AddrUtil, BinaryConnectionFactory, MemcachedClient}
+import net.spy.memcached.{ AddrUtil, BinaryConnectionFactory, MemcachedClient }
 import scala.concurrent.duration.Duration
-import cacheable.{LoggingSupport, Cache}
-import com.typesafe.scalalogging.slf4j.{LazyLogging, StrictLogging}
+import cacheable.{ LoggingSupport, Cache }
+import com.typesafe.scalalogging.slf4j.{ LazyLogging, StrictLogging }
 
 /**
  * Author: chris

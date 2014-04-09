@@ -1,10 +1,10 @@
 package cacheable.ehcache
 
-import org.scalatest.{BeforeAndAfter, FlatSpec, ShouldMatchers}
-import net.sf.ehcache.{Cache => Ehcache, CacheManager, Element}
+import org.scalatest.{ BeforeAndAfter, FlatSpec, ShouldMatchers }
+import net.sf.ehcache.{ Cache => Ehcache, CacheManager, Element }
 import scala.concurrent.duration._
 import language.postfixOps
-import org.scalatest.time.{Seconds, Span}
+import org.scalatest.time.{ Seconds, Span }
 import org.scalatest.concurrent.Eventually
 
 /**

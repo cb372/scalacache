@@ -1,7 +1,7 @@
 package cacheable.redis
 
 import com.redis.RedisClient
-import cacheable.{LoggingSupport, Cache}
+import cacheable.{ LoggingSupport, Cache }
 import scala.concurrent.duration._
 import com.typesafe.scalalogging.slf4j.StrictLogging
 

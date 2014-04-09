@@ -1,6 +1,6 @@
 package cacheable.redis
 
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{ FlatSpec, ShouldMatchers }
 
 /**
  * Author: chris

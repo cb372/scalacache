@@ -1,5 +1,7 @@
 import sbt._
 import Keys._
+import com.typesafe.sbt.SbtScalariform._
+import scalariform.formatter.preferences._
 
 object CacheableBuild extends Build {
   
@@ -64,17 +66,22 @@ object CacheableBuild extends Build {
     "org.joda" % "joda-convert" % "1.6"
   )
 
-  lazy val standardSettings = Defaults.defaultSettings ++ mavenSettings ++ Seq(
-    organization := "com.github.cb372",
-    version      := Versions.project,
-    scalaVersion := Versions.scala,
-    scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
-    libraryDependencies ++= Seq(
-      "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.2",
-      "org.scalatest" % "scalatest_2.11.0-RC3" % "2.1.2" % "test"
-    ),
-    parallelExecution in Test := false
-  )
+  lazy val standardSettings = 
+    Defaults.defaultSettings ++ 
+    mavenSettings ++ 
+    scalariformSettings ++
+    formatterPrefs ++
+    Seq(
+      organization := "com.github.cb372",
+      version      := Versions.project,
+      scalaVersion := Versions.scala,
+      scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
+      libraryDependencies ++= Seq(
+        "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.2",
+        "org.scalatest" % "scalatest_2.11.0-RC3" % "2.1.2" % "test"
+      ),
+      parallelExecution in Test := false
+    )
 
   lazy val mavenSettings = Seq(
     pomExtra :=
@@ -107,6 +114,13 @@ object CacheableBuild extends Build {
     publishMavenStyle := true,
     publishArtifact in Test := false,
     pomIncludeRepository := { _ => false }
+  )
+
+  // Scalariform preferences
+  lazy val formatterPrefs = Seq(
+    ScalariformKeys.preferences := ScalariformKeys.preferences.value
+      .setPreference(AlignParameters, true)
+      .setPreference(DoubleIndentClassDeclaration, true)
   )
 }
 
