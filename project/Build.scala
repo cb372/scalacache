@@ -5,7 +5,7 @@ object CacheableBuild extends Build {
   
   object Versions {
     val scala = "2.11.0-RC4"
-    val project = "0.2-SNAPSHOT"
+    val project = "0.2.0-SNAPSHOT"
   }
 
   lazy val root = Project(id = "cacheable",base = file("."))
