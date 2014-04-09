@@ -181,15 +181,15 @@ import redis._
 implicit val cacheConfig = CacheConfig(RedisCache("host1", 6379))
 ```
 
-or provide your own Redis client, like this:
+or provide your own [Jedis](https://github.com/xetorthio/jedis) client, like this:
 
 ```scala
 import cacheable._
 import redis._
-import com.redis.RedisClient
+import redis.clients.jedis._
 
-val redisClient = new RedisClient(...)
-implicit val cacheConfig = CacheConfig(RedisCache(redisClient))
+val jedis = new Jedis(...)
+implicit val cacheConfig = CacheConfig(RedisCache(jedis))
 ```
 
 ## Troubleshooting/Restrictions
