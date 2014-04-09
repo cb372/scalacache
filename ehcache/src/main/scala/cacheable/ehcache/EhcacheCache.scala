@@ -1,14 +1,18 @@
 package cacheable.ehcache
 
-import cacheable.Cache
+import cacheable.{LoggingSupport, Cache}
 import scala.concurrent.duration.Duration
 import net.sf.ehcache.{Cache => Ehcache, Element}
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
 /**
  * Author: chris
  * Created: 11/16/13
  */
-class EhcacheCache(underlying: Ehcache) extends Cache {
+class EhcacheCache(underlying: Ehcache)
+    extends Cache
+    with LoggingSupport
+    with StrictLogging {
 
   /**
    * Get the value corresponding to the given key from the cache
@@ -17,10 +21,12 @@ class EhcacheCache(underlying: Ehcache) extends Cache {
    * @return the value, if there is one
    */
   def get[V](key: String): Option[V] = {
-    for {
+    val result = for {
       e <- Option(underlying.get(key))
       v <- Option(e.getObjectValue.asInstanceOf[V])
     } yield v
+    logCacheHitOrMiss(key, result)
+    result
   }
 
   /**
@@ -34,6 +40,7 @@ class EhcacheCache(underlying: Ehcache) extends Cache {
     val element = new Element(key, value)
     ttl.foreach(t => element.setTimeToLive(t.toSeconds.toInt))
     underlying.put(element)
+    logCachePut(key, ttl)
   }
 
 }

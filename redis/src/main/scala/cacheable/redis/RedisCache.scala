@@ -1,7 +1,7 @@
 package cacheable.redis
 
 import com.redis.RedisClient
-import cacheable.Cache
+import cacheable.{LoggingSupport, Cache}
 import scala.concurrent.duration._
 import com.typesafe.scalalogging.slf4j.StrictLogging
 
@@ -9,7 +9,11 @@ import com.typesafe.scalalogging.slf4j.StrictLogging
  * Author: chris
  * Created: 11/16/13
  */
-class RedisCache(client: RedisClient) extends Cache with StrictLogging with RedisSerialization {
+class RedisCache(client: RedisClient)
+    extends Cache
+    with RedisSerialization
+    with LoggingSupport
+    with StrictLogging {
 
   /**
    * Get the value corresponding to the given key from the cache
@@ -17,7 +21,11 @@ class RedisCache(client: RedisClient) extends Cache with StrictLogging with Redi
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V](key: String): Option[V] = client.get[V](key)
+  def get[V](key: String): Option[V] = {
+    val result = client.get[V](key)
+    logCacheHitOrMiss(key, result)
+    result
+  }
 
   /**
    * Insert the given key-value pair into the cache, with an optional Time To Live.

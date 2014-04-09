@@ -1,9 +1,10 @@
 package cacheable.guava
 
-import cacheable.Cache
+import cacheable.{LoggingSupport, Cache}
 import com.google.common.cache.{Cache => GCache, CacheBuilder => GCacheBuilder}
 import scala.concurrent.duration.Duration
 import org.joda.time.DateTime
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
 /**
  * Author: chris
@@ -14,7 +15,10 @@ import org.joda.time.DateTime
 Note: Would be nice to use Any here, but that doesn't conform to GCache's type bounds,
 because Any does not extend java.lang.Object.
  */
-class GuavaCache(underlying: GCache[String, Object]) extends Cache {
+class GuavaCache(underlying: GCache[String, Object])
+    extends Cache
+    with LoggingSupport
+    with StrictLogging {
 
   /**
    * Get the value corresponding to the given key from the cache
@@ -22,17 +26,19 @@ class GuavaCache(underlying: GCache[String, Object]) extends Cache {
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V](key: String) =  {
+  def get[V](key: String) = {
     val entry = Option(underlying.getIfPresent(key).asInstanceOf[Entry[V]])
     /*
      Note: we could delete the entry from the cache if it has expired,
      but that would lead to nasty race conditions in case of concurrent access.
      We might end up deleting an entry that another thread has just inserted.
      */
-    entry.flatMap { e =>
+    val result = entry.flatMap { e =>
       if (e.isExpired) None
       else Some(e.value)
     }
+    logCacheHitOrMiss(key, result)
+    result
   }
 
   /**
@@ -45,6 +51,7 @@ class GuavaCache(underlying: GCache[String, Object]) extends Cache {
   def put[V](key: String, value: V, ttl: Option[Duration]) {
     val entry = Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
+    logCachePut(key, ttl)
   }
 
   private def toExpiryTime(ttl: Duration): DateTime = DateTime.now.plusMillis(ttl.toMillis.toInt)

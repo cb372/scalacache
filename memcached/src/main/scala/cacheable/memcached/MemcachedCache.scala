@@ -2,20 +2,31 @@ package cacheable.memcached
 
 import net.spy.memcached.{AddrUtil, BinaryConnectionFactory, MemcachedClient}
 import scala.concurrent.duration.Duration
-import cacheable.Cache
+import cacheable.{LoggingSupport, Cache}
+import com.typesafe.scalalogging.slf4j.{LazyLogging, StrictLogging}
 
 /**
  * Author: chris
  * Created: 2/19/13
  */
 
-class MemcachedCache(client: MemcachedClient) extends Cache with MemcachedTTLConvertor {
+class MemcachedCache(client: MemcachedClient)
+    extends Cache
+    with MemcachedTTLConvertor
+    with StrictLogging
+    with LoggingSupport {
+
   val keySanitizer = new MemcachedKeySanitizer
 
-  def get[V](key: String) =  Option(client.get(keySanitizer.toValidMemcachedKey(key)).asInstanceOf[V])
+  def get[V](key: String) = {
+    val result = Option(client.get(keySanitizer.toValidMemcachedKey(key)).asInstanceOf[V])
+    logCacheHitOrMiss(key, result)
+    result
+  }
 
   def put[V](key: String, value: V, ttl: Option[Duration]) {
     client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), value)
+    logCachePut(key, ttl)
   }
 }
 
