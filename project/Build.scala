@@ -4,7 +4,7 @@ import Keys._
 object CacheableBuild extends Build {
   
   object Versions {
-    val scala = "2.11.0-RC3"
+    val scala = "2.11.0-RC4"
     val project = "0.2-SNAPSHOT"
   }
 
@@ -70,7 +70,7 @@ object CacheableBuild extends Build {
     scalaVersion := Versions.scala,
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     libraryDependencies ++= Seq(
-      "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.1",
+      "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.2",
       "org.scalatest" % "scalatest_2.11.0-RC3" % "2.1.2" % "test"
     ),
     parallelExecution in Test := false
