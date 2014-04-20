@@ -18,8 +18,7 @@ class MockCache extends Cache {
     value.asInstanceOf[Option[V]]
   }
 
-  def put[V](key: String, value: V, ttl: Option[Duration]): Unit = {
-    mmap.put(key, value)
-  }
+  def put[V](key: String, value: V, ttl: Option[Duration]): Unit = mmap.put(key, value)
 
+  def remove(key: String): Unit = mmap.remove(key)
 }

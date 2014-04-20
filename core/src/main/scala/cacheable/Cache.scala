@@ -21,5 +21,12 @@ trait Cache {
    */
   def put[V](key: String, value: V, ttl: Option[Duration]): Unit
 
+  /**
+   * Remove the given key and its associated value from the cache, if it exists.
+   * If the key is not in the cache, do nothing.
+   * @param key cache key
+   */
+  def remove(key: String): Unit
+
 }
 

@@ -104,6 +104,10 @@ class CacheableSpec extends FlatSpec with ShouldMatchers {
       _put(key, value)
     }
 
+    def remove(key: String): Unit = {
+      // the remove method is not used in these tests
+    }
+
     def _get[V](key: String): Option[V]
     def _put[V](key: String, value: V): Unit
   }

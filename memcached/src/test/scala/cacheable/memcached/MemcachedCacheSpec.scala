@@ -29,9 +29,7 @@ class MemcachedCacheSpec extends FlatSpec with ShouldMatchers with Eventually wi
   } else {
 
     before {
-      client.delete("key1")
-      client.delete("key2")
-      client.delete("key3")
+      client.flush()
     }
 
     behavior of "get"
@@ -62,6 +60,16 @@ class MemcachedCacheSpec extends FlatSpec with ShouldMatchers with Eventually wi
       eventually(timeout(Span(2, Seconds))) {
         client.get("key3") should be(null)
       }
+    }
+
+    behavior of "remove"
+
+    it should "delete the given key and its value from the underlying cache" in {
+      client.set("key1", 0, 123)
+      client.get("key1") should be(123)
+
+      MemcachedCache(client).remove("key1")
+      client.get("key1") should be(null)
     }
 
   }

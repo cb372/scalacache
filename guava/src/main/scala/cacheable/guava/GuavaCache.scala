@@ -54,6 +54,13 @@ class GuavaCache(underlying: GCache[String, Object])
     logCachePut(key, ttl)
   }
 
+  /**
+   * Remove the given key and its associated value from the cache, if it exists.
+   * If the key is not in the cache, do nothing.
+   * @param key cache key
+   */
+  def remove(key: String): Unit = underlying.invalidate(key)
+
   private def toExpiryTime(ttl: Duration): DateTime = DateTime.now.plusMillis(ttl.toMillis.toInt)
 
 }

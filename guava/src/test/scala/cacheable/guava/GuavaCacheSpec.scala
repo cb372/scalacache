@@ -54,6 +54,18 @@ class GuavaCacheSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
     underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(now.plusSeconds(10))))
   }
 
+  behavior of "remove"
+
+  it should "delete the given key and its value from the underlying cache" in {
+    val underlying = newGCache
+    val entry = Entry("hello", expiresAt = None)
+    underlying.put("key1", entry)
+    underlying.getIfPresent("key1") should be(entry)
+
+    GuavaCache(underlying).remove("key1")
+    underlying.getIfPresent("key1") should be(null)
+  }
+
   after {
     DateTimeUtils.setCurrentMillisSystem()
   }

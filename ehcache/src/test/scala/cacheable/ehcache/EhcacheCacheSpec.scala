@@ -54,4 +54,14 @@ class EhcacheCacheSpec extends FlatSpec with ShouldMatchers with Eventually with
     }
   }
 
+  behavior of "remove"
+
+  it should "delete the given key and its value from the underlying cache" in {
+    underlying.put(new Element("key1", 123))
+    underlying.get("key1").getObjectValue should be(123)
+
+    EhcacheCache(underlying).remove("key1")
+    underlying.get("key1") should be(null)
+  }
+
 }

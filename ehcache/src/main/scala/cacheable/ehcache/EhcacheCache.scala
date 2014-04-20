@@ -43,6 +43,13 @@ class EhcacheCache(underlying: Ehcache)
     logCachePut(key, ttl)
   }
 
+  /**
+   * Remove the given key and its associated value from the cache, if it exists.
+   * If the key is not in the cache, do nothing.
+   * @param key cache key
+   */
+  def remove(key: String): Unit = underlying.remove(key)
+
 }
 
 object EhcacheCache {

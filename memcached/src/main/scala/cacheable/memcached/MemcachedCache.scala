@@ -18,16 +18,37 @@ class MemcachedCache(client: MemcachedClient)
 
   val keySanitizer = new MemcachedKeySanitizer
 
+  /**
+   * Get the value corresponding to the given key from the cache
+   * @param key cache key
+   * @tparam V the type of the corresponding value
+   * @return the value, if there is one
+   */
   def get[V](key: String) = {
     val result = Option(client.get(keySanitizer.toValidMemcachedKey(key)).asInstanceOf[V])
     logCacheHitOrMiss(key, result)
     result
   }
 
+  /**
+   * Insert the given key-value pair into the cache, with an optional Time To Live.
+   * @param key cache key
+   * @param value corresponding value
+   * @param ttl Time To Live
+   * @tparam V the type of the corresponding value
+   */
   def put[V](key: String, value: V, ttl: Option[Duration]) {
     client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), value)
     logCachePut(key, ttl)
   }
+
+  /**
+   * Remove the given key and its associated value from the cache, if it exists.
+   * If the key is not in the cache, do nothing.
+   * @param key cache key
+   */
+  def remove(key: String): Unit = client.delete(key)
+
 }
 
 object MemcachedCache {

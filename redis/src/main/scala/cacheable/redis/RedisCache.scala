@@ -53,6 +53,13 @@ class RedisCache(client: Jedis)
     }
   }
 
+  /**
+   * Remove the given key and its associated value from the cache, if it exists.
+   * If the key is not in the cache, do nothing.
+   * @param key cache key
+   */
+  def remove(key: String): Unit = client.del(key.getBytes(utf8))
+
 }
 
 object RedisCache {

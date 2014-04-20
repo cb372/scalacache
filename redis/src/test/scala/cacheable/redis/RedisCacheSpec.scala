@@ -27,7 +27,7 @@ class RedisCacheSpec extends FlatSpec with ShouldMatchers with Eventually with B
       val cache = RedisCache(client)
 
       before {
-        client.del("key1", "key2", "key3", "key4", "key5")
+        client.flushDB()
       }
 
       behavior of "get"
@@ -112,6 +112,16 @@ class RedisCacheSpec extends FlatSpec with ShouldMatchers with Eventually with B
         val cc = CaseClass(123, "wow")
         cache.put("caseclass", cc, None)
         cache.get("caseclass") should be(Some(cc))
+      }
+
+      behavior of "remove"
+
+      it should "delete the given key and its value from the underlying cache" in {
+        client.set(bytes("key1"), serialize(123))
+        deserialize[Int](client.get(bytes("key1"))) should be(123)
+
+        cache.remove("key1")
+        client.get("key1") should be(null)
       }
 
     }
