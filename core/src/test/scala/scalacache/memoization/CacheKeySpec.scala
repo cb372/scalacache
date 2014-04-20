@@ -83,7 +83,7 @@ class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
   }
 
   def checkCacheKey(expectedKey: String)(call: => Int) {
-    // Run the cacheable block, putting some value into the cache
+    // Run the memoize block, putting some value into the cache
     val value = call
 
     // Check that the value is in the cache, with the expected key

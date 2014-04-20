@@ -9,7 +9,7 @@ import language.postfixOps
 case class User(id: Int, name: String)
 
 /**
- * Sample showing how to use cacheable.
+ * Sample showing how to use ScalaCache.
  */
 object Sample extends App {
 

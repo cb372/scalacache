@@ -6,20 +6,20 @@ import xerial.sbt.Sonatype._
 import SonatypeKeys._
 import net.virtualvoid.sbt.graph.Plugin._
 
-object CacheableBuild extends Build {
+object ScalaCacheBuild extends Build {
   
   object Versions {
     val scala = "2.11.0"
     val project = "0.3.0-SNAPSHOT"
   }
 
-  lazy val root = Project(id = "cacheable",base = file("."))
+  lazy val root = Project(id = "scalacache",base = file("."))
     .settings(commonSettings: _*)
     .settings(sonatypeSettings: _*)
     .settings(publishArtifact := false)
     .aggregate(core, guava, memcached, ehcache, redis)
 
-  lazy val core = Project(id = "cacheable-core", base = file("core"))
+  lazy val core = Project(id = "scalacache-core", base = file("core"))
     .settings(commonSettings: _*)
     .settings(
       libraryDependencies <+= scalaVersion { s =>
@@ -27,7 +27,7 @@ object CacheableBuild extends Build {
       }
     )
 
-  lazy val guava = Project(id = "cacheable-guava", base = file("guava"))
+  lazy val guava = Project(id = "scalacache-guava", base = file("guava"))
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
@@ -37,7 +37,7 @@ object CacheableBuild extends Build {
     )
     .dependsOn(core)
 
-  lazy val memcached = Project(id = "cacheable-memcached", base = file("memcached"))
+  lazy val memcached = Project(id = "scalacache-memcached", base = file("memcached"))
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
@@ -46,7 +46,7 @@ object CacheableBuild extends Build {
     )
     .dependsOn(core)
 
-  lazy val ehcache = Project(id = "cacheable-ehcache", base = file("ehcache"))
+  lazy val ehcache = Project(id = "scalacache-ehcache", base = file("ehcache"))
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
@@ -56,7 +56,7 @@ object CacheableBuild extends Build {
     )
     .dependsOn(core)
 
-  lazy val redis = Project(id = "cacheable-redis", base = file("redis"))
+  lazy val redis = Project(id = "scalacache-redis", base = file("redis"))
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
@@ -107,7 +107,7 @@ object CacheableBuild extends Build {
 
   lazy val mavenSettings = Seq(
     pomExtra :=
-      <url>https://github.com/cb372/cacheable</url>
+      <url>https://github.com/cb372/scalacache</url>
       <licenses>
         <license>
           <name>Apache License, Version 2.0</name>
@@ -116,8 +116,8 @@ object CacheableBuild extends Build {
         </license>
       </licenses>
       <scm>
-        <url>git@github.com:cb372/cacheable.git</url>
-        <connection>scm:git:git@github.com:cb372/cacheable.git</connection>
+        <url>git@github.com:cb372/scalacache.git</url>
+        <connection>scm:git:git@github.com:cb372/scalacache.git</connection>
       </scm>
       <developers>
         <developer>

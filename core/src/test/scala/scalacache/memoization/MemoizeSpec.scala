@@ -65,7 +65,7 @@ class MemoizeSpec extends FlatSpec with ShouldMatchers {
     fullCache.putCalledWithArgs should be(empty)
   }
 
-  behavior of "cacheable block with TTL"
+  behavior of "memoize block with TTL"
 
   it should "pass the TTL parameter to the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClass.withTTL(123, abc)"

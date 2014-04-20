@@ -51,8 +51,8 @@ object Macros {
     def getMethodSymbolRecursively(sym: Symbol): Symbol = {
       if (sym == null || sym == NoSymbol || sym.owner == sym)
         c.abort(c.enclosingPosition,
-          "This cacheable block does not appear to be inside a method. " +
-            "Cacheable blocks must be placed inside methods, so that a cache key can be generated.")
+          "This memoize block does not appear to be inside a method. " +
+            "Memoize blocks must be placed inside methods, so that a cache key can be generated.")
       else if (sym.isMethod)
         sym
       else
