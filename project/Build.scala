@@ -2,16 +2,19 @@ import sbt._
 import Keys._
 import com.typesafe.sbt.SbtScalariform._
 import scalariform.formatter.preferences._
+import xerial.sbt.Sonatype._
+import SonatypeKeys._
 
 object CacheableBuild extends Build {
   
   object Versions {
     val scala = "2.11.0"
-    val project = "0.2.0"
+    val project = "0.3.0-SNAPSHOT"
   }
 
   lazy val root = Project(id = "cacheable",base = file("."))
     .settings(commonSettings: _*)
+    .settings(sonatypeSettings: _*)
     .settings(publishArtifact := false)
     .aggregate(core, guava, memcached, ehcache, redis)
 
