@@ -6,7 +6,7 @@ import scalariform.formatter.preferences._
 object CacheableBuild extends Build {
   
   object Versions {
-    val scala = "2.11.0-RC4"
+    val scala = "2.11.0"
     val project = "0.2.0-SNAPSHOT"
   }
 
@@ -67,11 +67,11 @@ object CacheableBuild extends Build {
   )
 
   lazy val scalaLogging = Seq(
-    "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.2"
+    "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.3"
   )
 
   lazy val scalaTest = Seq(
-    "org.scalatest" % "scalatest_2.11.0-RC3" % "2.1.2" % "test"
+    "org.scalatest" %% "scalatest" % "2.1.3" % "test"
   )
 
   // Dependencies common to all projects
