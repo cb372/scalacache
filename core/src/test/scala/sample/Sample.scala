@@ -1,6 +1,8 @@
 package sample
 
-import cacheable._
+import scalacache._
+import memoization._
+
 import scala.concurrent.duration._
 import language.postfixOps
 
@@ -12,16 +14,16 @@ case class User(id: Int, name: String)
 object Sample extends App {
 
   class UserRepository {
-    implicit val cacheConfig = CacheConfig(new MockCache(), KeyGenerator.defaultGenerator)
+    implicit val cacheConfig = CacheConfig(new MockCache())
 
-    def getUser(id: Int): User = cacheable {
+    def getUser(id: Int): User = memoize {
       // Do DB lookup here...
-      User(id, s"user${id}")
+      User(id, s"user$id")
     }
 
-    def withExpiry(id: Int): User = cacheable(60 seconds) {
+    def withExpiry(id: Int): User = memoize(60 seconds) {
       // Do DB lookup here...
-      User(id, s"user${id}")
+      User(id, s"user$id")
     }
 
   }
