@@ -16,7 +16,7 @@ class RedisCache(client: Jedis)
     with LoggingSupport
     with StrictLogging {
 
-  private val utf8 = Charset.forName("UTF-8")
+  import RedisCache.StringWithUtf8Bytes
 
   /**
    * Get the value corresponding to the given key from the cache
@@ -25,8 +25,7 @@ class RedisCache(client: Jedis)
    * @return the value, if there is one
    */
   def get[V](key: String): Option[V] = {
-    val keyBytes = key.getBytes(utf8)
-    val resultBytes = Option(client.get(keyBytes))
+    val resultBytes = Option(client.get(key.utf8bytes))
     val result = resultBytes.map(deserialize[V])
     logCacheHitOrMiss(key, result)
     result
@@ -40,7 +39,7 @@ class RedisCache(client: Jedis)
    * @tparam V the type of the corresponding value
    */
   def put[V](key: String, value: V, ttl: Option[Duration]): Unit = {
-    val keyBytes = key.getBytes(utf8)
+    val keyBytes = key.utf8bytes
     val valueBytes = serialize(value)
     ttl match {
       case None => client.set(keyBytes, valueBytes)
@@ -58,7 +57,7 @@ class RedisCache(client: Jedis)
    * If the key is not in the cache, do nothing.
    * @param key cache key
    */
-  def remove(key: String): Unit = client.del(key.getBytes(utf8))
+  def remove(key: String): Unit = client.del(key.utf8bytes)
 
 }
 
@@ -74,6 +73,15 @@ object RedisCache {
    * @param client a Jedis client
    */
   def apply(client: Jedis): RedisCache = new RedisCache(client)
+
+  private val utf8 = Charset.forName("UTF-8")
+
+  /**
+   * Enrichment class to convert String to UTF-8 byte array
+   */
+  private implicit class StringWithUtf8Bytes(val string: String) extends AnyVal {
+    def utf8bytes = string.getBytes(utf8)
+  }
 
 }
 
