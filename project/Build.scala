@@ -4,6 +4,7 @@ import com.typesafe.sbt.SbtScalariform._
 import scalariform.formatter.preferences._
 import xerial.sbt.Sonatype._
 import SonatypeKeys._
+import net.virtualvoid.sbt.graph.Plugin._
 
 object CacheableBuild extends Build {
   
@@ -90,6 +91,7 @@ object CacheableBuild extends Build {
     mavenSettings ++ 
     scalariformSettings ++
     formatterPrefs ++
+    graphSettings ++
     Seq(
       organization := "com.github.cb372",
       version      := Versions.project,
