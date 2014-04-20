@@ -11,12 +11,12 @@ object CacheableBuild extends Build {
   }
 
   lazy val root = Project(id = "cacheable",base = file("."))
-    .settings(standardSettings: _*)
+    .settings(commonSettings: _*)
     .settings(publishArtifact := false)
     .aggregate(core, guava, memcached, ehcache, redis)
 
   lazy val core = Project(id = "cacheable-core", base = file("core"))
-    .settings(standardSettings: _*)
+    .settings(commonSettings: _*)
     .settings(
       libraryDependencies <+= scalaVersion { s =>
         "org.scala-lang" % "scala-reflect" % s
@@ -24,9 +24,9 @@ object CacheableBuild extends Build {
     )
 
   lazy val guava = Project(id = "cacheable-guava", base = file("guava"))
-    .settings(standardSettings: _*)
+    .settings(implProjectSettings: _*)
     .settings(
-      libraryDependencies ++= jodaTime ++ Seq(
+      libraryDependencies ++= Seq(
         "com.google.guava" % "guava" % "16.0.1",
         "com.google.code.findbugs" % "jsr305" % "1.3.9"
       )
@@ -34,18 +34,18 @@ object CacheableBuild extends Build {
     .dependsOn(core)
 
   lazy val memcached = Project(id = "cacheable-memcached", base = file("memcached"))
-    .settings(standardSettings: _*)
+    .settings(implProjectSettings: _*)
     .settings(
-      libraryDependencies ++= jodaTime ++ Seq(
+      libraryDependencies ++= Seq(
         "net.spy" % "spymemcached" % "2.10.6"
       )
     )
     .dependsOn(core)
 
   lazy val ehcache = Project(id = "cacheable-ehcache", base = file("ehcache"))
-    .settings(standardSettings: _*)
+    .settings(implProjectSettings: _*)
     .settings(
-      libraryDependencies ++= jodaTime ++ Seq(
+      libraryDependencies ++= Seq(
         "net.sf.ehcache" % "ehcache" % "2.8.1",
         "javax.transaction" % "jta" % "1.1"
       )
@@ -53,9 +53,9 @@ object CacheableBuild extends Build {
     .dependsOn(core)
 
   lazy val redis = Project(id = "cacheable-redis", base = file("redis"))
-    .settings(standardSettings: _*)
+    .settings(implProjectSettings: _*)
     .settings(
-      libraryDependencies ++= jodaTime ++ Seq(
+      libraryDependencies ++= Seq(
         "redis.clients" % "jedis" % "2.4.2"
       )
     )
@@ -66,7 +66,23 @@ object CacheableBuild extends Build {
     "org.joda" % "joda-convert" % "1.6"
   )
 
-  lazy val standardSettings = 
+  lazy val scalaLogging = Seq(
+    "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.2"
+  )
+
+  lazy val scalaTest = Seq(
+    "org.scalatest" % "scalatest_2.11.0-RC3" % "2.1.2" % "test"
+  )
+
+  // Dependencies common to all projects
+  lazy val commonDeps =
+    scalaLogging ++
+    scalaTest
+
+  // Dependencies common to all implementation projects (i.e. everything except core)
+  lazy val implProjectDeps = jodaTime
+
+  lazy val commonSettings = 
     Defaults.defaultSettings ++ 
     mavenSettings ++ 
     scalariformSettings ++
@@ -76,12 +92,13 @@ object CacheableBuild extends Build {
       version      := Versions.project,
       scalaVersion := Versions.scala,
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
-      libraryDependencies ++= Seq(
-        "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.2",
-        "org.scalatest" % "scalatest_2.11.0-RC3" % "2.1.2" % "test"
-      ),
+      libraryDependencies ++= commonDeps,
       parallelExecution in Test := false
     )
+
+  lazy val implProjectSettings = commonSettings ++ Seq(
+    libraryDependencies ++= implProjectDeps
+  )
 
   lazy val mavenSettings = Seq(
     pomExtra :=
