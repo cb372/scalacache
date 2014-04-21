@@ -1,4 +1,9 @@
-0.2.0 (???)
+0.3.0 (2014/04/??)
+----
+
+Change project name: Cacheable is now ScalaCache! (Sorry, lots of breaking API changes)
+
+0.2.0 (2014/04/20)
 ----
 
 Scala 2.11 support

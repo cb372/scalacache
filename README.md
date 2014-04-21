@@ -1,12 +1,14 @@
-# Cacheable
+# ScalaCache
 
-[![Build Status](https://travis-ci.org/cb372/cacheable.png)](https://travis-ci.org/cb372/cacheable)
+[![Build Status](https://travis-ci.org/cb372/scalacache.png)](https://travis-ci.org/cb372/scalacache)
 
-A simple and handy library for adding caching to any Scala app with the minimum of fuss.
+(formerly known as Cacheable)
 
-Cacheable is ideal for caching DB lookups, API calls, or anything else that takes a long time to compute.
+A facade for the most popular cache implementations, with a simple, idiomatic Scala API.
 
-The following cache implementations are supported, and it's super-easy to plugin your own implementation:
+Use ScalaCache to add caching to any Scala app with the minimum of fuss.
+
+The following cache implementations are supported, and it's easy to plugin your own implementation:
 * Google Guava
 * Memcached
 * Ehcache
@@ -17,28 +19,32 @@ The following cache implementations are supported, and it's super-easy to plugin
 Because of the use of Scala macros, only specific Scala versions are supported:
 
 <table>
-  <tr><th>Cacheable</th><th>Scala</th></tr>
-  <tr><td>0.1.x</td><td>2.10.3</td></tr>
-  <tr><td>0.2.x</td><td>2.11.0</td></tr>
+  <tr><th>ScalaCache</th><th>Scala</th><th>Notes</th></tr>
+  <tr><td>0.1.x</td><td>2.10.3</td><td>artifactId = cacheable (the previous name of this project)</td></tr>
+  <tr><td>0.2.x</td><td>2.11.0</td><td></td></tr>
 </table>
 
 ## How to use
 
+### Memoization of method results
+
 ```scala 
-import cacheable._
+import scalacache._
+import memoization._
 
 // Configuration: the cache implementation to use, and how to generate cache keys
-implicit val cacheConfig = CacheConfig(new MyCache(), KeyGenerator.defaultGenerator)
+implicit val cacheConfig = CacheConfig(new MyCache())
 
-def getUser(id: Int): User = cacheable { 
+def getUser(id: Int): User = memoize {
   // Do DB lookup here...
   User(id, s"user${id}")
 }
 ```
 
-Did you spot the magic word 'cacheable' in the `getUser` method? Just adding this keyword will cause the result of the method to be memoized to a cache, so the next time you call the method the result will be retrieved from the cache.
+Did you spot the magic word 'memoize' in the `getUser` method? Just adding this keyword will cause the result of the method to be memoized to a cache.
+The next time you call the method with the same arguments the result will be retrieved from the cache and returned immediately.
 
-### Time To Live 
+#### Time To Live
 
 You can optionally specify a Time To Live for the cached result:
 
@@ -46,7 +52,7 @@ You can optionally specify a Time To Live for the cached result:
 import concurrent.duration._
 import language.postfixOps
 
-def getUser(id: Int): User = cacheable(60 seconds) { 
+def getUser(id: Int): User = memoize(60 seconds) {
   // Do DB lookup here...
   User(id, s"user${id}")
 }
@@ -54,11 +60,12 @@ def getUser(id: Int): User = cacheable(60 seconds) {
 
 In the above sample, the retrieved User object will be evicted from the cache after 60 seconds.
 
-## How it works
+#### How it works
 
-Like Spring Cache and similar frameworks, Cacheable automatically builds a cache key based on the method being called. However, it does *not* use AOP. Instead it makes use of Scala macros, so most of the information needed to build the cache key is gathered at compile time. No reflection or AOP magic at runtime.
+Like Spring Cache and similar frameworks, ScalaCache automatically builds a cache key based on the method being called, and the values of the arguments being passed to that method.
+However, instead of using proxies like Spring, it makes use of Scala macros, so most of the information needed to build the cache key is gathered at compile time. No reflection or AOP magic is required at runtime.
 
-### Cache key generation
+#### Cache key generation
 
 The cache key is built automatically from the class name, the name of the enclosing method, and the values of all of the method's parameters.
 
@@ -68,7 +75,7 @@ For example, given the following method:
 package foo
 
 object Bar {
-  def baz(a: Int, b: String)(c: String): Int = cacheable { 
+  def baz(a: Int, b: String)(c: String): Int = memoize {
     // Reticulating splines...   
     123
   }
@@ -91,13 +98,13 @@ Note that the cache key generation logic is customizable.
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "cacheable-guava" % "0.1.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.3.0"
 ```
 
 Usage:
 
 ```scala
-import cacheable._
+import scalacache._
 import guava._
 
 implicit val cacheConfig = CacheConfig(GuavaCache())
@@ -106,7 +113,7 @@ implicit val cacheConfig = CacheConfig(GuavaCache())
 This will build a Guava cache with all the default settings. If you want to customize your Guava cache, then build it yourself and pass it to `GuavaCache` like this:
 
 ```scala
-import cacheable._
+import scalacache._
 import guava._
 import com.google.common.cache.CacheBuilder
 
@@ -119,13 +126,13 @@ implicit val cacheConfig = CacheConfig(GuavaCache(underlyingGuavaCache))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "cacheable-memcached" % "0.1.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.3.0"
 ```
 
 Usage:
 
 ```scala
-import cacheable._
+import scalacache._
 import memcached._
 
 implicit val cacheConfig = CacheConfig(MemcachedCache("host:port"))
@@ -134,7 +141,7 @@ implicit val cacheConfig = CacheConfig(MemcachedCache("host:port"))
 or provide your own Memcached client, like this:
 
 ```scala
-import cacheable._
+import scalacache._
 import memcached._
 import net.spy.memcached.MemcachedClient
 
@@ -147,13 +154,13 @@ implicit val cacheConfig = CacheConfig(MemcachedCache(memcachedClient))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "cacheable-ehcache" % "0.1.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.3.0"
 ```
 
 Usage:
 
 ```scala
-import cacheable._
+import scalacache._
 import ehcache._
 
 // We assume you've already taken care of Ehcache config, 
@@ -169,13 +176,13 @@ implicit val cacheConfig = CacheConfig(EhcacheCache(underlying))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "cacheable-redis" % "0.1.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.3.0"
 ```
 
 Usage:
 
 ```scala
-import cacheable._
+import scalacache._
 import redis._
 
 implicit val cacheConfig = CacheConfig(RedisCache("host1", 6379))
@@ -184,7 +191,7 @@ implicit val cacheConfig = CacheConfig(RedisCache("host1", 6379))
 or provide your own [Jedis](https://github.com/xetorthio/jedis) client, like this:
 
 ```scala
-import cacheable._
+import scalacache._
 import redis._
 import redis.clients.jedis._
 
@@ -194,13 +201,13 @@ implicit val cacheConfig = CacheConfig(RedisCache(jedis))
 
 ## Troubleshooting/Restrictions
 
-Methods containing cacheable blocks must have an explicit return type.
+Methods containing `memoize` blocks must have an explicit return type.
 If you don't specify the return type, you'll get a confusing compiler error along the lines of `recursive method withExpiry needs result type`.
 
 For example, this is OK
 
 ```scala
-def getUser(id: Int): User = cacheable {
+def getUser(id: Int): User = memoize {
   // Do stuff...
 }
 ```
@@ -208,7 +215,7 @@ def getUser(id: Int): User = cacheable {
 but this is not
 
 ```scala
-def getUser(id: Int) = cacheable {
+def getUser(id: Int) = memoize {
   // Do stuff...
 }
 ```
