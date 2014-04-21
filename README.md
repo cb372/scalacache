@@ -26,6 +26,36 @@ Because of the use of Scala macros, only specific Scala versions are supported:
 
 ## How to use
 
+### Cache config
+
+To use ScalaCache you must first create a `CacheConfig` and ensure it is in implicit scope.
+The `CacheConfig` contains the cache itself, as well as a variety of configuration parameters.
+
+The simplest way to construct a cache config is just to pass a cache instance, like this:
+
+```scala
+import scalacache._
+
+implicit val cacheConfig = CacheConfig(new MyCache())
+```
+
+### Basic cache operations
+
+Assuming you have a `CacheConfig` in implicit scope:
+
+```scala
+import scalacache._
+
+// Add an item to the cache
+put("myKey", "myValue")
+
+// Retrieve the added item
+get("myKey") // Some(myValue)
+
+// Remove it from the cache
+remove("myKey")
+```
+
 ### Memoization of method results
 
 ```scala 
