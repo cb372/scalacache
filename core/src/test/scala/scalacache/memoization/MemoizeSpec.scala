@@ -20,10 +20,7 @@ class MemoizeSpec extends FlatSpec with ShouldMatchers {
   val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClass.myLongRunningMethod(123, abc)"
 
   it should "execute the block and cache the result, if there is a cache miss" in {
-    val emptyCache = new LoggingCache {
-      def _get[V](key: String): Option[V] = { None }
-      def _put[V](key: String, value: V): Unit = {}
-    }
+    val emptyCache = new EmptyCache with LoggingCache
     val cacheConfig = CacheConfig(emptyCache)
 
     val mockDbCall = new MockDbCall("hello")
@@ -43,10 +40,7 @@ class MemoizeSpec extends FlatSpec with ShouldMatchers {
   }
 
   it should "not execute the block if there is a cache hit" in {
-    val fullCache = new LoggingCache {
-      def _get[V](key: String): Option[V] = { Some("cache hit").asInstanceOf[Option[V]] }
-      def _put[V](key: String, value: V): Unit = {}
-    }
+    val fullCache = new FullCache("cache hit") with LoggingCache
     val cacheConfig = CacheConfig(fullCache)
 
     val mockDbCall = new MockDbCall("hello")
@@ -70,10 +64,7 @@ class MemoizeSpec extends FlatSpec with ShouldMatchers {
   it should "pass the TTL parameter to the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClass.withTTL(123, abc)"
 
-    val emptyCache = new LoggingCache {
-      def _get[V](key: String): Option[V] = { None }
-      def _put[V](key: String, value: V): Unit = {}
-    }
+    val emptyCache = new EmptyCache with LoggingCache
     val cacheConfig = CacheConfig(emptyCache)
 
     val mockDbCall = new MockDbCall("hello")
@@ -92,25 +83,16 @@ class MemoizeSpec extends FlatSpec with ShouldMatchers {
     emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, Some(10 seconds))))
   }
 
-  trait LoggingCache extends Cache {
-    var (getCalledWithArgs, putCalledWithArgs) = (ArrayBuffer.empty[String], ArrayBuffer.empty[(String, Any, Option[Duration])])
+  class EmptyCache extends Cache {
+    def get[V](key: String): Option[V] = { None }
+    def put[V](key: String, value: V, ttl: Option[Duration]) = {}
+    def remove(key: String) = {}
+  }
 
-    def get[V](key: String): Option[V] = {
-      getCalledWithArgs.append(key)
-      _get(key)
-    }
-
-    def put[V](key: String, value: V, ttl: Option[Duration]): Unit = {
-      putCalledWithArgs.append((key, value, ttl))
-      _put(key, value)
-    }
-
-    def remove(key: String): Unit = {
-      // the remove method is not used in these tests
-    }
-
-    def _get[V](key: String): Option[V]
-    def _put[V](key: String, value: V): Unit
+  class FullCache(value: Any) extends Cache {
+    def get[V](key: String) = { Some(value).asInstanceOf[Option[V]] }
+    def put[V](key: String, value: V, ttl: Option[Duration]) = {}
+    def remove(key: String) = {}
   }
 
   class MockDbCall(result: String) extends (Int => String) {
