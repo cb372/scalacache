@@ -12,7 +12,7 @@ import scala.language.postfixOps
 class PackageObjectSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
 
   val cache = new LoggingMockCache
-  implicit val cacheConfig = CacheConfig(cache)
+  implicit val scalaCache = ScalaCache(cache)
 
   before {
     cache.mmap.clear()
@@ -21,7 +21,7 @@ class PackageObjectSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter
 
   behavior of "get"
 
-  it should "call get on the cache found in the CacheConfig" in {
+  it should "call get on the cache found in the ScalaCache" in {
     scalacache.get("foo")
     cache.getCalledWithArgs(0) should be("foo")
   }
@@ -35,7 +35,7 @@ class PackageObjectSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter
 
   behavior of "remove"
 
-  it should "call get on the cache found in the CacheConfig" in {
+  it should "call get on the cache found in the ScalaCache" in {
     scalacache.remove("baz")
     cache.removeCalledWithArgs(0) should be("baz")
   }

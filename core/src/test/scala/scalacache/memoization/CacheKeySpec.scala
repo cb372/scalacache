@@ -14,7 +14,7 @@ class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
   behavior of "cache key generation for method memoization"
 
   val cache = new MockCache
-  implicit val cacheConfig = CacheConfig(cache, MemoizationConfig(defaultConvertor))
+  implicit val scalaCache = ScalaCache(cache, MemoizationConfig(defaultConvertor))
 
   before {
     cache.mmap.clear()
@@ -52,12 +52,12 @@ class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
 
   it should "work for a method inside a trait" in {
     checkCacheKey("scalacache.memoization.ATrait.insideTrait(1)") {
-      new ATrait { val cacheConfig = CacheKeySpec.this.cacheConfig }.insideTrait(1)
+      new ATrait { val scalaCache = CacheKeySpec.this.scalaCache }.insideTrait(1)
     }
   }
 
   it should "work for a method inside an object" in {
-    AnObject.cacheConfig = this.cacheConfig
+    AnObject.scalaCache = this.scalaCache
     checkCacheKey("scalacache.memoization.AnObject.insideObject(1)") {
       AnObject.insideObject(1)
     }
@@ -76,7 +76,7 @@ class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
   }
 
   it should "work for a method inside a package object" in {
-    pkg.cacheConfig = this.cacheConfig
+    pkg.scalaCache = this.scalaCache
     checkCacheKey("scalacache.memoization.pkg.package.insidePackageObject(1)") {
       pkg.insidePackageObject(1)
     }
@@ -109,7 +109,7 @@ class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
 
 }
 
-class AClass(implicit val cacheConfig: CacheConfig) {
+class AClass(implicit val cacheConfig: ScalaCache) {
   def insideClass(a: Int): Int = memoize {
     123
   }
@@ -129,7 +129,7 @@ class AClass(implicit val cacheConfig: CacheConfig) {
 }
 
 trait ATrait {
-  implicit val cacheConfig: CacheConfig
+  implicit val scalaCache: ScalaCache
 
   def insideTrait(a: Int): Int = memoize {
     123
@@ -137,7 +137,7 @@ trait ATrait {
 }
 
 object AnObject {
-  implicit var cacheConfig: CacheConfig = null
+  implicit var scalaCache: ScalaCache = null
   def insideObject(a: Int): Int = memoize {
     123
   }

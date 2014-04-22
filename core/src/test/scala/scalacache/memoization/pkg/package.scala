@@ -8,7 +8,7 @@ import scalacache._
  * Date:   13/11/07
  */
 package object pkg {
-  implicit var cacheConfig: CacheConfig = null
+  implicit var scalaCache: ScalaCache = null
 
   def insidePackageObject(a: Int): Int = memoize {
     123

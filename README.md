@@ -26,22 +26,23 @@ Because of the use of Scala macros, only specific Scala versions are supported:
 
 ## How to use
 
-### Cache config
+### ScalaCache instance
 
-To use ScalaCache you must first create a `CacheConfig` and ensure it is in implicit scope.
-The `CacheConfig` contains the cache itself, as well as a variety of configuration parameters.
+To use ScalaCache you must first create a `ScalaCache` instance and ensure it is in implicit scope.
+The `ScalaCache` is a container for the cache itself, as well as a variety of configuration parameters.
+It packages up everything needed for caching into one case class for easy implicit passing.
 
-The simplest way to construct a cache config is just to pass a cache instance, like this:
+The simplest way to construct a `ScalaCache` is just to pass a cache instance, like this:
 
 ```scala
 import scalacache._
 
-implicit val cacheConfig = CacheConfig(new MyCache())
+implicit val scalaCache = ScalaCache(new MyCache())
 ```
 
 ### Basic cache operations
 
-Assuming you have a `CacheConfig` in implicit scope:
+Assuming you have a `ScalaCache` in implicit scope:
 
 ```scala
 import scalacache._
@@ -54,6 +55,12 @@ get("myKey") // Some(myValue)
 
 // Remove it from the cache
 remove("myKey")
+
+// Wrap any block with caching
+val result = withCaching("myKey") {
+  // do stuff...
+  "result of block"
+}
 ```
 
 ### Memoization of method results
@@ -62,8 +69,7 @@ remove("myKey")
 import scalacache._
 import memoization._
 
-// Configuration: the cache implementation to use, and how to generate cache keys
-implicit val cacheConfig = CacheConfig(new MyCache())
+implicit val scalaCache = ScalaCache(new MyCache())
 
 def getUser(id: Int): User = memoize {
   // Do DB lookup here...
@@ -137,7 +143,7 @@ Usage:
 import scalacache._
 import guava._
 
-implicit val cacheConfig = CacheConfig(GuavaCache())
+implicit val scalaCache = ScalaCache(GuavaCache())
 ```
 
 This will build a Guava cache with all the default settings. If you want to customize your Guava cache, then build it yourself and pass it to `GuavaCache` like this:
@@ -148,7 +154,7 @@ import guava._
 import com.google.common.cache.CacheBuilder
 
 val underlyingGuavaCache = CacheBuilder.newBuilder().maximumSize(10000L).build[String, Object]
-implicit val cacheConfig = CacheConfig(GuavaCache(underlyingGuavaCache))
+implicit val scalaCache = ScalaCache(GuavaCache(underlyingGuavaCache))
 ```
 
 ### Memcached
@@ -165,7 +171,7 @@ Usage:
 import scalacache._
 import memcached._
 
-implicit val cacheConfig = CacheConfig(MemcachedCache("host:port"))
+implicit val scalaCache = ScalaCache(MemcachedCache("host:port"))
 ```
 
 or provide your own Memcached client, like this:
@@ -176,7 +182,7 @@ import memcached._
 import net.spy.memcached.MemcachedClient
 
 val memcachedClient = new MemcachedClient(...)
-implicit val cacheConfig = CacheConfig(MemcachedCache(memcachedClient))
+implicit val scalaCache = ScalaCache(MemcachedCache(memcachedClient))
 ```
 
 ### Ehcache
@@ -198,7 +204,7 @@ import ehcache._
 val cacheManager: net.sf.ehcache.CacheManager = ...
 val underlying: net.sf.ehcache.Cache = cacheManager.getCache("myCache")
 
-implicit val cacheConfig = CacheConfig(EhcacheCache(underlying))
+implicit val scalaCache = ScalaCache(EhcacheCache(underlying))
 ```
 
 ### Redis
@@ -215,7 +221,7 @@ Usage:
 import scalacache._
 import redis._
 
-implicit val cacheConfig = CacheConfig(RedisCache("host1", 6379))
+implicit val scalaCache = ScalaCache(RedisCache("host1", 6379))
 ```
 
 or provide your own [Jedis](https://github.com/xetorthio/jedis) client, like this:
@@ -226,7 +232,7 @@ import redis._
 import redis.clients.jedis._
 
 val jedis = new Jedis(...)
-implicit val cacheConfig = CacheConfig(RedisCache(jedis))
+implicit val scalaCache = ScalaCache(RedisCache(jedis))
 ```
 
 ## Troubleshooting/Restrictions

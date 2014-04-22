@@ -60,13 +60,7 @@ trait LoggingCache extends Cache {
 
 }
 
+/**
+ * A mock cache that keeps track of the arguments it was called with.
+ */
 class LoggingMockCache extends MockCache with LoggingCache
-
-class MockDbCall(result: String) extends (Int => String) {
-  val calledWithArgs = ArrayBuffer.empty[Int]
-  def apply(a: Int): String = {
-    calledWithArgs.append(a)
-    result
-  }
-}
-

@@ -14,7 +14,7 @@ case class User(id: Int, name: String)
 object Sample extends App {
 
   class UserRepository {
-    implicit val cacheConfig = CacheConfig(new MockCache())
+    implicit val cacheConfig = ScalaCache(new MockCache())
 
     def getUser(id: Int): User = memoize {
       // Do DB lookup here...
