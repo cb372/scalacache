@@ -40,4 +40,34 @@ class PackageObjectSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter
     cache.removeCalledWithArgs(0) should be("baz")
   }
 
+  behavior of "withCaching"
+
+  it should "run the block and cache its result if the value is not found in the cache" in {
+    var called = false
+    val result = scalacache.withCaching("myKey") {
+      called = true
+      "result of block"
+    }
+
+    cache.getCalledWithArgs(0) should be("myKey")
+    called should be(true)
+    cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
+    result should be("result of block")
+  }
+
+  it should "not run the block if the value is found in the cache" in {
+    cache.mmap.put("myKey", "value from cache")
+
+    var called = false
+    val result = scalacache.withCaching("myKey") {
+      called = true
+      "result of block"
+    }
+
+    cache.getCalledWithArgs(0) should be("myKey")
+    called should be(false)
+    cache.putCalledWithArgs.size should be(0)
+    result should be("value from cache")
+  }
+
 }

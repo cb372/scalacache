@@ -6,7 +6,6 @@ import org.scalatest.ShouldMatchers
 import org.scalatest.FlatSpec
 
 import scala.language.postfixOps
-import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 
 /**
@@ -93,14 +92,6 @@ class MemoizeSpec extends FlatSpec with ShouldMatchers {
     def get[V](key: String) = { Some(value).asInstanceOf[Option[V]] }
     def put[V](key: String, value: V, ttl: Option[Duration]) = {}
     def remove(key: String) = {}
-  }
-
-  class MockDbCall(result: String) extends (Int => String) {
-    val calledWithArgs = ArrayBuffer.empty[Int]
-    def apply(a: Int): String = {
-      calledWithArgs.append(a)
-      result
-    }
   }
 
   class MyMockClass(dbCall: Int => String)(implicit val cacheConfig: CacheConfig) {

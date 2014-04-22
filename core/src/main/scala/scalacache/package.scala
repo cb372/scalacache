@@ -33,4 +33,22 @@ package object scalacache {
   def remove(key: String)(implicit cacheConfig: CacheConfig): Unit =
     cacheConfig.cache.remove(key)
 
+  /**
+   * Wrap the given block with a caching decorator.
+   * First look in the cache. If the value is found, then return it immediately.
+   * Otherwise run the block and save the result in the cache before returning it.
+   * @param key cache key
+   * @param ttl Time To Live (optional, if not specified then the entry will last until it is naturally evicted)
+   * @param f the block to run
+   * @tparam V the type of the block's result
+   * @return the result, either retrived from the cache or returned by the block
+   */
+  def withCaching[V](key: String, ttl: Option[Duration] = None)(f: => V)(implicit cacheConfig: CacheConfig): V = {
+    cacheConfig.cache.get(key) getOrElse {
+      val result = f
+      cacheConfig.cache.put(key, result, ttl)
+      result
+    }
+  }
+
 }
