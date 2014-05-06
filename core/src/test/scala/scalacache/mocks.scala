@@ -2,6 +2,7 @@ package scalacache
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * A mock cache for use in tests and samples.
@@ -14,14 +15,16 @@ class MockCache extends Cache {
 
   val mmap = collection.mutable.Map[String, Any]()
 
-  def get[V](key: String): Option[V] = {
+  def get[V](key: String)(implicit execContext: ExecutionContext) = {
     val value = mmap.get(key)
-    value.asInstanceOf[Option[V]]
+    Future.successful(value.asInstanceOf[Option[V]])
   }
 
-  def put[V](key: String, value: V, ttl: Option[Duration]): Unit = mmap.put(key, value)
+  def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) =
+    Future.successful(mmap.put(key, value))
 
-  def remove(key: String): Unit = mmap.remove(key)
+  def remove(key: String)(implicit execContext: ExecutionContext) =
+    Future.successful(mmap.remove(key))
 }
 
 /**
@@ -37,17 +40,17 @@ trait LoggingCache extends Cache {
     ArrayBuffer.empty[(String, Any, Option[Duration])],
     ArrayBuffer.empty[String])
 
-  abstract override def get[V](key: String): Option[V] = {
+  abstract override def get[V](key: String)(implicit execContext: ExecutionContext): Future[Option[V]] = {
     getCalledWithArgs.append(key)
     super.get(key)
   }
 
-  abstract override def put[V](key: String, value: V, ttl: Option[Duration]): Unit = {
+  abstract override def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) = {
     putCalledWithArgs.append((key, value, ttl))
     super.put(key, value, ttl)
   }
 
-  abstract override def remove(key: String): Unit = {
+  abstract override def remove(key: String)(implicit execContext: ExecutionContext) = {
     removeCalledWithArgs.append(key)
     super.remove(key)
   }

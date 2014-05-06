@@ -3,13 +3,15 @@ package scalacache.memoization
 import org.scalatest._
 import scalacache._
 import scalacache.memoization.MethodCallToStringConvertor.defaultConvertor
+import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatest.concurrent.ScalaFutures
 
 /**
  *
  * Author: c-birchall
  * Date:   13/11/07
  */
-class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
+class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter with ScalaFutures {
 
   behavior of "cache key generation for method memoization"
 
@@ -87,7 +89,9 @@ class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
     val value = call
 
     // Check that the value is in the cache, with the expected key
-    cache.get(expectedKey) should be(Some(value))
+    whenReady(cache.get(expectedKey)) { result =>
+      result should be(Some(value))
+    }
   }
 
   def multipleArgLists(a: Int, b: String)(c: String, d: Int): Int = memoize {

@@ -5,13 +5,14 @@ import net.sf.ehcache.{ Cache => Ehcache, CacheManager, Element }
 import scala.concurrent.duration._
 import language.postfixOps
 import org.scalatest.time.{ Seconds, Span }
-import org.scalatest.concurrent.Eventually
+import org.scalatest.concurrent.{ ScalaFutures, Eventually }
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Author: chris
  * Created: 11/16/13
  */
-class EhcacheCacheSpec extends FlatSpec with ShouldMatchers with Eventually with BeforeAndAfter {
+class EhcacheCacheSpec extends FlatSpec with ShouldMatchers with Eventually with BeforeAndAfter with ScalaFutures {
 
   val underlying = {
     val cacheManager = new CacheManager
@@ -28,11 +29,15 @@ class EhcacheCacheSpec extends FlatSpec with ShouldMatchers with Eventually with
 
   it should "return the value stored in Ehcache" in {
     underlying.put(new Element("key1", 123))
-    EhcacheCache(underlying).get("key1") should be(Some(123))
+    whenReady(EhcacheCache(underlying).get("key1")) { result =>
+      result should be(Some(123))
+    }
   }
 
   it should "return None if the given key does not exist in the underlying cache" in {
-    EhcacheCache(underlying).get("non-existent-key") should be(None)
+    whenReady(EhcacheCache(underlying).get("non-existent-key")) { result =>
+      result should be(None)
+    }
   }
 
   behavior of "put"

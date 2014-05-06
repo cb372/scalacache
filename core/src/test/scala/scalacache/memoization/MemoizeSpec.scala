@@ -8,6 +8,8 @@ import org.scalatest.FlatSpec
 import scala.language.postfixOps
 import scala.concurrent.duration._
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Author: chris
@@ -84,15 +86,15 @@ class MemoizeSpec extends FlatSpec with ShouldMatchers {
   }
 
   class EmptyCache extends Cache {
-    def get[V](key: String): Option[V] = { None }
-    def put[V](key: String, value: V, ttl: Option[Duration]) = {}
-    def remove(key: String) = {}
+    override def get[V](key: String)(implicit execContext: ExecutionContext): Future[Option[V]] = Future.successful(None)
+    override def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) = Future.successful((): Unit)
+    override def remove(key: String)(implicit execContext: ExecutionContext) = Future.successful((): Unit)
   }
 
   class FullCache(value: Any) extends Cache {
-    def get[V](key: String) = { Some(value).asInstanceOf[Option[V]] }
-    def put[V](key: String, value: V, ttl: Option[Duration]) = {}
-    def remove(key: String) = {}
+    override def get[V](key: String)(implicit execContext: ExecutionContext): Future[Option[V]] = { Future.successful(Some(value).asInstanceOf[Option[V]]) }
+    override def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) = Future.successful((): Unit)
+    override def remove(key: String)(implicit execContext: ExecutionContext) = Future.successful((): Unit)
   }
 
   class MockDbCall(result: String) extends (Int => String) {

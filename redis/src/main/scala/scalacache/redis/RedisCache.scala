@@ -5,8 +5,11 @@ import scala.concurrent.duration._
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import redis.clients.jedis.Jedis
 import java.nio.charset.Charset
+import scala.concurrent.{ Future, ExecutionContext }
 
 /**
+ * Thin wrapper around Jedis
+ *
  * Author: chris
  * Created: 11/16/13
  */
@@ -24,7 +27,7 @@ class RedisCache(client: Jedis)
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V](key: String): Option[V] = {
+  override def get[V](key: String)(implicit execContext: ExecutionContext) = Future {
     val resultBytes = Option(client.get(key.utf8bytes))
     val result = resultBytes.map(deserialize[V])
     logCacheHitOrMiss(key, result)
@@ -38,7 +41,7 @@ class RedisCache(client: Jedis)
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  def put[V](key: String, value: V, ttl: Option[Duration]): Unit = {
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) = Future {
     val keyBytes = key.utf8bytes
     val valueBytes = serialize(value)
     ttl match {
@@ -57,7 +60,9 @@ class RedisCache(client: Jedis)
    * If the key is not in the cache, do nothing.
    * @param key cache key
    */
-  def remove(key: String): Unit = client.del(key.utf8bytes)
+  override def remove(key: String)(implicit execContext: ExecutionContext) = Future {
+    client.del(key.utf8bytes)
+  }
 
 }
 

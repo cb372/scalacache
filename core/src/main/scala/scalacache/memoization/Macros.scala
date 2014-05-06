@@ -4,14 +4,15 @@ import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 import scala.concurrent.duration.Duration
 import scalacache.ScalaCache
+import scala.concurrent.ExecutionContext
 
 object Macros {
 
-  def memoizeImpl[A: c.WeakTypeTag](c: Context)(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache]) = {
-    memoizeImplWithTTL[A](c)(c.Expr[Duration](c.parse("scala.concurrent.duration.Duration.Zero")))(f)(scalaCache)
+  def memoizeImpl[A: c.WeakTypeTag](c: Context)(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], execContext: c.Expr[ExecutionContext]) = {
+    memoizeImplWithTTL[A](c)(c.Expr[Duration](c.parse("scala.concurrent.duration.Duration.Zero")))(f)(scalaCache, execContext)
   }
 
-  def memoizeImplWithTTL[A: c.WeakTypeTag](c: Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache]) = {
+  def memoizeImplWithTTL[A: c.WeakTypeTag](c: Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], execContext: c.Expr[ExecutionContext]) = {
     import c.universe._
 
     val enclosingMethodSymbol = getMethodSymbol(c)
@@ -28,14 +29,8 @@ object Macros {
 
     val tree = q"""
           val key = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
-          val cachedValue = $scalaCache.cache.get(key)
-          cachedValue.getOrElse {
-            // cache miss
-            val calculatedValue = $f
-            val ttlOpt = if ($ttl == scala.concurrent.duration.Duration.Zero) None else Some($ttl)
-            $scalaCache.cache.put(key, calculatedValue, ttlOpt)
-            calculatedValue
-          }
+          val ttlOpt = if ($ttl == scala.concurrent.duration.Duration.Zero) None else Some($ttl)
+          scalacache.withCaching(key, ttlOpt)($f)($scalaCache, $execContext)
         """
     //println(showCode(tree))
     tree

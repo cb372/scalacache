@@ -4,12 +4,14 @@ import net.spy.memcached.{ AddrUtil, BinaryConnectionFactory, MemcachedClient }
 import scala.concurrent.duration.Duration
 import scalacache.{ LoggingSupport, Cache }
 import com.typesafe.scalalogging.slf4j.{ LazyLogging, StrictLogging }
+import scala.concurrent.{ Future, ExecutionContext }
 
 /**
+ * Wrapper around spymemcached
+ *
  * Author: chris
  * Created: 2/19/13
  */
-
 class MemcachedCache(client: MemcachedClient)
     extends Cache
     with MemcachedTTLConvertor
@@ -24,7 +26,7 @@ class MemcachedCache(client: MemcachedClient)
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V](key: String) = {
+  override def get[V](key: String)(implicit execContext: ExecutionContext) = Future {
     val result = Option(client.get(keySanitizer.toValidMemcachedKey(key)).asInstanceOf[V])
     logCacheHitOrMiss(key, result)
     result
@@ -37,7 +39,7 @@ class MemcachedCache(client: MemcachedClient)
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  def put[V](key: String, value: V, ttl: Option[Duration]) {
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) = Future {
     client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), value)
     logCachePut(key, ttl)
   }
@@ -47,7 +49,9 @@ class MemcachedCache(client: MemcachedClient)
    * If the key is not in the cache, do nothing.
    * @param key cache key
    */
-  def remove(key: String): Unit = client.delete(key)
+  override def remove(key: String)(implicit execContext: ExecutionContext) = Future {
+    client.delete(key)
+  }
 
 }
 

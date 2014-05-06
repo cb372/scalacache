@@ -4,8 +4,13 @@ import scalacache.{ LoggingSupport, Cache }
 import scala.concurrent.duration.Duration
 import net.sf.ehcache.{ Cache => Ehcache, Element }
 import com.typesafe.scalalogging.slf4j.StrictLogging
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
+ * Thin wrapper around Ehcache.
+ * Since Ehcache is in-memory and non-blocking,
+ * all operations are performed synchronously, i.e. ExecutionContext is ignored.
+ *
  * Author: chris
  * Created: 11/16/13
  */
@@ -20,13 +25,13 @@ class EhcacheCache(underlying: Ehcache)
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V](key: String): Option[V] = {
+  override def get[V](key: String)(implicit execContext: ExecutionContext) = {
     val result = for {
       e <- Option(underlying.get(key))
       v <- Option(e.getObjectValue.asInstanceOf[V])
     } yield v
     logCacheHitOrMiss(key, result)
-    result
+    Future.successful(result)
   }
 
   /**
@@ -36,11 +41,12 @@ class EhcacheCache(underlying: Ehcache)
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  def put[V](key: String, value: V, ttl: Option[Duration]): Unit = {
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) = {
     val element = new Element(key, value)
     ttl.foreach(t => element.setTimeToLive(t.toSeconds.toInt))
     underlying.put(element)
     logCachePut(key, ttl)
+    Future.successful(())
   }
 
   /**
@@ -48,7 +54,7 @@ class EhcacheCache(underlying: Ehcache)
    * If the key is not in the cache, do nothing.
    * @param key cache key
    */
-  def remove(key: String): Unit = underlying.remove(key)
+  override def remove(key: String)(implicit execContext: ExecutionContext) = Future.successful(underlying.remove(key))
 
 }
 

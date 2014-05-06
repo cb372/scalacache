@@ -1,4 +1,5 @@
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, ExecutionContext, Future }
 
 /**
  * Author: chris
@@ -7,30 +8,48 @@ import scala.concurrent.duration.Duration
 package object scalacache {
 
   /**
-   * Get the value corresponding to the given key from the cache
+   * Get the value corresponding to the given key from the cache.
+   *
+   * Depending on the cache implementation, this may be done synchronously or asynchronously, so it returns a Future.
+   *
    * @param key cache key
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V](key: String)(implicit scalaCache: ScalaCache): Option[V] =
+  def get[V](key: String)(implicit scalaCache: ScalaCache, execContext: ExecutionContext): Future[Option[V]] =
     scalaCache.cache.get(key)
 
   /**
+   * Convenience method to get a value from the cache synchronously. Warning: may block indefinitely!
+   * @param key cache key
+   * @tparam V the type of the corresponding value
+   * @return the value, if there is one
+   */
+  def getSync[V](key: String)(implicit scalaCache: ScalaCache, execContext: ExecutionContext = ExecutionContext.global): Option[V] =
+    Await.result(get[V](key), Duration.Inf)
+
+  /**
    * Insert the given key-value pair into the cache, with an optional Time To Live.
+   *
+   * Depending on the cache implementation, this may be done synchronously or asynchronously, so it returns a Future.
+   *
    * @param key cache key
    * @param value corresponding value
    * @param ttl Time To Live (optional, if not specified then the entry will last until it is naturally evicted)
    * @tparam V the type of the corresponding value
    */
-  def put[V](key: String, value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache): Unit =
+  def put[V](key: String, value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache, execContext: ExecutionContext): Future[Unit] =
     scalaCache.cache.put(key, value, ttl)
 
   /**
    * Remove the given key and its associated value from the cache, if it exists.
    * If the key is not in the cache, do nothing.
+   *
+   * Depending on the cache implementation, this may be done synchronously or asynchronously, so it returns a Future.
+   *
    * @param key cache key
    */
-  def remove(key: String)(implicit scalaCache: ScalaCache): Unit =
+  def remove(key: String)(implicit scalaCache: ScalaCache, execContext: ExecutionContext): Future[Unit] =
     scalaCache.cache.remove(key)
 
   /**
@@ -43,8 +62,8 @@ package object scalacache {
    * @tparam V the type of the block's result
    * @return the result, either retrived from the cache or returned by the block
    */
-  def withCaching[V](key: String, ttl: Option[Duration] = None)(f: => V)(implicit scalaCache: ScalaCache): V = {
-    scalaCache.cache.get(key) getOrElse {
+  def withCaching[V](key: String, ttl: Option[Duration] = None)(f: => V)(implicit scalaCache: ScalaCache, execContext: ExecutionContext): V = {
+    getSync(key) getOrElse {
       val result = f
       scalaCache.cache.put(key, result, ttl)
       result
