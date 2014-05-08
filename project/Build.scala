@@ -76,7 +76,10 @@ object ScalaCacheBuild extends Build {
 
   lazy val scalaTest = Seq(
     "org.scalatest" %% "scalatest" % "2.1.3" % "test"
-  )
+  ) ++ (if (Versions.scala.startsWith("2.11")) {
+    // used in the scalatest reporter
+    Seq("org.scala-lang.modules" %% "scala-xml" % "1.0.1" % "test")
+  } else Nil)
 
   // Dependencies common to all projects
   lazy val commonDeps =

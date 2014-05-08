@@ -6,8 +6,7 @@ package scalacache.memcached
  * Date:   13/11/07
  */
 class MemcachedKeySanitizer(replacementChar: String = "_", maxKeyLength: Int = 250) {
-
-  val invalidCharsRegex = """[^a-zA-Z0-9~`!@#$%^&*()_+=\[\]{}\\|:;"',.<>?/-]""".r
+  val invalidCharsRegex = "[^\u0021-\u007e]".r
 
   /**
    * Convert the given string to a valid Memcached key by:

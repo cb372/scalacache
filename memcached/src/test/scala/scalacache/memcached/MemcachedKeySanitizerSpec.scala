@@ -18,8 +18,8 @@ class MemcachedKeySanitizerSpec extends FlatSpec with ShouldMatchers {
   }
 
   it should "replace invalid chars with underscores" in {
-    val invalidKey = "a b c"
-    sanitizer.toValidMemcachedKey(invalidKey) should be("a_b_c")
+    val invalidKey = "abc \t\r\nダメ"
+    sanitizer.toValidMemcachedKey(invalidKey) should be("abc______")
   }
 
   it should "allow symbols in key" in {
