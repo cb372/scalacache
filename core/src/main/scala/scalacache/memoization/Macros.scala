@@ -29,8 +29,10 @@ object Macros {
 
     val tree = q"""
           val key = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
-          val ttlOpt = if ($ttl == scala.concurrent.duration.Duration.Zero) None else Some($ttl)
-          scalacache.withCaching(key, ttlOpt)($f)($scalaCache)
+          if ($ttl == scala.concurrent.duration.Duration.Zero)
+            scalacache.caching(key)($f)($scalaCache)
+          else
+            scalacache.cachingWithTTL(key)($ttl)($f)($scalaCache)
         """
     //println(showCode(tree))
     tree

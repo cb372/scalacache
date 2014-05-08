@@ -3,7 +3,6 @@ package scalacache.memoization
 import org.scalatest._
 import scalacache._
 import scalacache.memoization.MethodCallToStringConvertor.defaultConvertor
-import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.concurrent.ScalaFutures
 
 /**
@@ -16,7 +15,7 @@ class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter with
   behavior of "cache key generation for method memoization"
 
   val cache = new MockCache
-  implicit val scalaCache = ScalaCache(cache, MemoizationConfig(defaultConvertor))
+  implicit val scalaCache = ScalaCache(cache, memoization = MemoizationConfig(defaultConvertor))
 
   before {
     cache.mmap.clear()

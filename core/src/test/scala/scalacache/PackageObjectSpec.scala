@@ -19,32 +19,37 @@ class PackageObjectSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter
     cache.reset()
   }
 
-  behavior of "get"
+  behavior of "#get"
 
   it should "call get on the cache found in the ScalaCache" in {
     scalacache.get("foo")
     cache.getCalledWithArgs(0) should be("foo")
   }
 
-  behavior of "put"
+  it should "use the CacheKeyBuilder to build the cache key" in {
+    scalacache.get("foo", 123)
+    cache.getCalledWithArgs(0) should be("foo:123")
+  }
+
+  behavior of "#put"
 
   it should "call put on the underlying cache" in {
-    scalacache.put("foo", "bar", Some(1 second))
+    scalacache.put("foo")("bar", Some(1 second))
     cache.putCalledWithArgs(0) should be(("foo", "bar", Some(1 second)))
   }
 
-  behavior of "remove"
+  behavior of "#remove"
 
   it should "call get on the cache found in the ScalaCache" in {
     scalacache.remove("baz")
     cache.removeCalledWithArgs(0) should be("baz")
   }
 
-  behavior of "withCaching"
+  behavior of "#caching"
 
-  it should "run the block and cache its result if the value is not found in the cache" in {
+  it should "run the block and cache its result with no TTL if the value is not found in the cache" in {
     var called = false
-    val result = scalacache.withCaching("myKey") {
+    val result = scalacache.caching("myKey") {
       called = true
       "result of block"
     }
@@ -59,7 +64,7 @@ class PackageObjectSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter
     cache.mmap.put("myKey", "value from cache")
 
     var called = false
-    val result = scalacache.withCaching("myKey") {
+    val result = scalacache.caching("myKey") {
       called = true
       "result of block"
     }
@@ -68,6 +73,21 @@ class PackageObjectSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter
     called should be(false)
     cache.putCalledWithArgs.size should be(0)
     result should be("value from cache")
+  }
+
+  behavior of "#cachingWithTTL"
+
+  it should "run the block and cache its result with the given TTL if the value is not found in the cache" in {
+    var called = false
+    val result = scalacache.cachingWithTTL("myKey")(10.seconds) {
+      called = true
+      "result of block"
+    }
+
+    cache.getCalledWithArgs(0) should be("myKey")
+    called should be(true)
+    cache.putCalledWithArgs(0) should be("myKey", "result of block", Some(10.seconds))
+    result should be("result of block")
   }
 
 }
