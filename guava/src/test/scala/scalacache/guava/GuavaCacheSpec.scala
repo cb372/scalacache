@@ -4,13 +4,14 @@ import org.scalatest.{ BeforeAndAfter, ShouldMatchers, FlatSpec }
 import com.google.common.cache.CacheBuilder
 import org.joda.time.{ DateTimeUtils, DateTime }
 import scala.concurrent.duration._
+import org.scalatest.concurrent.ScalaFutures
 
 /**
  *
  * Author: c-birchall
  * Date:   13/11/07
  */
-class GuavaCacheSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
+class GuavaCacheSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter with ScalaFutures {
 
   def newGCache = CacheBuilder.newBuilder.build[String, Object]
 
@@ -20,19 +21,25 @@ class GuavaCacheSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
     val underlying = newGCache
     val entry = Entry("hello", expiresAt = None)
     underlying.put("key1", entry)
-    GuavaCache(underlying).get("key1") should be(Some("hello"))
+    whenReady(GuavaCache(underlying).get("key1")) { result =>
+      result should be(Some("hello"))
+    }
   }
 
   it should "return None if the given key does not exist in the underlying cache" in {
     val underlying = newGCache
-    GuavaCache(underlying).get("non-existent key") should be(None)
+    whenReady(GuavaCache(underlying).get("non-existent key")) { result =>
+      result should be(None)
+    }
   }
 
   it should "return None if the given key exists but the value has expired" in {
     val underlying = newGCache
     val expiredEntry = Entry("hello", expiresAt = Some(DateTime.now.minusSeconds(1)))
     underlying.put("key1", expiredEntry)
-    GuavaCache(underlying).get("non-existent key") should be(None)
+    whenReady(GuavaCache(underlying).get("non-existent key")) { result =>
+      result should be(None)
+    }
   }
 
   behavior of "put"

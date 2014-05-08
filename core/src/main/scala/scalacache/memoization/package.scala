@@ -2,6 +2,7 @@ package scalacache
 
 import scala.language.experimental.macros
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
 /**
  * Utilities for memoizing the results of method calls in a cache.

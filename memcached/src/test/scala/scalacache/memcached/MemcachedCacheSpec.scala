@@ -1,19 +1,15 @@
 package scalacache.memcached
 
 import org.scalatest.{ BeforeAndAfter, ShouldMatchers, FlatSpec }
-import net.spy.memcached.{ AddrUtil, MemcachedClient }
+import net.spy.memcached._
 import scala.concurrent.duration._
-import org.scalatest.concurrent.Eventually
+import org.scalatest.concurrent.{ ScalaFutures, Eventually }
 import org.scalatest.time.{ Span, Seconds }
 
 import scala.language.postfixOps
 
-/**
- *
- * Author: c-birchall
- * Date:   13/11/07
- */
-class MemcachedCacheSpec extends FlatSpec with ShouldMatchers with Eventually with BeforeAndAfter {
+class MemcachedCacheSpec
+    extends FlatSpec with ShouldMatchers with Eventually with BeforeAndAfter with ScalaFutures {
 
   val client = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
 
@@ -36,29 +32,31 @@ class MemcachedCacheSpec extends FlatSpec with ShouldMatchers with Eventually wi
 
     it should "return the value stored in Memcached" in {
       client.set("key1", 0, 123)
-      MemcachedCache(client).get("key1") should be(Some(123))
+      whenReady(MemcachedCache(client).get("key1")) { _ should be(Some(123)) }
     }
 
     it should "return None if the given key does not exist in the underlying cache" in {
-      MemcachedCache(client).get("non-existent-key") should be(None)
+      whenReady(MemcachedCache(client).get("non-existent-key")) { _ should be(None) }
     }
 
     behavior of "put"
 
     it should "store the given key-value pair in the underlying cache" in {
-      MemcachedCache(client).put("key2", 123, None)
-      client.get("key2") should be(123)
+      whenReady(MemcachedCache(client).put("key2", 123, None)) { _ =>
+        client.get("key2") should be(123)
+      }
     }
 
     behavior of "put with TTL"
 
     it should "store the given key-value pair in the underlying cache" in {
-      MemcachedCache(client).put("key3", 123, Some(1 second))
-      client.get("key3") should be(123)
+      whenReady(MemcachedCache(client).put("key3", 123, Some(1 second))) { _ =>
+        client.get("key3") should be(123)
 
-      // Should expire after 1 second
-      eventually(timeout(Span(2, Seconds))) {
-        client.get("key3") should be(null)
+        // Should expire after 1 second
+        eventually(timeout(Span(2, Seconds))) {
+          client.get("key3") should be(null)
+        }
       }
     }
 
@@ -68,8 +66,9 @@ class MemcachedCacheSpec extends FlatSpec with ShouldMatchers with Eventually wi
       client.set("key1", 0, 123)
       client.get("key1") should be(123)
 
-      MemcachedCache(client).remove("key1")
-      client.get("key1") should be(null)
+      whenReady(MemcachedCache(client).remove("key1")) { _ =>
+        client.get("key1") should be(null)
+      }
     }
 
   }

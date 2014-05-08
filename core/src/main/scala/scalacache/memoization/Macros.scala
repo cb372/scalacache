@@ -4,6 +4,7 @@ import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 import scala.concurrent.duration.Duration
 import scalacache.ScalaCache
+import scala.concurrent.ExecutionContext
 
 object Macros {
 
@@ -28,14 +29,8 @@ object Macros {
 
     val tree = q"""
           val key = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
-          val cachedValue = $scalaCache.cache.get(key)
-          cachedValue.getOrElse {
-            // cache miss
-            val calculatedValue = $f
-            val ttlOpt = if ($ttl == scala.concurrent.duration.Duration.Zero) None else Some($ttl)
-            $scalaCache.cache.put(key, calculatedValue, ttlOpt)
-            calculatedValue
-          }
+          val ttlOpt = if ($ttl == scala.concurrent.duration.Duration.Zero) None else Some($ttl)
+          scalacache.withCaching(key, ttlOpt)($f)($scalaCache)
         """
     //println(showCode(tree))
     tree

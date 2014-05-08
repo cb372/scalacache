@@ -1,6 +1,7 @@
 package scalacache.memoization
 
 import scalacache._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  *
