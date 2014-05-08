@@ -51,7 +51,7 @@ Assuming you have a `ScalaCache` in implicit scope:
 import scalacache._
 
 // Add an item to the cache
-put("myKey", "myValue")
+put("myKey")("myValue")
 
 // Retrieve the added item
 get("myKey") // Some(myValue)
@@ -60,10 +60,13 @@ get("myKey") // Some(myValue)
 remove("myKey")
 
 // Wrap any block with caching
-val result = withCaching("myKey") {
+val result = caching("myKey") {
   // do stuff...
   "result of block"
 }
+
+// You can also pass multiple parts to be combined into one key
+put("foo", 123, "bar")(value) // Will be cached with key "foo:123:bar"
 ```
 
 ### Memoization of method results
