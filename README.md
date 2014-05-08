@@ -40,6 +40,8 @@ import scalacache._
 implicit val scalaCache = ScalaCache(new MyCache())
 ```
 
+Note that depending on your cache implementation, the cache may take an `ExecutionContext` in its constructor. By default it will use `ExecutionContext.global`, but you can pass in a custom one if you wish.
+
 ### Basic cache operations
 
 Assuming you have a `ScalaCache` in implicit scope:
