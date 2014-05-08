@@ -13,7 +13,7 @@ import scala.concurrent.{ Future, ExecutionContext }
  * Author: chris
  * Created: 11/16/13
  */
-class RedisCache(client: Jedis)
+class RedisCache(client: Jedis)(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache
     with RedisSerialization
     with LoggingSupport
@@ -27,7 +27,7 @@ class RedisCache(client: Jedis)
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V](key: String)(implicit execContext: ExecutionContext) = Future {
+  override def get[V](key: String) = Future {
     val resultBytes = Option(client.get(key.utf8bytes))
     val result = resultBytes.map(deserialize[V])
     logCacheHitOrMiss(key, result)
@@ -41,7 +41,7 @@ class RedisCache(client: Jedis)
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) = Future {
+  override def put[V](key: String, value: V, ttl: Option[Duration]) = Future {
     val keyBytes = key.utf8bytes
     val valueBytes = serialize(value)
     ttl match {
@@ -60,7 +60,7 @@ class RedisCache(client: Jedis)
    * If the key is not in the cache, do nothing.
    * @param key cache key
    */
-  override def remove(key: String)(implicit execContext: ExecutionContext) = Future {
+  override def remove(key: String) = Future {
     client.del(key.utf8bytes)
   }
 

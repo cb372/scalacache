@@ -15,15 +15,15 @@ class MockCache extends Cache {
 
   val mmap = collection.mutable.Map[String, Any]()
 
-  def get[V](key: String)(implicit execContext: ExecutionContext) = {
+  def get[V](key: String) = {
     val value = mmap.get(key)
     Future.successful(value.asInstanceOf[Option[V]])
   }
 
-  def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) =
+  def put[V](key: String, value: V, ttl: Option[Duration]) =
     Future.successful(mmap.put(key, value))
 
-  def remove(key: String)(implicit execContext: ExecutionContext) =
+  def remove(key: String) =
     Future.successful(mmap.remove(key))
 }
 
@@ -40,17 +40,17 @@ trait LoggingCache extends Cache {
     ArrayBuffer.empty[(String, Any, Option[Duration])],
     ArrayBuffer.empty[String])
 
-  abstract override def get[V](key: String)(implicit execContext: ExecutionContext): Future[Option[V]] = {
+  abstract override def get[V](key: String): Future[Option[V]] = {
     getCalledWithArgs.append(key)
     super.get(key)
   }
 
-  abstract override def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) = {
+  abstract override def put[V](key: String, value: V, ttl: Option[Duration]) = {
     putCalledWithArgs.append((key, value, ttl))
     super.put(key, value, ttl)
   }
 
-  abstract override def remove(key: String)(implicit execContext: ExecutionContext) = {
+  abstract override def remove(key: String) = {
     removeCalledWithArgs.append(key)
     super.remove(key)
   }

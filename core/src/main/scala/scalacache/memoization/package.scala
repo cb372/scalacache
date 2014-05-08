@@ -22,7 +22,7 @@ package object memoization {
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoize[A](f: => A)(implicit scalaCache: ScalaCache, execContext: ExecutionContext): A = macro Macros.memoizeImpl[A]
+  def memoize[A](f: => A)(implicit scalaCache: ScalaCache): A = macro Macros.memoizeImpl[A]
 
   /**
    * Perform the given operation and memoize its result to a cache before returning it.
@@ -39,7 +39,7 @@ package object memoization {
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoize[A](ttl: Duration)(f: => A)(implicit scalaCache: ScalaCache, execContext: ExecutionContext): A = macro Macros.memoizeImplWithTTL[A]
+  def memoize[A](ttl: Duration)(f: => A)(implicit scalaCache: ScalaCache): A = macro Macros.memoizeImplWithTTL[A]
 
 }
 

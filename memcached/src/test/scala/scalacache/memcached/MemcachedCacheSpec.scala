@@ -7,7 +7,6 @@ import org.scalatest.concurrent.{ ScalaFutures, Eventually }
 import org.scalatest.time.{ Span, Seconds }
 
 import scala.language.postfixOps
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class MemcachedCacheSpec
     extends FlatSpec with ShouldMatchers with Eventually with BeforeAndAfter with ScalaFutures {

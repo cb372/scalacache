@@ -8,8 +8,8 @@ import org.scalatest.time.{ Span, Seconds }
 import scala.language.postfixOps
 import scala.util.{ Success, Failure, Try }
 import redis.clients.jedis.Jedis
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  *

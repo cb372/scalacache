@@ -8,11 +8,11 @@ import scala.concurrent.ExecutionContext
 
 object Macros {
 
-  def memoizeImpl[A: c.WeakTypeTag](c: Context)(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], execContext: c.Expr[ExecutionContext]) = {
-    memoizeImplWithTTL[A](c)(c.Expr[Duration](c.parse("scala.concurrent.duration.Duration.Zero")))(f)(scalaCache, execContext)
+  def memoizeImpl[A: c.WeakTypeTag](c: Context)(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache]) = {
+    memoizeImplWithTTL[A](c)(c.Expr[Duration](c.parse("scala.concurrent.duration.Duration.Zero")))(f)(scalaCache)
   }
 
-  def memoizeImplWithTTL[A: c.WeakTypeTag](c: Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], execContext: c.Expr[ExecutionContext]) = {
+  def memoizeImplWithTTL[A: c.WeakTypeTag](c: Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache]) = {
     import c.universe._
 
     val enclosingMethodSymbol = getMethodSymbol(c)
@@ -30,7 +30,7 @@ object Macros {
     val tree = q"""
           val key = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
           val ttlOpt = if ($ttl == scala.concurrent.duration.Duration.Zero) None else Some($ttl)
-          scalacache.withCaching(key, ttlOpt)($f)($scalaCache, $execContext)
+          scalacache.withCaching(key, ttlOpt)($f)($scalaCache)
         """
     //println(showCode(tree))
     tree

@@ -4,7 +4,6 @@ import org.scalatest.{ BeforeAndAfter, ShouldMatchers, FlatSpec }
 import com.google.common.cache.CacheBuilder
 import org.joda.time.{ DateTimeUtils, DateTime }
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.concurrent.ScalaFutures
 
 /**

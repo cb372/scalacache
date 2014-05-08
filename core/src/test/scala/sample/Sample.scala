@@ -15,7 +15,6 @@ object Sample extends App {
 
   class UserRepository {
     implicit val cacheConfig = ScalaCache(new MockCache())
-    import scala.concurrent.ExecutionContext.Implicits.global
 
     def getUser(id: Int): User = memoize {
       // Do DB lookup here...

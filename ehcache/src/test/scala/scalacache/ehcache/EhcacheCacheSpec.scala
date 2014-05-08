@@ -6,7 +6,6 @@ import scala.concurrent.duration._
 import language.postfixOps
 import org.scalatest.time.{ Seconds, Span }
 import org.scalatest.concurrent.{ ScalaFutures, Eventually }
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Author: chris

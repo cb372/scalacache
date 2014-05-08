@@ -5,12 +5,12 @@ import com.google.common.cache.{ Cache => GCache, CacheBuilder => GCacheBuilder 
 import scala.concurrent.duration.Duration
 import org.joda.time.DateTime
 import com.typesafe.scalalogging.slf4j.StrictLogging
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.Future
 
 /*
  * Thin wrapper around Google Guava.
  * Since Guava is in-memory and non-blocking,
- * all operations are performed synchronously, i.e. ExecutionContext is ignored.
+ * all operations are performed synchronously, i.e. ExecutionContext is not needed.
  *
  * Note: Would be nice to use Any here, but that doesn't conform to GCache's type bounds,
  * because Any does not extend java.lang.Object.
@@ -26,7 +26,7 @@ class GuavaCache(underlying: GCache[String, Object])
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V](key: String)(implicit execContext: ExecutionContext) = {
+  override def get[V](key: String) = {
     val entry = Option(underlying.getIfPresent(key).asInstanceOf[Entry[V]])
     /*
      Note: we could delete the entry from the cache if it has expired,
@@ -48,7 +48,7 @@ class GuavaCache(underlying: GCache[String, Object])
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration]) = {
     val entry = Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
     logCachePut(key, ttl)
@@ -60,7 +60,7 @@ class GuavaCache(underlying: GCache[String, Object])
    * If the key is not in the cache, do nothing.
    * @param key cache key
    */
-  override def remove(key: String)(implicit execContext: ExecutionContext) = Future.successful(underlying.invalidate(key))
+  override def remove(key: String) = Future.successful(underlying.invalidate(key))
 
   private def toExpiryTime(ttl: Duration): DateTime = DateTime.now.plusMillis(ttl.toMillis.toInt)
 

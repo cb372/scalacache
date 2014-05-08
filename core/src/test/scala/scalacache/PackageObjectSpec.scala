@@ -3,7 +3,6 @@ package scalacache
 import org.scalatest.{ BeforeAndAfter, FlatSpec, ShouldMatchers }
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  *

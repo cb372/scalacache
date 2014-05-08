@@ -12,7 +12,7 @@ import scala.concurrent.{ Future, ExecutionContext }
  * Author: chris
  * Created: 2/19/13
  */
-class MemcachedCache(client: MemcachedClient)
+class MemcachedCache(client: MemcachedClient)(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache
     with MemcachedTTLConvertor
     with StrictLogging
@@ -26,7 +26,7 @@ class MemcachedCache(client: MemcachedClient)
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V](key: String)(implicit execContext: ExecutionContext) = Future {
+  override def get[V](key: String) = Future {
     val result = Option(client.get(keySanitizer.toValidMemcachedKey(key)).asInstanceOf[V])
     logCacheHitOrMiss(key, result)
     result
@@ -39,7 +39,7 @@ class MemcachedCache(client: MemcachedClient)
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit execContext: ExecutionContext) = Future {
+  override def put[V](key: String, value: V, ttl: Option[Duration]) = Future {
     client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), value)
     logCachePut(key, ttl)
   }
@@ -49,7 +49,7 @@ class MemcachedCache(client: MemcachedClient)
    * If the key is not in the cache, do nothing.
    * @param key cache key
    */
-  override def remove(key: String)(implicit execContext: ExecutionContext) = Future {
+  override def remove(key: String) = Future {
     client.delete(key)
   }
 
