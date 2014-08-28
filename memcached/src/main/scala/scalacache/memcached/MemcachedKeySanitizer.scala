@@ -51,7 +51,8 @@ case class ReplaceAndTruncateSanitizer(replacementChar: String = "_",
 
 /**
  * [[HashingMemcachedKeySanitizer]] uses the provided [[HashingAlgorithm]] to create a valid Memcached key
- * using characters in hexadecimal.
+ * using characters in hexadecimal. You may want to use this [[MemcachedKeySanitizer]] if there is a possibility
+ * that your keys will contain non-ASCII characters.
  *
  * Make sure that the [[HashingAlgorithm]] you provide does not produce strings that are beyond 250 characters
  * when combined with any additional namespacing that your MemcachedClient or proxy automatically inserts for

@@ -47,4 +47,17 @@ class HashingMemcachedKeySanitizerSpec extends FlatSpec with ShouldMatchers {
     hashedValues.foreach(hexToBytes) // should work
     hashedValues.forall(_.length < 250) should be(true)
   }
+
+  it should "differentiate between strings made up of non-ASCII characters" in {
+    val s1 = "毛泽东"
+    val s2 = "김정일"
+    val hashedPairs = for {
+      algo <- Seq(MD5, SHA1, SHA256, SHA512)
+      hashingSanitizer = HashingMemcachedKeySanitizer(algo)
+      h1 = hashingSanitizer.toValidMemcachedKey(s1)
+      h2 = hashingSanitizer.toValidMemcachedKey(s2)
+    } yield (h1, h2)
+    hashedPairs.forall(pair => pair._1 != pair._2) should be(true)
+  }
+
 }
