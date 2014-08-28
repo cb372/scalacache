@@ -1,11 +1,16 @@
 package scalacache.memcached
 
+import scalacache._
+
 /**
  *
  * Author: c-birchall
  * Date:   13/11/07
  */
 
+/**
+ * Trait that you can use to define your own Memcached key serialiser
+ */
 trait MemcachedKeySanitizerLike {
   /**
    * Converts a string to a valid Memcached key
@@ -44,6 +49,14 @@ case class ReplaceAndTruncateSanitizer(replacementChar: String = "_",
 
 }
 
+/**
+ * [[HashingMemcachedKeySanitizer]] uses the provided [[HashingAlgorithm]] to create a valid Memcached key
+ * using characters in hexadecimal.
+ *
+ * Make sure that the [[HashingAlgorithm]] you provide does not produce strings that are beyond 250 characters
+ * when combined with any additional namespacing that your MemcachedClient or proxy automatically inserts for
+ * you.
+ */
 case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) extends MemcachedKeySanitizerLike {
   private val messageDigest = java.security.MessageDigest.getInstance(algorithm.name)
 
@@ -54,18 +67,4 @@ case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) exten
   def toValidMemcachedKey(key: String): String = {
     messageDigest.digest(key.getBytes).map("%02x".format(_)).mkString
   }
-}
-
-// Sealed HashingAlgorithm identifiers to prevent users from shooting themselves in the foot at runtime
-sealed trait HashingAlgorithm {
-  def name: String
-}
-case object MD5 extends HashingAlgorithm {
-  val name = "MD5"
-}
-case object SHA1 extends HashingAlgorithm {
-  val name = "SHA-1"
-}
-case object SHA256 extends HashingAlgorithm {
-  val name = "SHA-256"
 }
