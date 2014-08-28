@@ -11,7 +11,7 @@ import scalacache._
 /**
  * Trait that you can use to define your own Memcached key serialiser
  */
-trait MemcachedKeySanitizerLike {
+trait MemcachedKeySanitizer {
   /**
    * Converts a string to a valid Memcached key
    */
@@ -20,7 +20,7 @@ trait MemcachedKeySanitizerLike {
 
 case class ReplaceAndTruncateSanitizer(replacementChar: String = "_",
                                        maxKeyLength: Int = 250)
-    extends MemcachedKeySanitizerLike {
+    extends MemcachedKeySanitizer {
 
   val invalidCharsRegex = "[^\u0021-\u007e]".r
 
@@ -57,7 +57,7 @@ case class ReplaceAndTruncateSanitizer(replacementChar: String = "_",
  * when combined with any additional namespacing that your MemcachedClient or proxy automatically inserts for
  * you.
  */
-case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) extends MemcachedKeySanitizerLike {
+case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) extends MemcachedKeySanitizer {
   private val messageDigest = java.security.MessageDigest.getInstance(algorithm.name)
 
   /**
