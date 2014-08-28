@@ -9,7 +9,7 @@ import scalacache._
  */
 
 /**
- * Trait that you can use to define your own Memcached key serialiser
+ * Trait that you can use to define your own Memcached key sanitiser
  */
 trait MemcachedKeySanitizer {
   /**
@@ -59,13 +59,12 @@ case class ReplaceAndTruncateSanitizer(replacementChar: String = "_",
  * you.
  */
 case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) extends MemcachedKeySanitizer {
-  private val messageDigest = java.security.MessageDigest.getInstance(algorithm.name)
 
   /**
    * Uses the specified hashing algorithm to digest a key and spit out a hexidecimal representation
    * of the hashed key
    */
   def toValidMemcachedKey(key: String): String = {
-    messageDigest.digest(key.getBytes).map("%02x".format(_)).mkString
+    algorithm.messageDigest.digest(key.getBytes).map("%02x".format(_)).mkString
   }
 }

@@ -1,20 +1,15 @@
 package scalacache
 
-import java.security.MessageDigest
-
 import org.scalatest._
 
 class HashingAlgorithmSpec extends FunSpec with Matchers {
 
-  def digestFor(algo: HashingAlgorithm): MessageDigest = java.security.MessageDigest.getInstance(algo.name)
+  describe("implementing singletons") {
 
-  describe("implementing classes") {
-    it("should contain names that are valid MessageDigest algorithm names") {
-      digestFor(MD5)
-      digestFor(SHA1)
-      digestFor(SHA256)
-      digestFor(SHA512)
+    it("should return their messageDigest fields properly") {
+      Seq(MD5, SHA1, SHA256, SHA512).foreach(_.messageDigest)
     }
+
   }
 
 }

@@ -1,7 +1,9 @@
 package scalacache.memcached
 
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ FlatSpec, ShouldMatchers }
 
+import scala.concurrent.{ ExecutionContext, Future }
 import scalacache._
 
 /**
@@ -31,14 +33,14 @@ class ReplaceAndTruncateSanitizerSpec extends FlatSpec with ShouldMatchers {
 
 }
 
-class HashingMemcachedKeySanitizerSpec extends FlatSpec with ShouldMatchers {
+class HashingMemcachedKeySanitizerSpec extends FlatSpec with ShouldMatchers with ScalaFutures {
   behavior of "HashingMemcachedKeySanitizer"
 
   val longString = "lolol&%'(%$)$ほげほげ野郎123**+" * 500
 
   def hexToBytes(s: String): Array[Byte] = s.sliding(2, 2).map(Integer.parseInt(_, 16).toByte).toArray
 
-  it should "return a hexadecimal hashed representation of the index string" in {
+  it should "return a hexadecimal hashed representation of the argument string" in {
     val hashedValues = for {
       algo <- Seq(MD5, SHA1, SHA256, SHA512)
       hashingSanitizer = HashingMemcachedKeySanitizer(algo)
@@ -58,6 +60,20 @@ class HashingMemcachedKeySanitizerSpec extends FlatSpec with ShouldMatchers {
       h2 = hashingSanitizer.toValidMemcachedKey(s2)
     } yield (h1, h2)
     hashedPairs.forall(pair => pair._1 != pair._2) should be(true)
+  }
+
+  it should "return consistent sanitised keys for the same input even when used concurrently across multiple threads" in {
+    implicit val ec = ExecutionContext.Implicits.global
+    val seqFHashes = for {
+      algo <- Seq(MD5, SHA1, SHA256, SHA512)
+      hashingSanitizer = HashingMemcachedKeySanitizer(algo)
+    } yield {
+      Future.sequence((1 to 300).map(_ => Future { hashingSanitizer.toValidMemcachedKey(longString) }))
+    }
+    val fSeqHashes = Future.sequence(seqFHashes)
+    whenReady(fSeqHashes) { hashess =>
+      hashess.foreach(hashes => hashes.distinct.size should be(1))
+    }
   }
 
 }

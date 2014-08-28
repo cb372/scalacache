@@ -1,8 +1,10 @@
 package scalacache
 
+import java.security.MessageDigest
+
 /**
- * Sealed HashingAlgorithm trait to prevent users from shooting themselves in the foot at runtime by specifying
- * a crappy/unsupported algorithm name
+ * Sealed [[HashingAlgorithm]] trait to prevent users from shooting themselves in the foot at
+ * runtime by specifying a crappy/unsupported algorithm name
  *
  * The name should be a valid MessageDigest algorithm name.Implementing child classes/objects should
  * refer to this list for proper names:
@@ -10,7 +12,21 @@ package scalacache
  * http://docs.oracle.com/javase/6/docs/technotes/guides/security/StandardNames.html#MessageDigest
  */
 sealed trait HashingAlgorithm {
+
+  /**
+   * Name of the algorithm
+   */
   def name: String
+
+  /**
+   * Returns an instance of [[MessageDigest]]
+   *
+   * Note that this is a method on purpose: getInstance returns a new instance of the
+   * algorithm requested. This is recommended because the object returned is mutable but is
+   * not thread safe, so we would need to synchronise method calls (e.g. digest)
+   * ourselves if we want to use the same instance with multiple threads.
+   */
+  def messageDigest: MessageDigest = java.security.MessageDigest.getInstance(name)
 }
 
 /**
