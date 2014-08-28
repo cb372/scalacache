@@ -7,10 +7,10 @@ import org.scalatest.{ FlatSpec, ShouldMatchers }
  * Author: c-birchall
  * Date:   13/11/07
  */
-class MemcachedKeySanitizerSpec extends FlatSpec with ShouldMatchers {
-  behavior of "MemcachedKeySanitizer"
+class ReplaceAndTruncateSanitizerSpec extends FlatSpec with ShouldMatchers {
+  behavior of "ReplaceAndTruncateSanitizer"
 
-  val sanitizer = new MemcachedKeySanitizer(maxKeyLength = 10)
+  val sanitizer = new ReplaceAndTruncateSanitizer(maxKeyLength = 10)
 
   it should "truncate keys from the left if they are longer than maxKeyLength" in {
     val longKey = "0123456789A"

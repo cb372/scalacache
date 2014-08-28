@@ -5,7 +5,18 @@ package scalacache.memcached
  * Author: c-birchall
  * Date:   13/11/07
  */
-class MemcachedKeySanitizer(replacementChar: String = "_", maxKeyLength: Int = 250) {
+
+trait MemcachedKeySanitizerLike {
+  /**
+   * Converts a string to a valid Memcached key
+   */
+  def toValidMemcachedKey(key: String): String
+}
+
+case class ReplaceAndTruncateSanitizer(replacementChar: String = "_",
+                                       maxKeyLength: Int = 250)
+    extends MemcachedKeySanitizerLike {
+
   val invalidCharsRegex = "[^\u0021-\u007e]".r
 
   /**
@@ -31,4 +42,30 @@ class MemcachedKeySanitizer(replacementChar: String = "_", maxKeyLength: Int = 2
     else replacedKey.substring(replacedKey.size - maxKeyLength)
   }
 
+}
+
+case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) extends MemcachedKeySanitizerLike {
+  private val messageDigest = java.security.MessageDigest.getInstance(algorithm.name)
+
+  /**
+   * Uses the specified hashing algorithm to digest a key and spit out a hexidecimal representation
+   * of the hashed key
+   */
+  def toValidMemcachedKey(key: String): String = {
+    messageDigest.digest(key.getBytes).map("%02x".format(_)).mkString
+  }
+}
+
+// Sealed HashingAlgorithm identifiers to prevent users from shooting themselves in the foot at runtime
+sealed trait HashingAlgorithm {
+  def name: String
+}
+case object MD5 extends HashingAlgorithm {
+  val name = "MD5"
+}
+case object SHA1 extends HashingAlgorithm {
+  val name = "SHA-1"
+}
+case object SHA256 extends HashingAlgorithm {
+  val name = "SHA-256"
 }
