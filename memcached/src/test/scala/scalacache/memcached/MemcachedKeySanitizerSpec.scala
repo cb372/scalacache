@@ -1,6 +1,6 @@
 package scalacache.memcached
 
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatest.{ FlatSpec, ShouldMatchers }
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -33,7 +33,7 @@ class ReplaceAndTruncateSanitizerSpec extends FlatSpec with ShouldMatchers {
 
 }
 
-class HashingMemcachedKeySanitizerSpec extends FlatSpec with ShouldMatchers with ScalaFutures {
+class HashingMemcachedKeySanitizerSpec extends FlatSpec with ShouldMatchers with ScalaFutures with IntegrationPatience {
   behavior of "HashingMemcachedKeySanitizer"
 
   val longString = "lolol&%'(%$)$ほげほげ野郎123**+" * 500
