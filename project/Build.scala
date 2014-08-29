@@ -5,6 +5,7 @@ import scalariform.formatter.preferences._
 import xerial.sbt.Sonatype._
 import SonatypeKeys._
 import net.virtualvoid.sbt.graph.Plugin._
+import scoverage.ScoverageSbtPlugin._
 
 object ScalaCacheBuild extends Build {
   
@@ -95,6 +96,7 @@ object ScalaCacheBuild extends Build {
     scalariformSettings ++
     formatterPrefs ++
     graphSettings ++
+    instrumentSettings ++
     Seq(
       organization := "com.github.cb372",
       version      := Versions.project,
