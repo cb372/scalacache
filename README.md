@@ -140,7 +140,7 @@ Note that the cache key generation logic is customizable.
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.3.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.3.2"
 ```
 
 Usage:
@@ -168,7 +168,7 @@ implicit val scalaCache = ScalaCache(GuavaCache(underlyingGuavaCache))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.3.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.3.2"
 ```
 
 Usage:
@@ -206,7 +206,7 @@ ScalaCache provides two `KeySanitizer` implementations that convert your cache k
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.3.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.3.2"
 ```
 
 Usage:
@@ -228,7 +228,7 @@ implicit val scalaCache = ScalaCache(EhcacheCache(underlying))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.3.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.3.2"
 ```
 
 Usage:
