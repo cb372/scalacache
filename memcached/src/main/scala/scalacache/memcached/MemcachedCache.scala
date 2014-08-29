@@ -12,13 +12,11 @@ import scala.concurrent.{ Future, ExecutionContext }
  * Author: chris
  * Created: 2/19/13
  */
-class MemcachedCache(client: MemcachedClient)(implicit execContext: ExecutionContext = ExecutionContext.global)
+class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache
     with MemcachedTTLConvertor
     with StrictLogging
     with LoggingSupport {
-
-  val keySanitizer = new MemcachedKeySanitizer
 
   /**
    * Get the value corresponding to the given key from the cache

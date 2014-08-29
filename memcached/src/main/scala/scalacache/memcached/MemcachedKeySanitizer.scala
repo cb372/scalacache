@@ -1,11 +1,36 @@
 package scalacache.memcached
 
+import scalacache._
+
 /**
  *
  * Author: c-birchall
  * Date:   13/11/07
  */
-class MemcachedKeySanitizer(replacementChar: String = "_", maxKeyLength: Int = 250) {
+
+/**
+ * Trait that you can use to define your own Memcached key sanitiser
+ */
+trait MemcachedKeySanitizer {
+  /**
+   * Converts a string to a valid Memcached key
+   */
+  def toValidMemcachedKey(key: String): String
+}
+
+/**
+ * Sanitizer that replaces characters invalid for Memcached and truncates
+ * keys if they are over a certain limit.
+ *
+ * Convenient because it creates human-readable keys, but only safe for ASCII chars.
+ *
+ * @param replacementChar optional, defaults to an underscore
+ * @param maxKeyLength optional, defaults to 250, which is the max length of a Memcached key
+ */
+case class ReplaceAndTruncateSanitizer(replacementChar: String = "_",
+                                       maxKeyLength: Int = 250)
+    extends MemcachedKeySanitizer {
+
   val invalidCharsRegex = "[^\u0021-\u007e]".r
 
   /**
@@ -31,4 +56,24 @@ class MemcachedKeySanitizer(replacementChar: String = "_", maxKeyLength: Int = 2
     else replacedKey.substring(replacedKey.size - maxKeyLength)
   }
 
+}
+
+/**
+ * [[HashingMemcachedKeySanitizer]] uses the provided [[HashingAlgorithm]] to create a valid Memcached key
+ * using characters in hexadecimal. You may want to use this [[MemcachedKeySanitizer]] if there is a possibility
+ * that your keys will contain non-ASCII characters.
+ *
+ * Make sure that the [[HashingAlgorithm]] you provide does not produce strings that are beyond 250 characters
+ * when combined with any additional namespacing that your MemcachedClient or proxy automatically inserts for
+ * you.
+ */
+case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) extends MemcachedKeySanitizer {
+
+  /**
+   * Uses the specified hashing algorithm to digest a key and spit out a hexidecimal representation
+   * of the hashed key
+   */
+  def toValidMemcachedKey(key: String): String = {
+    algorithm.messageDigest.digest(key.getBytes).map("%02x".format(_)).mkString
+  }
 }
