@@ -18,6 +18,15 @@ trait MemcachedKeySanitizer {
   def toValidMemcachedKey(key: String): String
 }
 
+/**
+ * Sanitizer that replaces characters invalid for Memcached and truncates
+ * keys if they are over a certain limit.
+ *
+ * Convenient because it creates human-readable keys, but only safe for ASCII chars.
+ *
+ * @param replacementChar optional, defaults to an underscore
+ * @param maxKeyLength optional, defaults to 250, which is the max length of a Memcached key
+ */
 case class ReplaceAndTruncateSanitizer(replacementChar: String = "_",
                                        maxKeyLength: Int = 250)
     extends MemcachedKeySanitizer {
