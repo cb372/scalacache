@@ -1,3 +1,8 @@
+0.3.2 (2014/08/29)
+----
+
+* PR #8 adds a better key sanitizer for Memcached (thanks to @lloydmeta)
+
 0.3.1 (2014/07/25)
 ----
 
