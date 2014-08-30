@@ -73,10 +73,5 @@ case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) exten
    * Uses the specified hashing algorithm to digest a key and spit out a hexidecimal representation
    * of the hashed key
    */
-  def toValidMemcachedKey(key: String): String = {
-    val digester = algorithm.messageDigest
-    val hash = digester.digest(key.getBytes).map("%02x".format(_)).mkString
-    digester.reset()
-    hash
-  }
+  def toValidMemcachedKey(key: String): String = algorithm.messageDigest.digest(key.getBytes).map("%02x".format(_)).mkString
 }
