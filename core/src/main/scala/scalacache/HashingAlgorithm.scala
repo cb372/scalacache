@@ -18,15 +18,18 @@ sealed trait HashingAlgorithm {
    */
   def name: String
 
+  private final val tLocalMessageDigest: ThreadLocal[MessageDigest] = new ThreadLocal[MessageDigest] {
+    override protected def initialValue(): MessageDigest = java.security.MessageDigest.getInstance(name)
+  }
+
   /**
-   * Returns an instance of [[MessageDigest]]
+   * Returns a [[ThreadLocal]] instance of [[MessageDigest]] that implements the hashing
+   * algorithm specified by the "name" string.
    *
-   * Note that this is a method on purpose: getInstance returns a new instance of the
-   * algorithm requested. This is recommended because the object returned is mutable but is
-   * not thread safe, so we would need to synchronise method calls (e.g. digest)
-   * ourselves if we want to use the same instance with multiple threads.
+   * Since it is an unshared [[ThreadLocal]] instance, calling various methods on the
+   * [[MessageDigest]] returned by this method is "thread-safe".
    */
-  def messageDigest: MessageDigest = java.security.MessageDigest.getInstance(name)
+  final def messageDigest: MessageDigest = tLocalMessageDigest.get()
 }
 
 /**
