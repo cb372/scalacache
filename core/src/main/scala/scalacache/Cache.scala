@@ -1,7 +1,7 @@
 package scalacache
 
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ ExecutionContext, Future }
 
 trait Cache {
 

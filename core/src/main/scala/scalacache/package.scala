@@ -1,11 +1,13 @@
+import com.typesafe.scalalogging.slf4j.StrictLogging
+
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ Await, Future }
 
 /**
  * Author: chris
  * Created: 4/21/14
  */
-package object scalacache {
+package object scalacache extends StrictLogging {
 
   /**
    * Get the value corresponding to the given key from the cache.
@@ -16,8 +18,7 @@ package object scalacache {
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V](keyParts: Any*)(implicit scalaCache: ScalaCache): Future[Option[V]] =
-    scalaCache.cache.get(toKey(keyParts))
+  def get[V](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags): Future[Option[V]] = getWithKey(toKey(keyParts))
 
   /**
    * Convenience method to get a value from the cache synchronously. Warning: may block indefinitely!
@@ -26,8 +27,7 @@ package object scalacache {
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def getSync[V](keyParts: Any*)(implicit scalaCache: ScalaCache): Option[V] =
-    Await.result(get[V](toKey(keyParts)), Duration.Inf)
+  def getSync[V](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags): Option[V] = getSyncWithKey(toKey(keyParts))
 
   /**
    * Insert the given key-value pair into the cache, with an optional Time To Live.
@@ -39,8 +39,8 @@ package object scalacache {
    * @param ttl Time To Live (optional, if not specified then the entry will be cached indefinitely)
    * @tparam V the type of the corresponding value
    */
-  def put[V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache): Future[Unit] =
-    scalaCache.cache.put(toKey(keyParts), value, ttl)
+  def put[V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache, flags: Flags): Future[Unit] =
+    putWithKey(toKey(keyParts), value, ttl)
 
   /**
    * Remove the given key and its associated value from the cache, if it exists.
@@ -65,11 +65,11 @@ package object scalacache {
    * @tparam V the type of the block's result
    * @return the result, either retrived from the cache or returned by the block
    */
-  def caching[V](keyParts: Any*)(f: => V)(implicit scalaCache: ScalaCache): V = {
+  def caching[V](keyParts: Any*)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V = {
     val key = toKey(keyParts)
-    getSync(key) getOrElse {
+    getSyncWithKey(key) getOrElse {
       val result = f
-      scalaCache.cache.put(key, result, None)
+      putWithKey(key, result, None)
       result
     }
   }
@@ -87,16 +87,37 @@ package object scalacache {
    * @tparam V the type of the block's result
    * @return the result, either retrived from the cache or returned by the block
    */
-  def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => V)(implicit scalaCache: ScalaCache): V = {
+  def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V = {
     val key = toKey(keyParts)
-    getSync(key) getOrElse {
+    getSyncWithKey(key) getOrElse {
       val result = f
-      scalaCache.cache.put(key, result, Some(ttl))
+      putWithKey(key, result, Some(ttl))
       result
     }
   }
 
   private def toKey(parts: Seq[Any])(implicit scalaCache: ScalaCache): String =
     scalaCache.keyBuilder.toCacheKey(parts)(scalaCache.cacheConfig)
+
+  private def getWithKey[V](key: String)(implicit scalaCache: ScalaCache, flags: Flags): Future[Option[V]] = {
+    if (flags.readsEnabled) {
+      scalaCache.cache.get(key)
+    } else {
+      logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key}")
+      Future.successful(None)
+    }
+  }
+
+  private def getSyncWithKey[V](key: String)(implicit scalaCache: ScalaCache, flags: Flags): Option[V] =
+    Await.result(getWithKey(key), Duration.Inf)
+
+  def putWithKey[V](key: String, value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache, flags: Flags): Future[Unit] = {
+    if (flags.writesEnabled) {
+      scalaCache.cache.put(key, value, ttl)
+    } else {
+      logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
+      Future.successful(())
+    }
+  }
 
 }

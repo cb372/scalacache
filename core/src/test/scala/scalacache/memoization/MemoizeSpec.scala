@@ -1,15 +1,12 @@
 package scalacache.memoization
 
-import scalacache._
+import org.scalatest.{ FlatSpec, ShouldMatchers }
 
-import org.scalatest.ShouldMatchers
-import org.scalatest.FlatSpec
-
-import scala.language.postfixOps
-import scala.concurrent.duration._
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.language.postfixOps
+import scalacache._
 
 /**
  * Author: chris
@@ -23,12 +20,12 @@ class MemoizeSpec extends FlatSpec with ShouldMatchers {
 
   it should "execute the block and cache the result, if there is a cache miss" in {
     val emptyCache = new EmptyCache with LoggingCache
-    val scalaCache = ScalaCache(emptyCache)
+    implicit val scalaCache = ScalaCache(emptyCache)
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val result = new MyMockClass(mockDbCall)(scalaCache).myLongRunningMethod(123, "abc")
+    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc")
     result should be("hello")
 
     // should check the cache first
@@ -43,12 +40,12 @@ class MemoizeSpec extends FlatSpec with ShouldMatchers {
 
   it should "not execute the block if there is a cache hit" in {
     val fullCache = new FullCache("cache hit") with LoggingCache
-    val scalaCache = ScalaCache(fullCache)
+    implicit val scalaCache = ScalaCache(fullCache)
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the cached result
-    val result = new MyMockClass(mockDbCall)(scalaCache).myLongRunningMethod(123, "abc")
+    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc")
     result should be("cache hit")
 
     // should check the cache first
@@ -61,18 +58,60 @@ class MemoizeSpec extends FlatSpec with ShouldMatchers {
     fullCache.putCalledWithArgs should be(empty)
   }
 
+  it should "execute the block if cache reads are disabled" in {
+    val fullCache = new FullCache("cache hit") with LoggingCache
+    implicit val scalaCache = ScalaCache(fullCache)
+    implicit val flags = Flags(readsEnabled = false)
+
+    val mockDbCall = new MockDbCall("hello")
+
+    // should return the block's result
+    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc")
+    result should be("hello")
+
+    // should NOT check the cache, because reads are disabled
+    fullCache.getCalledWithArgs should be('empty)
+
+    // should execute the block
+    mockDbCall.calledWithArgs should be(Seq(123))
+
+    // and then store the result in the cache
+    fullCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
+  }
+
+  it should "not cache the result if cache writes are disabled" in {
+    val emptyCache = new EmptyCache with LoggingCache
+    implicit val scalaCache = ScalaCache(emptyCache)
+    implicit val flags = Flags(writesEnabled = false)
+
+    val mockDbCall = new MockDbCall("hello")
+
+    // should return the block's result
+    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc")
+    result should be("hello")
+
+    // should check the cache first
+    emptyCache.getCalledWithArgs should be(Seq(expectedKey))
+
+    // then execute the block
+    mockDbCall.calledWithArgs should be(Seq(123))
+
+    // should NOT update the cache
+    emptyCache.putCalledWithArgs should be(empty)
+  }
+
   behavior of "memoize block with TTL"
 
   it should "pass the TTL parameter to the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClass.withTTL(123, abc)"
 
     val emptyCache = new EmptyCache with LoggingCache
-    val scalaCache = ScalaCache(emptyCache)
+    implicit val scalaCache = ScalaCache(emptyCache)
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val result = new MyMockClass(mockDbCall)(scalaCache).withTTL(123, "abc")
+    val result = new MyMockClass(mockDbCall).withTTL(123, "abc")
     result should be("hello")
 
     // should check the cache first
@@ -105,7 +144,7 @@ class MemoizeSpec extends FlatSpec with ShouldMatchers {
     }
   }
 
-  class MyMockClass(dbCall: Int => String)(implicit val scalaCache: ScalaCache) {
+  class MyMockClass(dbCall: Int => String)(implicit val scalaCache: ScalaCache, implicit val flags: Flags) {
 
     def myLongRunningMethod(a: Int, b: String): String = memoize {
       dbCall(a)

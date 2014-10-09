@@ -2,7 +2,6 @@ package scalacache
 
 import scala.language.experimental.macros
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext
 
 /**
  * Utilities for memoizing the results of method calls in a cache.
@@ -19,10 +18,11 @@ package object memoization {
    *
    * @param f function that returns some result. This result is the valued that will be cached.
    * @param scalaCache cache configuration
+   * @param flags flags to customize ScalaCache behaviour
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoize[A](f: => A)(implicit scalaCache: ScalaCache): A = macro Macros.memoizeImpl[A]
+  def memoize[A](f: => A)(implicit scalaCache: ScalaCache, flags: Flags): A = macro Macros.memoizeImpl[A]
 
   /**
    * Perform the given operation and memoize its result to a cache before returning it.
@@ -36,10 +36,11 @@ package object memoization {
    * @param ttl Time To Live. How long the result should be stored in the cache.
    * @param f function that returns some result. This result is the valued that will be cached.
    * @param scalaCache cache configuration
+   * @param flags flags to customize ScalaCache behaviour
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoize[A](ttl: Duration)(f: => A)(implicit scalaCache: ScalaCache): A = macro Macros.memoizeImplWithTTL[A]
+  def memoize[A](ttl: Duration)(f: => A)(implicit scalaCache: ScalaCache, flags: Flags): A = macro Macros.memoizeImplWithTTL[A]
 
 }
 
