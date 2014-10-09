@@ -1,3 +1,11 @@
+0.4 (2014/10/09)
+----
+
+* New feature: conditionally disable caching using flags, as suggested in #10
+* Upgrade dependencies
+
+Bumped the minor version because signatures of public methods have changed slightly.
+
 0.3.2 (2014/08/29)
 ----
 
