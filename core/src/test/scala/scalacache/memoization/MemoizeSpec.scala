@@ -1,6 +1,6 @@
 package scalacache.memoization
 
-import org.scalatest.{ FlatSpec, ShouldMatchers }
+import org.scalatest.{ FlatSpec, Matchers }
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
@@ -12,7 +12,7 @@ import scalacache._
  * Author: chris
  * Created: 2/19/13
  */
-class MemoizeSpec extends FlatSpec with ShouldMatchers {
+class MemoizeSpec extends FlatSpec with Matchers {
 
   behavior of "memoize block"
 

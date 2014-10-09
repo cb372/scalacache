@@ -10,7 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
  * Author: c-birchall
  * Date:   13/11/07
  */
-class CacheKeySpec extends FlatSpec with ShouldMatchers with BeforeAndAfter with ScalaFutures {
+class CacheKeySpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
   behavior of "cache key generation for method memoization"
 

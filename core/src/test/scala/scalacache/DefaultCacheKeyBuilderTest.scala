@@ -1,13 +1,13 @@
 package scalacache
 
-import org.scalatest.{ ShouldMatchers, FlatSpec }
+import org.scalatest.{ Matchers, FlatSpec }
 
 /**
  *
  * Author: c-birchall
  * Date:   2014/04/22
  */
-class DefaultCacheKeyBuilderTest extends FlatSpec with ShouldMatchers {
+class DefaultCacheKeyBuilderTest extends FlatSpec with Matchers {
 
   behavior of "Default cache key generator"
 
