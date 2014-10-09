@@ -32,7 +32,7 @@ object ScalaCacheBuild extends Build {
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
-        "com.google.guava" % "guava" % "16.0.1",
+        "com.google.guava" % "guava" % "18.0",
         "com.google.code.findbugs" % "jsr305" % "1.3.9"
       )
     )
@@ -42,7 +42,7 @@ object ScalaCacheBuild extends Build {
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
-        "net.spy" % "spymemcached" % "2.10.6"
+        "net.spy" % "spymemcached" % "2.11.4"
       )
     )
     .dependsOn(core)
@@ -51,7 +51,7 @@ object ScalaCacheBuild extends Build {
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
-        "net.sf.ehcache" % "ehcache" % "2.8.1",
+        "net.sf.ehcache" % "ehcache" % "2.8.4",
         "javax.transaction" % "jta" % "1.1"
       )
     )
@@ -61,22 +61,22 @@ object ScalaCacheBuild extends Build {
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
-        "redis.clients" % "jedis" % "2.4.2"
+        "redis.clients" % "jedis" % "2.6.0"
       )
     )
     .dependsOn(core)
 
   lazy val jodaTime = Seq(
-    "joda-time" % "joda-time" % "2.3",
-    "org.joda" % "joda-convert" % "1.6"
+    "joda-time" % "joda-time" % "2.5",
+    "org.joda" % "joda-convert" % "1.7"
   )
 
   lazy val scalaLogging = Seq(
-    "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.3"
+    "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2"
   )
 
   lazy val scalaTest = Seq(
-    "org.scalatest" %% "scalatest" % "2.1.3" % "test"
+    "org.scalatest" %% "scalatest" % "2.2.2" % "test"
   ) ++ (if (Versions.scala.startsWith("2.11")) {
     // used in the scalatest reporter
     Seq("org.scala-lang.modules" %% "scala-xml" % "1.0.1" % "test")
