@@ -137,7 +137,7 @@ Note that the cache key generation logic is customizable.
 
 Cache GETs and/or PUTs can be temporarily disabled using flags. This can be useful if for example you want to skip the cache and read a value from the DB under certain conditions.
 
-You can set flags by defining a [scalacache.Flags](src/main/scala/scalacache/Flags.scala) instance in implicit scope.
+You can set flags by defining a [scalacache.Flags](core/src/main/scala/scalacache/Flags.scala) instance in implicit scope.
 
 Example:
 
