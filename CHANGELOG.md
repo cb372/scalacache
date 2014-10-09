@@ -1,4 +1,4 @@
-0.4 (2014/10/09)
+0.4.0 (2014/10/09)
 ----
 
 * New feature: conditionally disable caching using flags, as suggested in #10
