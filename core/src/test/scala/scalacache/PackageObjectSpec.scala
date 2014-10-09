@@ -1,6 +1,6 @@
 package scalacache
 
-import org.scalatest.{ BeforeAndAfter, FlatSpec, ShouldMatchers }
+import org.scalatest.{ BeforeAndAfter, FlatSpec, Matchers }
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -9,7 +9,7 @@ import scala.language.postfixOps
  * Author: c-birchall
  * Date:   2014/04/22
  */
-class PackageObjectSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter {
+class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter {
 
   val cache = new LoggingMockCache
   implicit val scalaCache = ScalaCache(cache)

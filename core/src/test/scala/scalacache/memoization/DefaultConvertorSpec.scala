@@ -1,13 +1,13 @@
 package scalacache.memoization
 
 import org.scalatest.FlatSpec
-import org.scalatest.ShouldMatchers
+import org.scalatest.Matchers
 
 /**
  * Author: chris
  * Created: 2/19/13
  */
-class DefaultConvertorSpec extends FlatSpec with ShouldMatchers {
+class DefaultConvertorSpec extends FlatSpec with Matchers {
 
   val convertor = MethodCallToStringConvertor.defaultConvertor
 

@@ -1,6 +1,6 @@
 package scalacache.memcached
 
-import org.scalatest.{ BeforeAndAfter, ShouldMatchers, FlatSpec }
+import org.scalatest.{ BeforeAndAfter, Matchers, FlatSpec }
 import scala.concurrent.duration._
 import org.joda.time.{ DateTime, DateTimeUtils }
 
@@ -9,7 +9,7 @@ import org.joda.time.{ DateTime, DateTimeUtils }
  * Author: c-birchall
  * Date:   13/11/14
  */
-class MemcachedTTLConvertorSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter with MemcachedTTLConvertor {
+class MemcachedTTLConvertorSpec extends FlatSpec with Matchers with BeforeAndAfter with MemcachedTTLConvertor {
   behavior of "MemcachedTTLConvertor"
 
   it should "convert None to 0" in {
