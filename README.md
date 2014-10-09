@@ -133,6 +133,31 @@ would be cached with the key: `foo.bar.Baz(1, hello)(world)`.
 
 Note that the cache key generation logic is customizable.
 
+### Flags
+
+Cache GETs and/or PUTs can be temporarily disabled using flags. This can be useful if for example you want to skip the cache and read a value from the DB under certain conditions.
+
+You can set flags by defining a [scalacache.Flags](src/main/scala/scalacache/Flags.scala) instance in implicit scope.
+
+Example:
+
+```scala 
+import scalacache._
+import memoization._
+
+implicit val scalaCache = ScalaCache(new MyCache())
+
+def getUser(id: Int): User = memoize {
+  // Do DB lookup here...
+  User(id, s"user${id}")
+}
+
+def getUser(id: Int, skipCache: Boolean): User = {
+  implicit val flags = Flags(readsEnabled = !skipCache)
+  getUser(id)
+}
+```
+
 ## Cache implementations
 
 ### Google Guava
