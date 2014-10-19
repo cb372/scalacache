@@ -1,10 +1,5 @@
 package scalacache
 
-/**
- *
- * Author: c-birchall
- * Date:   2014/04/22
- */
 trait CacheKeyBuilder {
 
   /**

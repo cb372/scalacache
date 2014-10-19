@@ -7,10 +7,6 @@ import language.postfixOps
 import org.scalatest.time.{ Seconds, Span }
 import org.scalatest.concurrent.{ ScalaFutures, Eventually }
 
-/**
- * Author: chris
- * Created: 11/16/13
- */
 class EhcacheCacheSpec extends FlatSpec with Matchers with Eventually with BeforeAndAfter with ScalaFutures {
 
   val underlying = {

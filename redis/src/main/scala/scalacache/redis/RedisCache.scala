@@ -9,9 +9,6 @@ import scala.concurrent.{ Future, ExecutionContext }
 
 /**
  * Thin wrapper around Jedis
- *
- * Author: chris
- * Created: 11/16/13
  */
 class RedisCache(client: Jedis)(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache

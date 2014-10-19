@@ -19,9 +19,6 @@ class FullCache(value: Any) extends Cache {
 /**
  * A mock cache for use in tests and samples.
  * Does not support TTL.
- *
- * Author: c-birchall
- * Date:   13/11/07
  */
 class MockCache extends Cache {
 
@@ -42,9 +39,6 @@ class MockCache extends Cache {
 /**
  * A cache that keeps track of the arguments it was called with. Useful for tests.
  * Designed to be mixed in as a stackable trait.
- *
- * Author: c-birchall
- * Date:   2014/04/22
  */
 trait LoggingCache extends Cache {
   var (getCalledWithArgs, putCalledWithArgs, removeCalledWithArgs) = (

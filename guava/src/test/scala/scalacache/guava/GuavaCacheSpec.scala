@@ -6,11 +6,6 @@ import org.joda.time.{ DateTimeUtils, DateTime }
 import scala.concurrent.duration._
 import org.scalatest.concurrent.ScalaFutures
 
-/**
- *
- * Author: c-birchall
- * Date:   13/11/07
- */
 class GuavaCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
   def newGCache = CacheBuilder.newBuilder.build[String, Object]

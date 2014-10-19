@@ -7,10 +7,6 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scalacache._
 
-/**
- * Author: chris
- * Created: 2/19/13
- */
 class MemoizeSpec extends FlatSpec with Matchers {
 
   behavior of "memoize block"

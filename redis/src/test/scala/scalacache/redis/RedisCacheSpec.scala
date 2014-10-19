@@ -11,11 +11,6 @@ import redis.clients.jedis.Jedis
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-/**
- *
- * Author: c-birchall
- * Date:   13/11/07
- */
 class RedisCacheSpec
     extends FlatSpec with Matchers with Eventually with BeforeAndAfter with RedisSerialization with ScalaFutures {
 

@@ -4,11 +4,6 @@ import scala.concurrent.duration._
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.joda.time.DateTime
 
-/**
- *
- * Author: c-birchall
- * Date:   13/11/14
- */
 trait MemcachedTTLConvertor extends StrictLogging {
 
   /**

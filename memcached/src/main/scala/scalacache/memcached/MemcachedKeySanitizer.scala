@@ -3,12 +3,6 @@ package scalacache.memcached
 import scalacache._
 
 /**
- *
- * Author: c-birchall
- * Date:   13/11/07
- */
-
-/**
  * Trait that you can use to define your own Memcached key sanitiser
  */
 trait MemcachedKeySanitizer {

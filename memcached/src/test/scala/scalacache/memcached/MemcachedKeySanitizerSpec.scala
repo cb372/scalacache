@@ -6,11 +6,6 @@ import org.scalatest.{ FlatSpec, Matchers }
 import scala.concurrent.{ ExecutionContext, Future }
 import scalacache._
 
-/**
- *
- * Author: c-birchall
- * Date:   13/11/07
- */
 class ReplaceAndTruncateSanitizerSpec extends FlatSpec with Matchers {
   behavior of "ReplaceAndTruncateSanitizer"
 

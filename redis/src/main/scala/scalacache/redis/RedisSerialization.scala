@@ -6,9 +6,6 @@ import java.io._
  * Custom serialization for caching arbitrary objects in Redis.
  * Ints, Longs, Doubles, Strings and byte arrays are treated specially.
  * Everything else is serialized using standard Java serialization.
- *
- * Author: chris
- * Created: 11/17/13
  */
 trait RedisSerialization {
 

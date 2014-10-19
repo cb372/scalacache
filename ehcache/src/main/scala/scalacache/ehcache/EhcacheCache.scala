@@ -10,9 +10,6 @@ import scala.concurrent.Future
  * Thin wrapper around Ehcache.
  * Since Ehcache is in-memory and non-blocking,
  * all operations are performed synchronously, i.e. ExecutionContext is not needed.
- *
- * Author: chris
- * Created: 11/16/13
  */
 class EhcacheCache(underlying: Ehcache)
     extends Cache

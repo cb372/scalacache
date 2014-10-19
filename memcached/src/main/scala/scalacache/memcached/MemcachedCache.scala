@@ -8,9 +8,6 @@ import scala.concurrent.{ Future, ExecutionContext }
 
 /**
  * Wrapper around spymemcached
- *
- * Author: chris
- * Created: 2/19/13
  */
 class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache

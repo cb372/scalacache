@@ -3,10 +3,6 @@ import com.typesafe.scalalogging.slf4j.StrictLogging
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
 
-/**
- * Author: chris
- * Created: 4/21/14
- */
 package object scalacache extends StrictLogging {
 
   /**

@@ -4,11 +4,6 @@ import org.scalatest.{ BeforeAndAfter, FlatSpec, Matchers }
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-/**
- *
- * Author: c-birchall
- * Date:   2014/04/22
- */
 class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter {
 
   val cache = new LoggingMockCache

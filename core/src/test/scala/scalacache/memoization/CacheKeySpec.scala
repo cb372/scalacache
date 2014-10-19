@@ -5,11 +5,6 @@ import scalacache._
 import scalacache.memoization.MethodCallToStringConvertor.defaultConvertor
 import org.scalatest.concurrent.ScalaFutures
 
-/**
- *
- * Author: c-birchall
- * Date:   13/11/07
- */
 class CacheKeySpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
   behavior of "cache key generation for method memoization"

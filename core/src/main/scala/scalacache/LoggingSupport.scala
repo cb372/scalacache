@@ -5,9 +5,6 @@ import com.typesafe.scalalogging.slf4j.StrictLogging
 
 /**
  * Helper methods for logging
- *
- * Author: chris
- * Created: 4/9/14
  */
 trait LoggingSupport { self: StrictLogging =>
 
