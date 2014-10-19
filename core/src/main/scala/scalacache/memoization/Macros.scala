@@ -8,7 +8,28 @@ import scalacache.{ Flags, ScalaCache }
 object Macros {
 
   def memoizeImpl[A: c.WeakTypeTag](c: Context)(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]) = {
-    memoizeImplWithTTL[A](c)(c.Expr[Duration](c.parse("scala.concurrent.duration.Duration.Zero")))(f)(scalaCache, flags)
+    import c.universe._
+
+    val enclosingMethodSymbol = getMethodSymbol(c)
+
+    /*
+     * Gather all the info needed to build the cache key:
+     * class name, method name and the method parameters lists
+     */
+    val classNameTree = getClassName(c)
+    val methodNameTree = getMethodName(c)(enclosingMethodSymbol)
+    val paramssSymbols = c.internal.enclosingOwner.info.paramLists
+    val paramssIdents: List[List[Ident]] = paramssSymbols.map(ps => ps.map(p => Ident(p.name)))
+    val paramssTree = listToTree(c)(paramssIdents.map(ps => listToTree(c)(ps)))
+
+    val keyName = createKeyName(c)
+    val tree = q"""
+          val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
+          scalacache.caching($keyName)($f)($scalaCache, $flags)
+        """
+    //println(showCode(tree))
+    //println(showRaw(tree, printIds = true, printTypes = true))
+    tree
   }
 
   def memoizeImplWithTTL[A: c.WeakTypeTag](c: Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]) = {
@@ -26,20 +47,13 @@ object Macros {
     val paramssIdents: List[List[Ident]] = paramssSymbols.map(ps => ps.map(p => Ident(p.name)))
     val paramssTree = listToTree(c)(paramssIdents.map(ps => listToTree(c)(ps)))
 
-    // We must create a fresh name for any vals that we define, to ensure we don't clash with any user-defined terms.
-    // See https://github.com/cb372/scalacache/issues/13
-    // (Note that c.freshName("key") does not work as expected.
-    // It causes quasiquotes to generate crazy code, resulting in a MatchError.)
-    val keyName = c.freshName(TermName("key"))
-
+    val keyName = createKeyName(c)
     val tree = q"""
           val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
-          if ($ttl == scala.concurrent.duration.Duration.Zero)
-            scalacache.caching($keyName)($f)($scalaCache, $flags)
-          else
-            scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags)
+          scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags)
         """
     //println(showCode(tree))
+    //println(showRaw(tree, printIds = true, printTypes = true))
     tree
   }
 
@@ -103,6 +117,14 @@ object Macros {
     import c.universe._
 
     q"_root_.scala.collection.immutable.List(..$ts)"
+  }
+
+  private def createKeyName(c: Context) = {
+    // We must create a fresh name for any vals that we define, to ensure we don't clash with any user-defined terms.
+    // See https://github.com/cb372/scalacache/issues/13
+    // (Note that c.freshName("key") does not work as expected.
+    // It causes quasiquotes to generate crazy code, resulting in a MatchError.)
+    c.freshName(c.universe.TermName("key"))
   }
 
 }
