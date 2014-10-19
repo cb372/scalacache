@@ -3,7 +3,6 @@ package scalacache.memoization
 import org.scalatest.{ FlatSpec, Matchers }
 
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scalacache._
@@ -133,18 +132,6 @@ class MemoizeSpec extends FlatSpec with Matchers {
 
     // and finally store the result in the cache
     emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, Some(10 seconds))))
-  }
-
-  class EmptyCache extends Cache {
-    override def get[V](key: String): Future[Option[V]] = Future.successful(None)
-    override def put[V](key: String, value: V, ttl: Option[Duration]) = Future.successful((): Unit)
-    override def remove(key: String) = Future.successful((): Unit)
-  }
-
-  class FullCache(value: Any) extends Cache {
-    override def get[V](key: String): Future[Option[V]] = Future.successful(Some(value).asInstanceOf[Option[V]])
-    override def put[V](key: String, value: V, ttl: Option[Duration]) = Future.successful((): Unit)
-    override def remove(key: String) = Future.successful((): Unit)
   }
 
   class MockDbCall(result: String) extends (Int => String) {
