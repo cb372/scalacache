@@ -1,7 +1,15 @@
+0.4.1 (2014/10/19)
+----
+
+Bugfixes:
+ 
+* [#13](https://github.com/cb372/scalacache/issues/13)
+* [#14](https://github.com/cb372/scalacache/issues/14)
+
 0.4.0 (2014/10/09)
 ----
 
-* New feature: conditionally disable caching using flags, as suggested in #10
+* New feature: conditionally disable caching using flags, as suggested in [#10](https://github.com/cb372/scalacache/issues/10)
 * Upgrade dependencies
 
 Bumped the minor version because signatures of public methods have changed slightly.
