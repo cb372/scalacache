@@ -27,6 +27,12 @@ object ScalaCacheBuild extends Build {
         "org.scala-lang" % "scala-reflect" % s
       }
     )
+    .settings(
+      libraryDependencies ++= Seq(
+        "org.squeryl" %% "squeryl" % "0.9.5-7" % "test",
+        "com.h2database" % "h2" % "1.4.182" % "test"
+      )
+    )
 
   lazy val guava = Project(id = "scalacache-guava", base = file("guava"))
     .settings(implProjectSettings: _*)
