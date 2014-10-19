@@ -100,6 +100,17 @@ class MemoizeSpec extends FlatSpec with Matchers {
     emptyCache.putCalledWithArgs should be(empty)
   }
 
+  it should "work with a method argument called 'key'" in {
+    // Reproduces https://github.com/cb372/scalacache/issues/13
+    """
+    val emptyCache = new EmptyCache with LoggingCache
+    implicit val scalaCache = ScalaCache(emptyCache)
+    def foo(key: Int): Int = memoize {
+      key + 1
+    }
+    """ should compile
+  }
+
   behavior of "memoize block with TTL"
 
   it should "pass the TTL parameter to the cache" in {

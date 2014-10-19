@@ -26,12 +26,18 @@ object Macros {
     val paramssIdents: List[List[Ident]] = paramssSymbols.map(ps => ps.map(p => Ident(p.name)))
     val paramssTree = listToTree(c)(paramssIdents.map(ps => listToTree(c)(ps)))
 
+    // We must create a fresh name for any vals that we define, to ensure we don't clash with any user-defined terms.
+    // See https://github.com/cb372/scalacache/issues/13
+    // (Note that c.freshName("key") does not work as expected.
+    // It causes quasiquotes to generate crazy code, resulting in a MatchError.)
+    val keyName = c.freshName(TermName("key"))
+
     val tree = q"""
-          val key = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
+          val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
           if ($ttl == scala.concurrent.duration.Duration.Zero)
-            scalacache.caching(key)($f)($scalaCache, $flags)
+            scalacache.caching($keyName)($f)($scalaCache, $flags)
           else
-            scalacache.cachingWithTTL(key)($ttl)($f)($scalaCache, $flags)
+            scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags)
         """
     //println(showCode(tree))
     tree
