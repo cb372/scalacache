@@ -97,7 +97,7 @@ object ScalaCacheBuild extends Build {
   lazy val implProjectDeps = jodaTime
 
   lazy val commonSettings = 
-    Defaults.defaultSettings ++ 
+    Defaults.coreDefaultSettings ++ 
     mavenSettings ++ 
     scalariformSettings ++
     formatterPrefs ++
