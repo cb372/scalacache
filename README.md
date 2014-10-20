@@ -54,6 +54,9 @@ import scalacache._
 // Add an item to the cache
 put("myKey")("myValue")
 
+// Add an item to the cache with a Time To Live
+put("otherKey")("otherValue", ttl = 10.seconds)
+
 // Retrieve the added item
 get("myKey") // Some(myValue)
 
@@ -62,6 +65,12 @@ remove("myKey")
 
 // Wrap any block with caching
 val result = caching("myKey") {
+  // do stuff...
+  "result of block"
+}
+
+// You can specify a Time To Live if you like
+val result = cachingWithTTL("myKey")(10.seconds) {
   // do stuff...
   "result of block"
 }
