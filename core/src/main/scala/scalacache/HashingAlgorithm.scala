@@ -23,11 +23,11 @@ sealed trait HashingAlgorithm {
   }
 
   /**
-   * Returns a [[ThreadLocal]] instance of [[MessageDigest]] that implements the hashing
+   * Returns a [[java.lang.ThreadLocal]] instance of [[MessageDigest]] that implements the hashing
    * algorithm specified by the "name" string.
    *
-   * Since it is an unshared [[ThreadLocal]] instance, calling various methods on the
-   * [[MessageDigest]] returned by this method is "thread-safe".
+   * Since it is an unshared [[java.lang.ThreadLocal]] instance, calling various methods on the
+   * [[java.security.MessageDigest]] returned by this method is "thread-safe".
    */
   final def messageDigest: MessageDigest = tLocalMessageDigest.get()
 }

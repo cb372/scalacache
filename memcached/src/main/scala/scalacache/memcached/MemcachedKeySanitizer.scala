@@ -53,7 +53,7 @@ case class ReplaceAndTruncateSanitizer(replacementChar: String = "_",
 }
 
 /**
- * [[HashingMemcachedKeySanitizer]] uses the provided [[HashingAlgorithm]] to create a valid Memcached key
+ * [[HashingMemcachedKeySanitizer]] uses the provided [[scalacache.HashingAlgorithm]] to create a valid Memcached key
  * using characters in hexadecimal. You may want to use this [[MemcachedKeySanitizer]] if there is a possibility
  * that your keys will contain non-ASCII characters.
  *
