@@ -50,11 +50,11 @@ class MemcachedCacheSpec
     behavior of "put with TTL"
 
     it should "store the given key-value pair in the underlying cache" in {
-      whenReady(MemcachedCache(client).put("key3", 123, Some(1 second))) { _ =>
+      whenReady(MemcachedCache(client).put("key3", 123, Some(3 seconds))) { _ =>
         client.get("key3") should be(123)
 
-        // Should expire after 1 second
-        eventually(timeout(Span(2, Seconds))) {
+        // Should expire after 3 seconds
+        eventually(timeout(Span(4, Seconds))) {
           client.get("key3") should be(null)
         }
       }
