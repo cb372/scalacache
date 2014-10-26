@@ -1,3 +1,10 @@
+0.4.2 (2014/10/26)
+----
+
+Improvements:
+ 
+* [#17](https://github.com/cb372/scalacache/issues/17)
+
 0.4.1 (2014/10/19)
 ----
 
