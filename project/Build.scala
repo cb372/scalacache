@@ -11,7 +11,7 @@ object ScalaCacheBuild extends Build {
   
   object Versions {
     val scala = "2.11.2"
-    val project = "0.4.2"
+    val project = "0.4.3-SNAPSHOT"
   }
 
   lazy val root = Project(id = "scalacache",base = file("."))
