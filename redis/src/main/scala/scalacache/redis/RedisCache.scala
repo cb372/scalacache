@@ -5,7 +5,7 @@ import scala.concurrent.duration._
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import redis.clients.jedis.Jedis
 import java.nio.charset.Charset
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{ Future, ExecutionContext, blocking }
 
 /**
  * Thin wrapper around Jedis
@@ -25,10 +25,12 @@ class RedisCache(client: Jedis)(implicit execContext: ExecutionContext = Executi
    * @return the value, if there is one
    */
   override def get[V](key: String) = Future {
-    val resultBytes = Option(client.get(key.utf8bytes))
-    val result = resultBytes.map(deserialize[V])
-    logCacheHitOrMiss(key, result)
-    result
+    blocking {
+      val resultBytes = Option(client.get(key.utf8bytes))
+      val result = resultBytes.map(deserialize[V])
+      logCacheHitOrMiss(key, result)
+      result
+    }
   }
 
   /**
@@ -39,16 +41,18 @@ class RedisCache(client: Jedis)(implicit execContext: ExecutionContext = Executi
    * @tparam V the type of the corresponding value
    */
   override def put[V](key: String, value: V, ttl: Option[Duration]) = Future {
-    val keyBytes = key.utf8bytes
-    val valueBytes = serialize(value)
-    ttl match {
-      case None => client.set(keyBytes, valueBytes)
-      case Some(Duration.Zero) => client.set(keyBytes, valueBytes)
-      case Some(d) if d < 1.second => {
-        logger.warn("Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
-        client.setex(keyBytes, 1, valueBytes)
+    blocking {
+      val keyBytes = key.utf8bytes
+      val valueBytes = serialize(value)
+      ttl match {
+        case None => client.set(keyBytes, valueBytes)
+        case Some(Duration.Zero) => client.set(keyBytes, valueBytes)
+        case Some(d) if d < 1.second => {
+          logger.warn("Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
+          client.setex(keyBytes, 1, valueBytes)
+        }
+        case Some(d) => client.setex(keyBytes, d.toSeconds.toInt, valueBytes)
       }
-      case Some(d) => client.setex(keyBytes, d.toSeconds.toInt, valueBytes)
     }
   }
 
@@ -58,7 +62,9 @@ class RedisCache(client: Jedis)(implicit execContext: ExecutionContext = Executi
    * @param key cache key
    */
   override def remove(key: String) = Future {
-    client.del(key.utf8bytes)
+    blocking {
+      client.del(key.utf8bytes)
+    }
   }
 
 }
