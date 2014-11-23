@@ -13,7 +13,7 @@ import scala.concurrent.{ Promise, Future, ExecutionContext }
  */
 class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache
-    with MemcachedTTLConvertor
+    with MemcachedTTLConverter
     with StrictLogging
     with LoggingSupport {
 

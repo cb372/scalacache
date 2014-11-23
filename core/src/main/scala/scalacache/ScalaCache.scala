@@ -12,4 +12,3 @@ case class ScalaCache(
   cacheConfig: CacheConfig = CacheConfig(),
   keyBuilder: CacheKeyBuilder = DefaultCacheKeyBuilder,
   memoization: MemoizationConfig = MemoizationConfig())
-

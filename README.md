@@ -141,7 +141,41 @@ val result = Bar.baz(1, "hello")("world")
 
 would be cached with the key: `foo.bar.Baz(1, hello)(world)`.
 
-Note that the cache key generation logic is customizable.
+Note that the cache key generation logic is customizable. Just provide your own implementation of [MethodCallToStringConverter](core/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala)
+
+#### Enclosing class's constructor arguments
+
+If your memoized method is inside a class, rather than an object, then the method's result might depend on values passed to that class's constructor.
+
+For example, if your code looks like this:
+
+```scala 
+package foo
+
+class Bar(a: Int) {
+
+  def baz(b: Int): Int = memoize {
+    a + b
+  }
+  
+}
+```
+
+then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](core/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
+
+```scala 
+implicit val scalaCache = ScalaCache(
+  cache = ... ,
+  memoization = MemoizationConfig(MethodCallToStringConverter.includeClassConstructorParams)
+)
+```
+
+Doing this will ensure that both the constructor arguments and the method arguments are included in the cache key:
+
+```scala 
+new Bar(10).baz(42) // cached as "foo.Bar(10).baz(42) -> 52
+new Bar(20).baz(42) // cached as "foo.Bar(20).baz(42) -> 62
+```
 
 ### Flags
 

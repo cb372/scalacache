@@ -1,4 +1,9 @@
 package scalacache.memoization
 
-case class MemoizationConfig(toStringConvertor: MethodCallToStringConvertor = MethodCallToStringConvertor.defaultConvertor)
+/**
+ * Configuration related to the behaviour of the [[scalacache.memoization.memoize()]] methods.
+ *
+ * @param toStringConverter converter for generating a String cache key from information about a method call
+ */
+case class MemoizationConfig(toStringConverter: MethodCallToStringConverter = MethodCallToStringConverter.excludeClassConstructorParams)
 

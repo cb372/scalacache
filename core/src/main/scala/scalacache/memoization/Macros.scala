@@ -1,56 +1,49 @@
 package scalacache.memoization
 
 import scala.language.experimental.macros
-import scala.reflect.macros.blackbox.Context
+import scala.reflect.macros.blackbox
 import scala.concurrent.duration.Duration
 import scalacache.{ Flags, ScalaCache }
 
 object Macros {
 
-  def memoizeImpl[A: c.WeakTypeTag](c: Context)(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]) = {
+  def memoizeImpl[A: c.WeakTypeTag](c: blackbox.Context)(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]) = {
     import c.universe._
 
-    val enclosingMethodSymbol = getMethodSymbol(c)
-
-    /*
-     * Gather all the info needed to build the cache key:
-     * class name, method name and the method parameters lists
-     */
-    val classNameTree = getClassName(c)
-    val methodNameTree = getMethodName(c)(enclosingMethodSymbol)
-    val paramssSymbols = c.internal.enclosingOwner.info.paramLists
-    val paramssIdents: List[List[Ident]] = paramssSymbols.map(ps => ps.map(p => Ident(p.name)))
-    val paramssTree = listToTree(c)(paramssIdents.map(ps => listToTree(c)(ps)))
-
-    val keyName = createKeyName(c)
-    val tree = q"""
-          val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
-          scalacache.caching($keyName)($f)($scalaCache, $flags)
-        """
-    //println(showCode(tree))
-    //println(showRaw(tree, printIds = true, printTypes = true))
-    tree
+    commonMacroImpl(c)(scalaCache, { keyName =>
+      q"""_root_.scalacache.caching($keyName)($f)($scalaCache, $flags)"""
+    })
   }
 
-  def memoizeImplWithTTL[A: c.WeakTypeTag](c: Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]) = {
+  def memoizeImplWithTTL[A: c.WeakTypeTag](c: blackbox.Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]) = {
+    import c.universe._
+
+    commonMacroImpl(c)(scalaCache, { keyName =>
+      q"""_root_.scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags)"""
+    })
+  }
+
+  private def commonMacroImpl[A: c.WeakTypeTag](c: blackbox.Context)(scalaCache: c.Expr[ScalaCache], keyNameToCachingCall: c.TermName => c.Tree) = {
     import c.universe._
 
     val enclosingMethodSymbol = getMethodSymbol(c)
+    val classSymbol = getClassSymbol(c)
 
     /*
      * Gather all the info needed to build the cache key:
      * class name, method name and the method parameters lists
      */
-    val classNameTree = getClassName(c)
+    val classNameTree = getFullClassName(c)(classSymbol)
+    val classParamssTree = getConstructorParams(c)(classSymbol)
     val methodNameTree = getMethodName(c)(enclosingMethodSymbol)
-    val paramssSymbols = c.internal.enclosingOwner.info.paramLists
-    val paramssIdents: List[List[Ident]] = paramssSymbols.map(ps => ps.map(p => Ident(p.name)))
-    val paramssTree = listToTree(c)(paramssIdents.map(ps => listToTree(c)(ps)))
+    val methodParamssSymbols = c.internal.enclosingOwner.info.paramLists
+    val methodParamssTree = paramListsToTree(c)(methodParamssSymbols)
 
     val keyName = createKeyName(c)
+    val scalacacheCall = keyNameToCachingCall(keyName)
     val tree = q"""
-          val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
-          scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags)
+          val $keyName = $scalaCache.memoization.toStringConverter.toString($classNameTree, $classParamssTree, $methodNameTree, $methodParamssTree)
+          $scalacacheCall
         """
     //println(showCode(tree))
     //println(showRaw(tree, printIds = true, printTypes = true))
@@ -61,7 +54,7 @@ object Macros {
    * Get the symbol of the method that encloses the macro,
    * or abort the compilation if we can't find one.
    */
-  private def getMethodSymbol(c: Context): c.Symbol = {
+  private def getMethodSymbol(c: blackbox.Context): c.Symbol = {
     import c.universe._
 
     def getMethodSymbolRecursively(sym: Symbol): Symbol = {
@@ -78,48 +71,72 @@ object Macros {
     getMethodSymbolRecursively(c.internal.enclosingOwner)
   }
 
-  private def getClassName(c: Context): c.Tree = {
+  /**
+   * Convert the given method symbol to a tree representing the method name.
+   */
+  private def getMethodName(c: blackbox.Context)(methodSymbol: c.Symbol): c.Tree = {
+    import c.universe._
+    val methodName = methodSymbol.asMethod.name.toString
+    // return a Tree
+    q"$methodName"
+  }
+
+  private def getClassSymbol(c: blackbox.Context): c.Symbol = {
     import c.universe._
 
-    def getClassNameRecursively(sym: Symbol): String = {
+    def getClassSymbolRecursively(sym: Symbol): Symbol = {
       if (sym == null)
         c.abort(c.enclosingPosition, "Encountered a null symbol while searching for enclosing class")
-      else if (sym.isClass)
-        sym.asClass.fullName
-      else if (sym.isModule)
-        sym.asModule.fullName
+      else if (sym.isClass || sym.isModule)
+        sym
       else
-        getClassNameRecursively(sym.owner)
+        getClassSymbolRecursively(sym.owner)
     }
 
-    val className = getClassNameRecursively(c.internal.enclosingOwner)
+    getClassSymbolRecursively(c.internal.enclosingOwner)
+  }
 
+  /**
+   * Convert the given class symbol to a tree representing the fully qualified class name.
+   *
+   * @param classSymbol should be either a ClassSymbol or a ModuleSymbol
+   */
+  private def getFullClassName(c: blackbox.Context)(classSymbol: c.Symbol): c.Tree = {
+    import c.universe._
+    val className = classSymbol.fullName
     // return a Tree
     q"$className"
   }
 
-  /**
-   * Convert the given method symbol to a tree representing the method name.
-   */
-  private def getMethodName(c: Context)(methodSymbol: c.Symbol): c.Tree = {
+  private def getConstructorParams(c: blackbox.Context)(classSymbol: c.Symbol): c.Tree = {
     import c.universe._
+    if (classSymbol.isClass) {
+      val symbolss = classSymbol.asClass.primaryConstructor.asMethod.paramLists
+      if (symbolss == List(Nil)) {
+        q"_root_.scala.collection.immutable.Nil"
+      } else {
+        paramListsToTree(c)(symbolss)
+      }
+    } else {
+      q"_root_.scala.collection.immutable.Nil"
+    }
+  }
 
-    val methodName = methodSymbol.asMethod.name.toString
-
-    // return a Tree
-    q"$methodName"
+  private def paramListsToTree(c: blackbox.Context)(symbolss: List[List[c.Symbol]]): c.Tree = {
+    import c.universe._
+    val identss: List[List[Ident]] = symbolss.map(ss => ss.map(s => Ident(s.name)))
+    listToTree(c)(identss.map(is => listToTree(c)(is)))
   }
 
   /**
    * Convert a List[Tree] to a Tree by calling scala.collection.immutable.list.apply()
    */
-  private def listToTree(c: Context)(ts: List[c.Tree]): c.Tree = {
+  private def listToTree(c: blackbox.Context)(ts: List[c.Tree]): c.Tree = {
     import c.universe._
-
     q"_root_.scala.collection.immutable.List(..$ts)"
   }
 
-  private def createKeyName(c: Context) = {
+  private def createKeyName(c: blackbox.Context) = {
     // We must create a fresh name for any vals that we define, to ensure we don't clash with any user-defined terms.
     // See https://github.com/cb372/scalacache/issues/13
     // (Note that c.freshName("key") does not work as expected.

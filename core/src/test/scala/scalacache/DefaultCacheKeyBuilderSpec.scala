@@ -2,9 +2,9 @@ package scalacache
 
 import org.scalatest.{ Matchers, FlatSpec }
 
-class DefaultCacheKeyBuilderTest extends FlatSpec with Matchers {
+class DefaultCacheKeyBuilderSpec extends FlatSpec with Matchers {
 
-  behavior of "Default cache key generator"
+  behavior of "Default cache key builder"
 
   it should "Use a single string as-is" in {
     DefaultCacheKeyBuilder.toCacheKey(Seq("abc"))(CacheConfig()) should be("abc")
