@@ -4,8 +4,8 @@ import org.scalatest.{ BeforeAndAfter, Matchers, FlatSpec }
 import scala.concurrent.duration._
 import org.joda.time.{ DateTime, DateTimeUtils }
 
-class MemcachedTTLConvertorSpec extends FlatSpec with Matchers with BeforeAndAfter with MemcachedTTLConvertor {
-  behavior of "MemcachedTTLConvertor"
+class MemcachedTTLConverterSpec extends FlatSpec with Matchers with BeforeAndAfter with MemcachedTTLConverter {
+  behavior of "MemcachedTTLConverter"
 
   it should "convert None to 0" in {
     toMemcachedExpiry(None) should be(0)

@@ -4,7 +4,7 @@ import scala.concurrent.duration._
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.joda.time.DateTime
 
-trait MemcachedTTLConvertor extends StrictLogging {
+trait MemcachedTTLConverter extends StrictLogging {
 
   /**
    * Convert an optional `Duration` to an int suitable for passing to Memcached.

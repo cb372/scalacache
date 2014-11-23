@@ -3,7 +3,7 @@ package scalacache.memoization
 /**
  * Converts information about a method call to a String for use in a cache key
  */
-trait MethodCallToStringConvertor {
+trait MethodCallToStringConverter {
 
   /**
    * Convert the given method call information to a String for use in a cache key
@@ -22,7 +22,7 @@ trait MethodCallToStringConvertor {
 
 }
 
-object MethodCallToStringConvertor {
+object MethodCallToStringConverter {
 
   private def classNamePart(className: String) =
     if (className.isEmpty) "" else className + "."
@@ -34,23 +34,23 @@ object MethodCallToStringConvertor {
     paramss.map(_.mkString("(", ", ", ")")).mkString("", "", "")
 
   /**
-   * A convertor that builds keys of the form: "package.class.method(arg, ...)(arg, ...)..."
+   * A converter that builds keys of the form: "package.class.method(arg, ...)(arg, ...)..."
    * e.g. "com.foo.MyClass.doSomething(123, abc)(foo)"
    *
    * Note that this converter ignores the class's constructor params and does NOT include them in the cache key.
    */
-  val defaultConvertor: MethodCallToStringConvertor = new MethodCallToStringConvertor {
+  val excludeClassConstructorParams: MethodCallToStringConverter = new MethodCallToStringConverter {
     def toString(fullClassName: String, constructorParamss: Seq[Seq[Any]], methodName: String, paramss: Seq[Seq[Any]]): String =
       s"${classNamePart(fullClassName)}$methodName${paramssPart(paramss)}"
   }
 
   /**
-   * A convertor that builds keys of the form: "package.class(arg, ...)(arg, ...).method(arg, ...)(arg, ...)..."
+   * A converter that builds keys of the form: "package.class(arg, ...)(arg, ...).method(arg, ...)(arg, ...)..."
    * e.g. "com.foo.MyClass(42, wow).doSomething(123, abc)(foo)"
    *
    * Note that this converter includes the class's constructor params in the cache key, where applicable.
    */
-  val includeClassConstructorParams = new MethodCallToStringConvertor {
+  val includeClassConstructorParams = new MethodCallToStringConverter {
     def toString(fullClassName: String, constructorParamss: Seq[Seq[Any]], methodName: String, paramss: Seq[Seq[Any]]): String =
       s"${classNameAndParamsPart(fullClassName, constructorParamss)}$methodName${paramssPart(paramss)}"
   }

@@ -2,13 +2,13 @@ package scalacache.memoization
 
 import org.scalatest._
 import scalacache._
-import scalacache.memoization.MethodCallToStringConvertor._
+import scalacache.memoization.MethodCallToStringConverter._
 
 class CacheKeyIncludingConstructorParamsSpec extends FlatSpec with CacheKeySpecCommon {
 
   behavior of "cache key generation for method memoization (when including constructor params in cache key)"
 
-  implicit val scalaCache = ScalaCache(cache, memoization = MemoizationConfig(toStringConvertor = includeClassConstructorParams))
+  implicit val scalaCache = ScalaCache(cache, memoization = MemoizationConfig(toStringConverter = includeClassConstructorParams))
 
   it should "include the enclosing class's constructor params in the cache key" in {
     val instance = new ClassWithConstructorParams(50)

@@ -42,7 +42,7 @@ object Macros {
     val keyName = createKeyName(c)
     val scalacacheCall = keyNameToCachingCall(keyName)
     val tree = q"""
-          val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $classParamssTree, $methodNameTree, $methodParamssTree)
+          val $keyName = $scalaCache.memoization.toStringConverter.toString($classNameTree, $classParamssTree, $methodNameTree, $methodParamssTree)
           $scalacacheCall
         """
     //println(showCode(tree))
