@@ -143,7 +143,7 @@ would be cached with the key: `foo.bar.Baz(1, hello)(world)`.
 
 Note that the cache key generation logic is customizable. Just provide your own implementation of [MethodCallToStringConverter](core/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala)
 
-#### Enclosing class's constructor parameters
+#### Enclosing class's constructor arguments
 
 If your memoized method is inside a class, rather than an object, then the method's result might depend on values passed to that class's constructor.
 
@@ -161,7 +161,7 @@ class Bar(a: Int) {
 }
 ```
 
-then we want the cache key to depend on both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](core/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
+then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](core/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
 
 ```scala 
 implicit val scalaCache = ScalaCache(
@@ -170,7 +170,7 @@ implicit val scalaCache = ScalaCache(
 )
 ```
 
-Doing this will ensure that the constructor parameters are included in cache keys:
+Doing this will ensure that both the constructor arguments and the method arguments are included in the cache key:
 
 ```scala 
 new Bar(10).baz(42) // cached as "foo.Bar(10).baz(42) -> 52
