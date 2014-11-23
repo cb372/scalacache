@@ -10,36 +10,24 @@ object Macros {
   def memoizeImpl[A: c.WeakTypeTag](c: blackbox.Context)(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]) = {
     import c.universe._
 
-    val enclosingMethodSymbol = getMethodSymbol(c)
-    val classSymbol = getClassSymbol(c)
-
-    /*
-     * Gather all the info needed to build the cache key:
-     * class name, method name and the method parameters lists
-     */
-    val classNameTree = getFullClassName(c)(classSymbol)
-    val classParamssTree = getConstructorParams(c)(classSymbol)
-    val methodNameTree = getMethodName(c)(enclosingMethodSymbol)
-    val methodParamssSymbols = c.internal.enclosingOwner.info.paramLists
-    val methodParamssTree = paramListsToTree(c)(methodParamssSymbols)
-
-    val keyName = createKeyName(c)
-    val tree = q"""
-          val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $classParamssTree, $methodNameTree, $methodParamssTree)
-          scalacache.caching($keyName)($f)($scalaCache, $flags)
-        """
-    //println(showCode(tree))
-    //println(showRaw(tree, printIds = true, printTypes = true))
-    tree
+    commonMacroImpl(c)(scalaCache, { keyName =>
+      q"""_root_.scalacache.caching($keyName)($f)($scalaCache, $flags)"""
+    })
   }
 
   def memoizeImplWithTTL[A: c.WeakTypeTag](c: blackbox.Context)(ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]) = {
     import c.universe._
 
+    commonMacroImpl(c)(scalaCache, { keyName =>
+      q"""_root_.scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags)"""
+    })
+  }
+
+  private def commonMacroImpl[A: c.WeakTypeTag](c: blackbox.Context)(scalaCache: c.Expr[ScalaCache], keyNameToCachingCall: c.TermName => c.Tree) = {
+    import c.universe._
+
     val enclosingMethodSymbol = getMethodSymbol(c)
     val classSymbol = getClassSymbol(c)
-
-    // TODO
 
     /*
      * Gather all the info needed to build the cache key:
@@ -52,9 +40,10 @@ object Macros {
     val methodParamssTree = paramListsToTree(c)(methodParamssSymbols)
 
     val keyName = createKeyName(c)
+    val scalacacheCall = keyNameToCachingCall(keyName)
     val tree = q"""
           val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $classParamssTree, $methodNameTree, $methodParamssTree)
-          scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags)
+          $scalacacheCall
         """
     //println(showCode(tree))
     //println(showRaw(tree, printIds = true, printTypes = true))
