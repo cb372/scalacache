@@ -1,9 +1,9 @@
 language: scala
 scala:
-  - 2.10.3
+  - 2.11.4
 jdk:
   - oraclejdk7
 services:
   - memcached
   - redis
-script: "sbt test"
+script: "sbt '++ 2.11.4' test '++ 2.11.2' test '++ 2.11.0' test"

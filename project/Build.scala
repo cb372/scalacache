@@ -10,7 +10,7 @@ import scoverage.ScoverageSbtPlugin._
 object ScalaCacheBuild extends Build {
   
   object Versions {
-    val scala = "2.11.2"
+    val scala = "2.11.4"
     val project = "0.4.3-SNAPSHOT"
   }
 
