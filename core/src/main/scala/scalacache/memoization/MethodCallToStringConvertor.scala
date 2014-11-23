@@ -9,8 +9,9 @@ trait MethodCallToStringConvertor {
    * Convert the given method call information to a String for use in a cache key
    * @param fullClassName the name of the class whose method was called, including fully-qualified package name
    * @param constructorParamss
-   *                the values of the constructor parameters of the class containing the method, where applicable.
-   *                This is a `[Seq[Seq[Any]]` because there may be multiple parameter lists
+   *                the values of the constructor parameters of the method's enclosing class, where applicable.
+   *                This is a `[Seq[Seq[Any]]` because there may be multiple parameter lists.
+   *                If the method is inside an `object`, a `trait` or a class with no constructor params, this will be `Nil`.
    * @param methodName the name of the called method
    * @param paramss
    *                the values of the parameters that were passed to the method.
@@ -33,7 +34,7 @@ object MethodCallToStringConvertor {
     paramss.map(_.mkString("(", ", ", ")")).mkString("", "", "")
 
   /**
-   * A cache key generator that builds keys of the form: "package.class.method(arg, ...)(arg, ...)..."
+   * A convertor that builds keys of the form: "package.class.method(arg, ...)(arg, ...)..."
    * e.g. "com.foo.MyClass.doSomething(123, abc)(foo)"
    *
    * Note that this converter ignores the class's constructor params and does NOT include them in the cache key.
@@ -44,8 +45,8 @@ object MethodCallToStringConvertor {
   }
 
   /**
-   * A cache key generator that builds keys of the form: "package.class(arg, ...)(arg, ...).method(arg, ...)(arg, ...)..."
-   * e.g. "com.foo.MyClass.doSomething(123, abc)(foo)"
+   * A convertor that builds keys of the form: "package.class(arg, ...)(arg, ...).method(arg, ...)(arg, ...)..."
+   * e.g. "com.foo.MyClass(42, wow).doSomething(123, abc)(foo)"
    *
    * Note that this converter includes the class's constructor params in the cache key, where applicable.
    */
