@@ -52,7 +52,6 @@ object MethodCallToStringConvertor {
   val includeClassConstructorParams = new MethodCallToStringConvertor {
     def toString(fullClassName: String, constructorParamss: Seq[Seq[Any]], methodName: String, paramss: Seq[Seq[Any]]): String =
       s"${classNameAndParamsPart(fullClassName, constructorParamss)}$methodName${paramssPart(paramss)}"
-
   }
 
 }

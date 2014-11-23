@@ -40,4 +40,8 @@ class MethodCallToStringConvertorSpec extends FlatSpec with Matchers {
       "MyClass", List(List("foo", "bar"), List("baz")), "myMethod", List(List("foo", 123), List(3.0))) should be("MyClass(foo, bar)(baz).myMethod(foo, 123)(3.0)")
   }
 
+  it should "build a key for a method in an object" in {
+    includeClassConstructorParams.toString("MyObject", Nil, "myMethod", Nil) should be("MyObject.myMethod")
+  }
+
 }
