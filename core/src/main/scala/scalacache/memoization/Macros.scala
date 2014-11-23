@@ -24,7 +24,7 @@ object Macros {
 
     val keyName = createKeyName(c)
     val tree = q"""
-          val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
+          val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, scala.collection.immutable.Nil, $methodNameTree, $paramssTree)
           scalacache.caching($keyName)($f)($scalaCache, $flags)
         """
     //println(showCode(tree))
@@ -49,7 +49,7 @@ object Macros {
 
     val keyName = createKeyName(c)
     val tree = q"""
-          val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, $methodNameTree, $paramssTree)
+          val $keyName = $scalaCache.memoization.toStringConvertor.toString($classNameTree, scala.collection.immutable.Nil, $methodNameTree, $paramssTree)
           scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags)
         """
     //println(showCode(tree))
