@@ -2,7 +2,7 @@ package scalacache
 
 import org.scalatest.{ Matchers, FlatSpec }
 
-class DefaultCacheKeyBuilderTest extends FlatSpec with Matchers {
+class DefaultCacheKeyBuilderSpec extends FlatSpec with Matchers {
 
   behavior of "Default cache key generator"
 
