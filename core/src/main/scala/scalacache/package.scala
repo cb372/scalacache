@@ -99,7 +99,7 @@ package object scalacache extends StrictLogging {
     if (flags.readsEnabled) {
       scalaCache.cache.get(key)
     } else {
-      logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key}")
+      logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
       Future.successful(None)
     }
   }
