@@ -7,6 +7,9 @@ import SonatypeKeys._
 import net.virtualvoid.sbt.graph.Plugin._
 import org.scoverage.coveralls.CoverallsPlugin
 import org.scoverage.coveralls.CoverallsPlugin.CoverallsKeys._
+import com.typesafe.sbt.pgp.PgpKeys
+import sbtrelease.ReleasePlugin._
+import sbtrelease.ReleasePlugin.ReleaseKeys._
 
 
 object ScalaCacheBuild extends Build {
@@ -110,13 +113,15 @@ object ScalaCacheBuild extends Build {
     scalariformSettings ++
     formatterPrefs ++
     graphSettings ++
+    releaseSettings ++
     Seq(
       organization := "com.github.cb372",
       version      := Versions.project,
       scalaVersion := Versions.scala,
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       libraryDependencies ++= commonDeps,
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      publishArtifactsAction := PgpKeys.publishLocalSigned.value
     )
 
   lazy val implProjectSettings = commonSettings ++ Seq(
