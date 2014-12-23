@@ -122,7 +122,7 @@ object ScalaCacheBuild extends Build {
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       libraryDependencies ++= commonDeps,
       parallelExecution in Test := false,
-      publishArtifactsAction := PgpKeys.publishLocalSigned.value,
+      publishArtifactsAction := PgpKeys.publishSigned.value,
       ReleaseKeys.releaseProcess := Seq[ReleaseStep](
         checkSnapshotDependencies,
         inquireVersions,
