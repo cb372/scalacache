@@ -7,13 +7,18 @@ import SonatypeKeys._
 import net.virtualvoid.sbt.graph.Plugin._
 import org.scoverage.coveralls.CoverallsPlugin
 import org.scoverage.coveralls.CoverallsPlugin.CoverallsKeys._
+import com.typesafe.sbt.pgp.PgpKeys
+import sbtrelease._
+import sbtrelease.ReleasePlugin._
+import sbtrelease.ReleasePlugin.ReleaseKeys._
+import sbtrelease.ReleaseStateTransformations._
 
+import scala.language.postfixOps
 
 object ScalaCacheBuild extends Build {
   
   object Versions {
     val scala = "2.11.4"
-    val project = "0.5.0-SNAPSHOT"
   }
 
   lazy val root = Project(id = "scalacache",base = file("."))
@@ -110,13 +115,30 @@ object ScalaCacheBuild extends Build {
     scalariformSettings ++
     formatterPrefs ++
     graphSettings ++
+    releaseSettings ++
     Seq(
       organization := "com.github.cb372",
-      version      := Versions.project,
       scalaVersion := Versions.scala,
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       libraryDependencies ++= commonDeps,
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      publishArtifactsAction := PgpKeys.publishSigned.value,
+      ReleaseKeys.releaseProcess := Seq[ReleaseStep](
+        checkSnapshotDependencies,
+        inquireVersions,
+        runClean,
+        runTest,
+        setReleaseVersion,
+        commitReleaseVersion,
+        updateVersionInReadme,
+        tagRelease,
+        publishArtifacts,
+        setNextVersion,
+        commitNextVersion,
+        pushChanges,
+        deployToMavenCentral
+      ),
+      commands += Command.command("update-version-in-readme")(updateVersionInReadme)
     )
 
   lazy val implProjectSettings = commonSettings ++ Seq(
@@ -162,6 +184,20 @@ object ScalaCacheBuild extends Build {
       .setPreference(AlignParameters, true)
       .setPreference(DoubleIndentClassDeclaration, true)
   )
+
+  lazy val updateVersionInReadme = ReleaseStep(action = st => {
+    val extracted = Project.extract(st)
+    val projectVersion = extracted.get(Keys.version)
+
+    println(s"Updating project version to $projectVersion in the README")
+    Process(Seq("sed", "-i", "", "-E", "-e", s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""", "README.md")).!
+    println("Committing README.md")
+    Process(Seq("git", "commit", "README.md", "-m", s"Update project version in README to $projectVersion")).!
+
+    st
+  })
+
+  lazy val deployToMavenCentral = ReleaseStep(action = releaseTask(sonatypeReleaseAll))
 }
 
 
