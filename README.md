@@ -209,7 +209,7 @@ def getUser(id: Int, skipCache: Boolean): User = {
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.4.2"
+libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.5.0"
 ```
 
 Usage:
@@ -237,7 +237,7 @@ implicit val scalaCache = ScalaCache(GuavaCache(underlyingGuavaCache))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.4.2"
+libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.5.0"
 ```
 
 Usage:
@@ -275,7 +275,7 @@ ScalaCache provides two `KeySanitizer` implementations that convert your cache k
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.4.2"
+libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.5.0"
 ```
 
 Usage:
@@ -297,7 +297,7 @@ implicit val scalaCache = ScalaCache(EhcacheCache(underlying))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.4.2"
+libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.5.0"
 ```
 
 Usage:
