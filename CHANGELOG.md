@@ -1,3 +1,15 @@
+0.5.0 (2014/12/23)
+----
+
+Improvements:
+ 
+* [#21](https://github.com/cb372/scalacache/issues/21) (as suggested in [#17](https://github.com/cb372/scalacache/issues/17))
+
+Misc:
+
+* Add Coveralls badge
+* Start using sbt-release plugin for releases
+
 0.4.2 (2014/10/26)
 ----
 
