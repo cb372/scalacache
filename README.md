@@ -24,6 +24,7 @@ Because of the use of Scala macros, only specific Scala versions are supported:
   <tr><td>0.2.x</td><td>2.11.0</td><td></td></tr>
   <tr><td>0.3.x</td><td>2.11.0, 2.11.1, 2.11.2</td><td>Should also work with 2.11.4+, but not tested</td></tr>
   <tr><td>0.4.x</td><td>2.11.0, 2.11.1, 2.11.2, 2.11.4</td><td></td></tr>
+  <tr><td>0.5.x</td><td>2.11.0, 2.11.1, 2.11.2, 2.11.4</td><td></td></tr>
 </table>
 
 ## How to use
