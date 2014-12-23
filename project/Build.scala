@@ -16,7 +16,6 @@ object ScalaCacheBuild extends Build {
   
   object Versions {
     val scala = "2.11.4"
-    val project = "0.5.0-SNAPSHOT"
   }
 
   lazy val root = Project(id = "scalacache",base = file("."))
@@ -116,7 +115,6 @@ object ScalaCacheBuild extends Build {
     releaseSettings ++
     Seq(
       organization := "com.github.cb372",
-      version      := Versions.project,
       scalaVersion := Versions.scala,
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       libraryDependencies ++= commonDeps,
