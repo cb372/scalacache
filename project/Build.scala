@@ -135,7 +135,8 @@ object ScalaCacheBuild extends Build {
         publishArtifacts,
         setNextVersion,
         commitNextVersion,
-        pushChanges
+        pushChanges,
+        deployToMavenCentral
       ),
       commands += Command.command("update-version-in-readme")(updateVersionInReadme)
     )
@@ -195,6 +196,8 @@ object ScalaCacheBuild extends Build {
 
     st
   })
+
+  lazy val deployToMavenCentral = ReleaseStep(action = releaseTask(sonatypeReleaseAll))
 }
 
 
