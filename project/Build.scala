@@ -5,7 +5,9 @@ import scalariform.formatter.preferences._
 import xerial.sbt.Sonatype._
 import SonatypeKeys._
 import net.virtualvoid.sbt.graph.Plugin._
-import scoverage.ScoverageSbtPlugin._
+import org.scoverage.coveralls.CoverallsPlugin
+import org.scoverage.coveralls.CoverallsPlugin.CoverallsKeys._
+
 
 object ScalaCacheBuild extends Build {
   
@@ -18,6 +20,7 @@ object ScalaCacheBuild extends Build {
     .settings(commonSettings: _*)
     .settings(sonatypeSettings: _*)
     .settings(publishArtifact := false)
+    .settings(coverallsTokenFile := "coveralls-token.txt")
     .aggregate(core, guava, memcached, ehcache, redis)
 
   lazy val core = Project(id = "scalacache-core", base = file("core"))
@@ -33,6 +36,7 @@ object ScalaCacheBuild extends Build {
         "com.h2database" % "h2" % "1.4.182" % "test"
       )
     )
+    .disablePlugins(CoverallsPlugin)
 
   lazy val guava = Project(id = "scalacache-guava", base = file("guava"))
     .settings(implProjectSettings: _*)
@@ -43,6 +47,7 @@ object ScalaCacheBuild extends Build {
       )
     )
     .dependsOn(core)
+    .disablePlugins(CoverallsPlugin)
 
   lazy val memcached = Project(id = "scalacache-memcached", base = file("memcached"))
     .settings(implProjectSettings: _*)
@@ -52,6 +57,7 @@ object ScalaCacheBuild extends Build {
       )
     )
     .dependsOn(core)
+    .disablePlugins(CoverallsPlugin)
 
   lazy val ehcache = Project(id = "scalacache-ehcache", base = file("ehcache"))
     .settings(implProjectSettings: _*)
@@ -62,6 +68,7 @@ object ScalaCacheBuild extends Build {
       )
     )
     .dependsOn(core)
+    .disablePlugins(CoverallsPlugin)
 
   lazy val redis = Project(id = "scalacache-redis", base = file("redis"))
     .settings(implProjectSettings: _*)
@@ -71,6 +78,7 @@ object ScalaCacheBuild extends Build {
       )
     )
     .dependsOn(core)
+    .disablePlugins(CoverallsPlugin)
 
   lazy val jodaTime = Seq(
     "joda-time" % "joda-time" % "2.5",
@@ -102,7 +110,6 @@ object ScalaCacheBuild extends Build {
     scalariformSettings ++
     formatterPrefs ++
     graphSettings ++
-    instrumentSettings ++
     Seq(
       organization := "com.github.cb372",
       version      := Versions.project,
