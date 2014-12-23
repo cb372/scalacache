@@ -8,9 +8,12 @@ import net.virtualvoid.sbt.graph.Plugin._
 import org.scoverage.coveralls.CoverallsPlugin
 import org.scoverage.coveralls.CoverallsPlugin.CoverallsKeys._
 import com.typesafe.sbt.pgp.PgpKeys
+import sbtrelease._
 import sbtrelease.ReleasePlugin._
 import sbtrelease.ReleasePlugin.ReleaseKeys._
+import sbtrelease.ReleaseStateTransformations._
 
+import scala.language.postfixOps
 
 object ScalaCacheBuild extends Build {
   
@@ -119,7 +122,22 @@ object ScalaCacheBuild extends Build {
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       libraryDependencies ++= commonDeps,
       parallelExecution in Test := false,
-      publishArtifactsAction := PgpKeys.publishLocalSigned.value
+      publishArtifactsAction := PgpKeys.publishLocalSigned.value,
+      ReleaseKeys.releaseProcess := Seq[ReleaseStep](
+        checkSnapshotDependencies,
+        inquireVersions,
+        runClean,
+        runTest,
+        setReleaseVersion,
+        commitReleaseVersion,
+        updateVersionInReadme,
+        tagRelease,
+        publishArtifacts,
+        setNextVersion,
+        commitNextVersion,
+        pushChanges
+      ),
+      commands += Command.command("update-version-in-readme")(updateVersionInReadme)
     )
 
   lazy val implProjectSettings = commonSettings ++ Seq(
@@ -165,6 +183,18 @@ object ScalaCacheBuild extends Build {
       .setPreference(AlignParameters, true)
       .setPreference(DoubleIndentClassDeclaration, true)
   )
+
+  lazy val updateVersionInReadme = ReleaseStep(action = st => {
+    val extracted = Project.extract(st)
+    val projectVersion = extracted.get(Keys.version)
+
+    println(s"Updating project version to $projectVersion in the README")
+    Process(Seq("sed", "-i", "", "-E", "-e", s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""", "README.md")).!
+    println("Committing README.md")
+    Process(Seq("git", "commit", "README.md", "-m", s"Update project version in README to $projectVersion")).!
+
+    st
+  })
 }
 
 
