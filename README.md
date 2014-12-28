@@ -174,8 +174,8 @@ implicit val scalaCache = ScalaCache(
 Doing this will ensure that both the constructor arguments and the method arguments are included in the cache key:
 
 ```scala 
-new Bar(10).baz(42) // cached as "foo.Bar(10).baz(42) -> 52
-new Bar(20).baz(42) // cached as "foo.Bar(20).baz(42) -> 62
+new Bar(10).baz(42) // cached as "foo.Bar(10).baz(42)" -> 52
+new Bar(20).baz(42) // cached as "foo.Bar(20).baz(42)" -> 62
 ```
 
 ### Flags
