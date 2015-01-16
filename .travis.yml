@@ -1,13 +1,13 @@
 language: scala
 scala:
-  - 2.11.4
+  - 2.11.5
 jdk:
   - oraclejdk7
 services:
   - memcached
   - redis
 script: 
-  - sbt ++2.11.4 coverage test 
+  - sbt ++2.11.5 coverage test 
   - sbt ++2.11.2 test
   - sbt ++2.11.0 test
 after_success: "sbt coverageAggregate coveralls"
