@@ -12,7 +12,3 @@ script:
   - sbt ++2.11.2 test
   - sbt ++2.11.0 test
 after_success: "sbt coverageAggregate coveralls"
-cache:
-  directories:
-    - $HOME/.ivy2
-    - $HOME/.sbt
