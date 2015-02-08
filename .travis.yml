@@ -9,8 +9,8 @@ services:
   - memcached
   - redis
 script: 
+  - cd issue28 && sbt run
   - sbt ++2.11.5 coverage test 
   - sbt ++2.11.2 test
   - sbt ++2.11.0 test
-  - cd issue28 && sbt run
 after_success: "sbt coverageAggregate coveralls"
