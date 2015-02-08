@@ -1,7 +1,7 @@
 package scalacache
 
 import scala.concurrent.duration.Duration
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 
 /**
  * Helper methods for logging
