@@ -3,6 +3,7 @@ language: scala
 scala:
   - 2.11.5
 jdk:
+  - oraclejdk8
   - oraclejdk7
 services:
   - memcached
