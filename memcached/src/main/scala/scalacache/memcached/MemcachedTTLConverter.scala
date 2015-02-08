@@ -1,7 +1,7 @@
 package scalacache.memcached
 
 import scala.concurrent.duration._
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.joda.time.DateTime
 
 trait MemcachedTTLConverter extends StrictLogging {

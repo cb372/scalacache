@@ -1,4 +1,4 @@
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }

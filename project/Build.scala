@@ -91,7 +91,7 @@ object ScalaCacheBuild extends Build {
   )
 
   lazy val scalaLogging = Seq(
-    "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2"
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
   )
 
   lazy val scalaTest = Seq(

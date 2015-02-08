@@ -3,7 +3,7 @@ package scalacache.ehcache
 import scalacache.{ LoggingSupport, Cache }
 import scala.concurrent.duration.Duration
 import net.sf.ehcache.{ Cache => Ehcache, Element }
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import scala.concurrent.Future
 
 /**
