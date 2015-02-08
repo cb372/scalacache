@@ -3,13 +3,13 @@ package scalacache.memcached
 import org.scalatest.{ BeforeAndAfter, Matchers, FlatSpec }
 import net.spy.memcached._
 import scala.concurrent.duration._
-import org.scalatest.concurrent.{ ScalaFutures, Eventually }
+import org.scalatest.concurrent.{ ScalaFutures, Eventually, IntegrationPatience }
 import org.scalatest.time.{ Span, Seconds }
 
 import scala.language.postfixOps
 
 class MemcachedCacheSpec
-    extends FlatSpec with Matchers with Eventually with BeforeAndAfter with ScalaFutures {
+    extends FlatSpec with Matchers with Eventually with BeforeAndAfter with ScalaFutures with IntegrationPatience {
 
   val client = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
 

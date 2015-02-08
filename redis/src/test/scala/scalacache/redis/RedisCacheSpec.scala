@@ -2,7 +2,7 @@ package scalacache.redis
 
 import org.scalatest.{ BeforeAndAfter, Matchers, FlatSpec }
 import scala.concurrent.duration._
-import org.scalatest.concurrent.{ ScalaFutures, Eventually }
+import org.scalatest.concurrent.{ ScalaFutures, Eventually, IntegrationPatience }
 import org.scalatest.time.{ Span, Seconds }
 
 import scala.language.postfixOps
@@ -12,7 +12,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class RedisCacheSpec
-    extends FlatSpec with Matchers with Eventually with BeforeAndAfter with RedisSerialization with ScalaFutures {
+    extends FlatSpec with Matchers with Eventually with BeforeAndAfter with RedisSerialization with ScalaFutures with IntegrationPatience {
 
   Try {
     val jedis = new Jedis("localhost", 6379)
