@@ -3,6 +3,7 @@ language: scala
 scala:
   - 2.11.5
 jdk:
+  - oraclejdk8
   - oraclejdk7
 services:
   - memcached
@@ -11,4 +12,5 @@ script:
   - sbt ++2.11.5 coverage test 
   - sbt ++2.11.2 test
   - sbt ++2.11.0 test
+  - cd issue28 && sbt run
 after_success: "sbt coverageAggregate coveralls"
