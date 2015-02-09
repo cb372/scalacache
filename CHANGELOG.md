@@ -1,3 +1,10 @@
+0.5.1 (2015/02/09)
+----
+
+Improvements:
+ 
+* [#29](https://github.com/cb372/scalacache/pull/29) (upgrade scala-logging in order to fix [#28](https://github.com/cb372/scalacache/issues/28))
+
 0.5.0 (2014/12/23)
 ----
 
