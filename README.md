@@ -178,6 +178,20 @@ new Bar(10).baz(42) // cached as "foo.Bar(10).baz(42)" -> 52
 new Bar(20).baz(42) // cached as "foo.Bar(20).baz(42)" -> 62
 ```
 
+#### Excluding parameters from the generated cache key
+
+If there are any parameters (either method arguments or class constructor arguments) that you don't want to include in the auto-generated cache key for memoization, you can exclude them using the `@cacheKeyExclude` annotation.
+
+For example:
+
+```scala
+def doSomething(userId: UserId)(implicit @cacheKeyExclude db: DBConnection) = memoize {
+  ...
+}
+```
+
+will only include the `userId` argument's value in its cache keys.
+
 ### Flags
 
 Cache GETs and/or PUTs can be temporarily disabled using flags. This can be useful if for example you want to skip the cache and read a value from the DB under certain conditions.
