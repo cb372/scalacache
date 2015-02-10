@@ -1,3 +1,10 @@
+0.5.2 (2015/02/10)
+----
+
+New features:
+ 
+* [#31](https://github.com/cb372/scalacache/pull/31) (added `@cacheKeyExclude` annotation, as suggested in [#30](https://github.com/cb372/scalacache/issues/30))
+
 0.5.1 (2015/02/09)
 ----
 
