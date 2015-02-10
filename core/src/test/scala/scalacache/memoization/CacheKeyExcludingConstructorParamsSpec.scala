@@ -50,6 +50,12 @@ class CacheKeyExcludingConstructorParamsSpec extends FlatSpec with CacheKeySpecC
     }
   }
 
+  it should "exclude values of arguments annotated with @cacheKeyExclude" in {
+    checkCacheKey("scalacache.memoization.CacheKeySpecCommon.withExcludedParams(1, 3)()") {
+      withExcludedParams(1, "2", "3")(4)
+    }
+  }
+
   it should "work for a method inside a class" in {
     checkCacheKey("scalacache.memoization.AClass.insideClass(1)") {
       new AClass().insideClass(1)

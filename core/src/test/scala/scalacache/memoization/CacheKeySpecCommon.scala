@@ -41,6 +41,10 @@ trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with Befo
     123
   }
 
+  def withExcludedParams(a: Int, @cacheKeyExclude b: String, c: String)(@cacheKeyExclude d: Int): Int = memoize {
+    123
+  }
+
 }
 
 class AClass(implicit val scalaCache: ScalaCache) {
@@ -81,5 +85,12 @@ class ClassWithConstructorParams(b: Int) {
   implicit var scalaCache: ScalaCache = null
   def foo(a: Int): Int = memoize {
     a + b
+  }
+}
+
+class ClassWithExcludedConstructorParam(b: Int, @cacheKeyExclude c: Int) {
+  implicit var scalaCache: ScalaCache = null
+  def foo(a: Int): Int = memoize {
+    a + b + c
   }
 }

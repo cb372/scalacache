@@ -124,7 +124,13 @@ object Macros {
 
   private def paramListsToTree(c: blackbox.Context)(symbolss: List[List[c.Symbol]]): c.Tree = {
     import c.universe._
-    val identss: List[List[Ident]] = symbolss.map(ss => ss.map(s => Ident(s.name)))
+    val cacheKeyExcludeType = c.typeOf[cacheKeyExclude]
+    def shouldExclude(s: c.Symbol) = {
+      s.annotations.exists(a => a.tree.tpe == cacheKeyExcludeType)
+    }
+    val identss: List[List[Ident]] = symbolss.map(ss => ss.collect {
+      case s if !shouldExclude(s) => Ident(s.name)
+    })
     listToTree(c)(identss.map(is => listToTree(c)(is)))
   }
 
