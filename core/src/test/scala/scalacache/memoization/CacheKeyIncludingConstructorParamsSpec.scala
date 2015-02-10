@@ -19,6 +19,15 @@ class CacheKeyIncludingConstructorParamsSpec extends FlatSpec with CacheKeySpecC
     }
   }
 
+  it should "exclude values of constructor params annotated with @cacheKeyExclude" in {
+    val instance = new ClassWithExcludedConstructorParam(50, 10)
+    instance.scalaCache = scalaCache
+
+    checkCacheKey("scalacache.memoization.ClassWithExcludedConstructorParam(50).foo(42)") {
+      instance.foo(42)
+    }
+  }
+
   it should "include values of all arguments for all argument lists" in {
     checkCacheKey("scalacache.memoization.CacheKeySpecCommon.multipleArgLists(1, 2)(3, 4)") {
       multipleArgLists(1, "2")("3", 4)
@@ -40,6 +49,12 @@ class CacheKeyIncludingConstructorParamsSpec extends FlatSpec with CacheKeySpecC
   it should "include function arguments as <functionN>" in {
     checkCacheKey("scalacache.memoization.CacheKeySpecCommon.functionArg(<function1>)") {
       functionArg((s: String) => s.toInt + 1)
+    }
+  }
+
+  it should "exclude values of arguments annotated with @cacheKeyExclude" in {
+    checkCacheKey("scalacache.memoization.CacheKeySpecCommon.withExcludedParams(1, 3)()") {
+      withExcludedParams(1, "2", "3")(4)
     }
   }
 
