@@ -1,2 +1,0 @@
-// Scoverage
-//instrumentSettings
