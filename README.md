@@ -1,6 +1,6 @@
 # ScalaCache
 
-[![Build Status](https://travis-ci.org/cb372/scalacache.png)](https://travis-ci.org/cb372/scalacache) [![Coverage Status](https://img.shields.io/coveralls/cb372/scalacache.svg)](https://coveralls.io/r/cb372/scalacache)
+[![Build Status](https://travis-ci.org/cb372/scalacache.png?branch=master)](https://travis-ci.org/cb372/scalacache) [![Coverage Status](https://img.shields.io/coveralls/cb372/scalacache.svg)](https://coveralls.io/r/cb372/scalacache)
 
 (formerly known as Cacheable)
 
