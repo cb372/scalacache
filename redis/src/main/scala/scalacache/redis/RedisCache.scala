@@ -94,7 +94,7 @@ object RedisCache {
   def apply(host: String, port: Int): RedisCache = apply(new JedisPool(host, port))
 
   /**
-   * Create a cache that uses the given Jedis client
+   * Create a cache that uses the given Jedis client pool
    * @param jedisPool a Jedis pool
    * @param customClassloader a classloader to use when deserializing objects from the cache.
    *                          If you are using Play, you should pass in `app.classloader`.
