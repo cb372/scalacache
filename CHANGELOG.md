@@ -1,3 +1,15 @@
+0.6.0 (2015/03/14)
+----
+
+Improvements:
+
+* [#37](https://github.com/cb372/scalacache/issues/37) (make it possible to use scalacache-redis with Play. See [#32](https://github.com/cb372/scalacache/issues/32) for the bug report)
+* [#38](https://github.com/cb372/scalacache/issues/38) (make `RedisCache` thread-safe)
+
+Breaking changes:
+
+* Due to #38, `RedisCache` now takes a `JedisPool` in its constructor rather than a `Jedis`.
+
 0.5.2 (2015/02/10)
 ----
 
