@@ -7,7 +7,7 @@ import org.scalatest.time.{ Span, Seconds }
 
 import scala.language.postfixOps
 import scala.util.{ Success, Failure, Try }
-import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -15,14 +15,19 @@ class RedisCacheSpec
     extends FlatSpec with Matchers with Eventually with BeforeAndAfter with RedisSerialization with ScalaFutures with IntegrationPatience {
 
   Try {
-    val jedis = new Jedis("localhost", 6379)
-    jedis.ping()
-    jedis
+    val jedisPool = new JedisPool("localhost", 6379)
+    val jedis = jedisPool.getResource()
+    try {
+      jedis.ping()
+    } finally {
+      jedis.close()
+    }
+    (jedisPool, jedis)
   } match {
     case Failure(_) => alert("Skipping tests because Redis does not appear to be running on localhost.")
-    case Success(client) => {
+    case Success((pool, client)) => {
 
-      val cache = RedisCache(client)
+      val cache = RedisCache(pool)
 
       before {
         client.flushDB()
@@ -134,4 +139,3 @@ class RedisCacheSpec
   def bytes(s: String) = s.getBytes("utf-8")
 
 }
-
