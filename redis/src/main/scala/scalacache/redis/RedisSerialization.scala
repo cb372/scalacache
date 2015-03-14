@@ -61,10 +61,8 @@ trait RedisSerialization {
     result.asInstanceOf[A]
   }
 
-  private def createObjectInputStream(inputStream: InputStream): ObjectInputStream = customClassloader match {
-    case Some(classloader) => new ClassLoaderOIS(inputStream, classloader)
-    case None => new ObjectInputStream(inputStream)
-  }
+  private def createObjectInputStream(inputStream: InputStream): ObjectInputStream =
+    new ClassLoaderOIS(inputStream, customClassloader getOrElse getClass.getClassLoader)
 
 }
 
