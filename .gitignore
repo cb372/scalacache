@@ -6,3 +6,4 @@ target
 coveralls-token.txt
 /*.html
 dump.rdb
+logs

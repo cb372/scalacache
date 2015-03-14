@@ -80,7 +80,7 @@ object ScalaCacheBuild extends Build {
     .settings(
       libraryDependencies ++= Seq(
         "redis.clients" % "jedis" % "2.6.0"
-      )
+      ) ++ playTesting
     )
     .dependsOn(core)
     .disablePlugins(CoverallsPlugin)
@@ -101,6 +101,12 @@ object ScalaCacheBuild extends Build {
     Seq("org.scala-lang.modules" %% "scala-xml" % "1.0.1" % "test")
   } else Nil)
 
+  val playVersion = "2.3.8"
+  lazy val playTesting = Seq(
+    "com.typesafe.play" %% "play-test" % playVersion % Test,
+    "org.scalatestplus" %% "play" % "1.2.0" % Test
+  )
+
   // Dependencies common to all projects
   lazy val commonDeps =
     scalaLogging ++
@@ -120,6 +126,7 @@ object ScalaCacheBuild extends Build {
       organization := "com.github.cb372",
       scalaVersion := Versions.scala,
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
+      resolvers += Resolver.typesafeRepo("releases"),
       libraryDependencies ++= commonDeps,
       parallelExecution in Test := false,
       publishArtifactsAction := PgpKeys.publishSigned.value,

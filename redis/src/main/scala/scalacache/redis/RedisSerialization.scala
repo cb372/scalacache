@@ -9,6 +9,8 @@ import java.io._
  */
 trait RedisSerialization {
 
+  protected def customClassloader: Option[ClassLoader] = None
+
   object MagicNumbers {
     val STRING: Byte = 0
     val BYTE_ARRAY: Byte = 1
@@ -42,7 +44,7 @@ trait RedisSerialization {
   def deserialize[A](bytes: Array[Byte]): A = {
     val bais = new ByteArrayInputStream(bytes)
     val typeId = bais.read().toByte // Read the next byte to discover the type
-    val ois = new ObjectInputStream(bais) // The rest of the array is in ObjectInputStream format
+    val ois = createObjectInputStream(bais) // The rest of the array is in ObjectInputStream format
     val result = typeId match {
       case MagicNumbers.STRING => ois.readUTF()
       case MagicNumbers.BYTE_ARRAY => {
@@ -59,4 +61,13 @@ trait RedisSerialization {
     result.asInstanceOf[A]
   }
 
+  private def createObjectInputStream(inputStream: InputStream): ObjectInputStream =
+    new ClassLoaderOIS(inputStream, customClassloader getOrElse getClass.getClassLoader)
+
+}
+
+class ClassLoaderOIS(stream: InputStream, customClassloader: ClassLoader) extends ObjectInputStream(stream) {
+  override protected def resolveClass(desc: ObjectStreamClass) = {
+    Class.forName(desc.getName, false, customClassloader)
+  }
 }

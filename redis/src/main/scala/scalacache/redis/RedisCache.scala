@@ -9,8 +9,10 @@ import scala.concurrent.{ Future, ExecutionContext, blocking }
 
 /**
  * Thin wrapper around Jedis
+ * @param customClassloader a classloader to use when deserializing objects from the cache.
+ *                          If you are using Play, you should pass in `app.classloader`.
  */
-class RedisCache(jedisPool: JedisPool)(implicit execContext: ExecutionContext = ExecutionContext.global)
+class RedisCache(jedisPool: JedisPool, override val customClassloader: Option[ClassLoader] = None)(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache
     with RedisSerialization
     with LoggingSupport
@@ -94,8 +96,11 @@ object RedisCache {
   /**
    * Create a cache that uses the given Jedis client pool
    * @param jedisPool a Jedis pool
+   * @param customClassloader a classloader to use when deserializing objects from the cache.
+   *                          If you are using Play, you should pass in `app.classloader`.
    */
-  def apply(jedisPool: JedisPool): RedisCache = new RedisCache(jedisPool)
+  def apply(jedisPool: JedisPool, customClassloader: Option[ClassLoader] = None): RedisCache =
+    new RedisCache(jedisPool, customClassloader)
 
   private val utf8 = Charset.forName("UTF-8")
 
