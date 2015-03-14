@@ -3,14 +3,14 @@ package scalacache.redis
 import scalacache.{ LoggingSupport, Cache }
 import scala.concurrent.duration._
 import com.typesafe.scalalogging.StrictLogging
-import redis.clients.jedis.Jedis
+import redis.clients.jedis.{ JedisPool, Jedis }
 import java.nio.charset.Charset
 import scala.concurrent.{ Future, ExecutionContext, blocking }
 
 /**
  * Thin wrapper around Jedis
  */
-class RedisCache(client: Jedis)(implicit execContext: ExecutionContext = ExecutionContext.global)
+class RedisCache(jedisPool: JedisPool)(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache
     with RedisSerialization
     with LoggingSupport
@@ -26,10 +26,12 @@ class RedisCache(client: Jedis)(implicit execContext: ExecutionContext = Executi
    */
   override def get[V](key: String) = Future {
     blocking {
-      val resultBytes = Option(client.get(key.utf8bytes))
-      val result = resultBytes.map(deserialize[V])
-      logCacheHitOrMiss(key, result)
-      result
+      withJedisClient { client =>
+        val resultBytes = Option(client.get(key.utf8bytes))
+        val result = resultBytes.map(deserialize[V])
+        logCacheHitOrMiss(key, result)
+        result
+      }
     }
   }
 
@@ -42,16 +44,18 @@ class RedisCache(client: Jedis)(implicit execContext: ExecutionContext = Executi
    */
   override def put[V](key: String, value: V, ttl: Option[Duration]) = Future {
     blocking {
-      val keyBytes = key.utf8bytes
-      val valueBytes = serialize(value)
-      ttl match {
-        case None => client.set(keyBytes, valueBytes)
-        case Some(Duration.Zero) => client.set(keyBytes, valueBytes)
-        case Some(d) if d < 1.second => {
-          logger.warn("Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
-          client.setex(keyBytes, 1, valueBytes)
+      withJedisClient { client =>
+        val keyBytes = key.utf8bytes
+        val valueBytes = serialize(value)
+        ttl match {
+          case None => client.set(keyBytes, valueBytes)
+          case Some(Duration.Zero) => client.set(keyBytes, valueBytes)
+          case Some(d) if d < 1.second => {
+            logger.warn("Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
+            client.setex(keyBytes, 1, valueBytes)
+          }
+          case Some(d) => client.setex(keyBytes, d.toSeconds.toInt, valueBytes)
         }
-        case Some(d) => client.setex(keyBytes, d.toSeconds.toInt, valueBytes)
       }
     }
   }
@@ -63,7 +67,18 @@ class RedisCache(client: Jedis)(implicit execContext: ExecutionContext = Executi
    */
   override def remove(key: String) = Future {
     blocking {
-      client.del(key.utf8bytes)
+      withJedisClient { client =>
+        client.del(key.utf8bytes)
+      }
+    }
+  }
+
+  private def withJedisClient[T](f: Jedis => T): T = {
+    val jedis = jedisPool.getResource()
+    try {
+      f(jedis)
+    } finally {
+      jedis.close()
     }
   }
 
@@ -74,13 +89,13 @@ object RedisCache {
   /**
    * Create a Redis client connecting to the given host and use it for caching
    */
-  def apply(host: String, port: Int): RedisCache = apply(new Jedis(host, port))
+  def apply(host: String, port: Int): RedisCache = apply(new JedisPool(host, port))
 
   /**
-   * Create a cache that uses the given Jedis client
-   * @param client a Jedis client
+   * Create a cache that uses the given Jedis client pool
+   * @param jedisPool a Jedis pool
    */
-  def apply(client: Jedis): RedisCache = new RedisCache(client)
+  def apply(jedisPool: JedisPool): RedisCache = new RedisCache(jedisPool)
 
   private val utf8 = Charset.forName("UTF-8")
 
