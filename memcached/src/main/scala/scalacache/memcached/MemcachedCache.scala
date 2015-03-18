@@ -1,21 +1,30 @@
 package scalacache.memcached
 
 import net.spy.memcached.internal.{ OperationFuture, OperationCompletionListener, GetFuture, GetCompletionListener }
+import net.spy.memcached.transcoders.Transcoder
 import net.spy.memcached.{ AddrUtil, BinaryConnectionFactory, MemcachedClient }
 import scala.concurrent.duration.Duration
 import scala.util.Success
 import scalacache.{ LoggingSupport, Cache }
 import com.typesafe.scalalogging.StrictLogging
-import scala.concurrent.{ Promise, Future, ExecutionContext }
+import scala.concurrent.{ Promise, ExecutionContext }
 
 /**
  * Wrapper around spymemcached
+ *
+ * @param customClassloader a classloader to use when deserializing objects from the cache.
+ *                          If you are using Play, you should pass in `app.classloader`.
  */
-class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(implicit execContext: ExecutionContext = ExecutionContext.global)
+class MemcachedCache(client: MemcachedClient,
+                     keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer(),
+                     customClassloader: Option[ClassLoader] = None)(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache
     with MemcachedTTLConverter
     with StrictLogging
     with LoggingSupport {
+
+  private val tc: Transcoder[Object] =
+    new ClassloaderAwareTranscoder(customClassloader getOrElse getClass.getClassLoader)
 
   /**
    * Get the value corresponding to the given key from the cache
@@ -25,7 +34,7 @@ class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitize
    */
   override def get[V](key: String) = {
     val p = Promise[Option[V]]()
-    val f = client.asyncGet(keySanitizer.toValidMemcachedKey(key))
+    val f = client.asyncGet(keySanitizer.toValidMemcachedKey(key), tc)
     f.addListener(new GetCompletionListener {
       def onComplete(g: GetFuture[_]): Unit = p.complete {
         val result = Option(f.get.asInstanceOf[V])
@@ -91,6 +100,7 @@ object MemcachedCache {
    * Create a cache that uses the given Memcached client
    * @param client Memcached client
    */
-  def apply(client: MemcachedClient): MemcachedCache = new MemcachedCache(client)
+  def apply(client: MemcachedClient, customClassloader: Option[ClassLoader] = None): MemcachedCache =
+    new MemcachedCache(client, customClassloader = customClassloader)
 
 }

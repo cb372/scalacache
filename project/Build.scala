@@ -59,7 +59,7 @@ object ScalaCacheBuild extends Build {
     .settings(
       libraryDependencies ++= Seq(
         "net.spy" % "spymemcached" % "2.11.4"
-      )
+      ) ++ playTesting
     )
     .dependsOn(core)
     .disablePlugins(CoverallsPlugin)

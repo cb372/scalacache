@@ -71,6 +71,19 @@ class MemcachedCacheSpec
       }
     }
 
+    behavior of "caching complex trees of objects"
+
+    it should "work i.e. not throw a ClassNotFoundException" in {
+      val cache = MemcachedCache(client)
+      val listOfStuff = List(Stuff(123, "foo"), Stuff(456, "bar"))
+      whenReady(cache.put("list-of-stuff", listOfStuff, ttl = None)) { _ =>
+        whenReady(cache.get[List[Stuff]]("list-of-stuff")) { result =>
+          result should be(Some(listOfStuff))
+        }
+      }
+    }
   }
 
 }
+
+case class Stuff(id: Int, name: String)

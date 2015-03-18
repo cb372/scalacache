@@ -2,6 +2,8 @@ package scalacache.redis
 
 import java.io._
 
+import scalacache.util.ClassLoaderOIS
+
 /**
  * Custom serialization for caching arbitrary objects in Redis.
  * Ints, Longs, Doubles, Strings and byte arrays are treated specially.
@@ -66,8 +68,3 @@ trait RedisSerialization {
 
 }
 
-class ClassLoaderOIS(stream: InputStream, customClassloader: ClassLoader) extends ObjectInputStream(stream) {
-  override protected def resolveClass(desc: ObjectStreamClass) = {
-    Class.forName(desc.getName, false, customClassloader)
-  }
-}
