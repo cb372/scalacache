@@ -1,3 +1,10 @@
+0.6.1 (2015/04/01)
+----
+
+Improvements:
+
+* [#40](https://github.com/cb372/scalacache/pull/40) (Add exception handling to `memoize` blocks, so exceptions thrown by the cache implementation are caught and handled gracefully. See [#39](https://github.com/cb372/scalacache/issues/39) for the bug report)
+
 0.6.0 (2015/03/14)
 ----
 
