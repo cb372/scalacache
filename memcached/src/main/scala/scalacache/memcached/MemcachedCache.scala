@@ -1,7 +1,7 @@
 package scalacache.memcached
 
 import net.spy.memcached.internal.{ OperationFuture, OperationCompletionListener, GetFuture, GetCompletionListener }
-import net.spy.memcached.transcoders.Transcoder
+import net.spy.memcached.transcoders.{ SerializingTranscoder, Transcoder }
 import net.spy.memcached.{ AddrUtil, BinaryConnectionFactory, MemcachedClient }
 import scala.concurrent.duration.Duration
 import scala.util.Success

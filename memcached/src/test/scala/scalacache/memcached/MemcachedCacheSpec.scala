@@ -71,9 +71,9 @@ class MemcachedCacheSpec
       }
     }
 
-    behavior of "caching complex trees of objects"
+    behavior of "caching instances of scala.util.List"
 
-    it should "work i.e. not throw a ClassNotFoundException" in {
+    it should "work around SI-9237 i.e. not throw a ClassNotFoundException" in {
       val cache = MemcachedCache(client)
       val listOfStuff = List(Stuff(123, "foo"), Stuff(456, "bar"))
       whenReady(cache.put("list-of-stuff", listOfStuff, ttl = None)) { _ =>
