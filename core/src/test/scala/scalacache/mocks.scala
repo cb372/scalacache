@@ -16,6 +16,12 @@ class FullCache(value: Any) extends Cache {
   override def remove(key: String) = Future.successful((): Unit)
 }
 
+class FailedFutureReturningCache extends Cache {
+  override def get[V](key: String): Future[Option[V]] = Future.failed(new RuntimeException("failed to read"))
+  override def put[V](key: String, value: V, ttl: Option[Duration]): Future[Unit] = Future.failed(new RuntimeException("failed to write"))
+  override def remove(key: String) = Future.successful((): Unit)
+}
+
 /**
  * A mock cache for use in tests and samples.
  * Does not support TTL.

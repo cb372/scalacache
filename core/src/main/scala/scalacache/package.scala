@@ -2,6 +2,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future }
+import scala.util.{ Failure, Success, Try }
 
 package object scalacache extends StrictLogging {
 
@@ -63,9 +64,17 @@ package object scalacache extends StrictLogging {
    */
   def caching[V](keyParts: Any*)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V = {
     val key = toKey(keyParts)
-    getSyncWithKey(key) getOrElse {
+    val fromCache = Try(getSyncWithKey(key)) match {
+      case Success(result) => result
+      case Failure(e) =>
+        logger.warn(s"Failed to read from cache. Key = $key", e)
+        None
+    }
+    fromCache getOrElse {
       val result = f
-      putWithKey(key, result, None)
+      Try(putWithKey(key, result, None)) recover {
+        case e => logger.warn(s"Failed to write to cache. Key = $key", e)
+      }
       result
     }
   }
@@ -85,9 +94,17 @@ package object scalacache extends StrictLogging {
    */
   def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V = {
     val key = toKey(keyParts)
-    getSyncWithKey(key) getOrElse {
+    val fromCache = Try(getSyncWithKey(key)) match {
+      case Success(result) => result
+      case Failure(e) =>
+        logger.warn(s"Failed to read from cache. Key = $key", e)
+        None
+    }
+    fromCache getOrElse {
       val result = f
-      putWithKey(key, result, Some(ttl))
+      Try(putWithKey(key, result, Some(ttl))) recover {
+        case e => logger.warn(s"Failed to write to cache. Key = $key", e)
+      }
       result
     }
   }
