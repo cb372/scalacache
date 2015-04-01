@@ -106,6 +106,26 @@ class MemoizeSpec extends FlatSpec with Matchers {
     """ should compile
   }
 
+  it should "catch exceptions thrown by the cache" in {
+    val dodgyCache = new FailedFutureReturningCache with LoggingCache
+    implicit val scalaCache = ScalaCache(dodgyCache)
+
+    val mockDbCall = new MockDbCall("hello")
+
+    // should return the block's result
+    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc")
+    result should be("hello")
+
+    // should check the cache first
+    dodgyCache.getCalledWithArgs should be(Seq(expectedKey))
+
+    // then execute the block
+    mockDbCall.calledWithArgs should be(Seq(123))
+
+    // and then store the result in the cache
+    dodgyCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
+  }
+
   behavior of "memoize block with TTL"
 
   it should "pass the TTL parameter to the cache" in {
