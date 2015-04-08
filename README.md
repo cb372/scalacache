@@ -13,6 +13,7 @@ The following cache implementations are supported, and it's easy to plugin your 
 * Memcached
 * Ehcache
 * Redis
+* twitter-util [LruMap](https://github.com/twitter/util/blob/master/util-collection/src/main/scala/com/twitter/util/LruMap.scala)
 
 ## Versioning
 
@@ -326,7 +327,7 @@ val jedis = new Jedis(...)
 implicit val scalaCache = ScalaCache(RedisCache(jedis))
 ```
 
-### LruMap
+### LruMap (twitter-util)
 
 SBT:
 
