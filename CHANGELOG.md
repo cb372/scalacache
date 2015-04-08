@@ -1,3 +1,10 @@
+0.6.2 (2015/04/08)
+----
+
+New features:
+
+* [#41](https://github.com/cb372/scalacache/pull/41) (Add a wrapper for twitter-util's LruMap cache implementation)
+
 0.6.1 (2015/04/01)
 ----
 
