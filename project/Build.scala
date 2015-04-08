@@ -26,7 +26,7 @@ object ScalaCacheBuild extends Build {
     .settings(sonatypeSettings: _*)
     .settings(publishArtifact := false)
     .settings(coverallsTokenFile := "coveralls-token.txt")
-    .aggregate(core, guava, memcached, ehcache, redis)
+    .aggregate(core, guava, memcached, ehcache, redis, lrumap)
 
   lazy val core = Project(id = "scalacache-core", base = file("core"))
     .settings(commonSettings: _*)
@@ -81,6 +81,16 @@ object ScalaCacheBuild extends Build {
       libraryDependencies ++= Seq(
         "redis.clients" % "jedis" % "2.6.0"
       ) ++ playTesting
+    )
+    .dependsOn(core)
+    .disablePlugins(CoverallsPlugin)
+
+  lazy val lrumap = Project(id = "scalacache-lrumap", base = file("lrumap"))
+    .settings(implProjectSettings: _*)
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.twitter" % "util-collection_2.11" % "6.23.0"
+      )
     )
     .dependsOn(core)
     .disablePlugins(CoverallsPlugin)
