@@ -5,7 +5,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scalacache.{LoggingSupport, Cache}
+import scalacache.{ LoggingSupport, Cache }
 
 import org.joda.time.DateTime
 
@@ -16,9 +16,9 @@ import org.joda.time.DateTime
  *
  */
 class LruMapCache(underlying: LruMap[String, Object])
-  extends Cache
-  with LoggingSupport
-  with StrictLogging {
+    extends Cache
+    with LoggingSupport
+    with StrictLogging {
 
   /**
    * Get the value corresponding to the given key from the cache
@@ -34,8 +34,7 @@ class LruMapCache(underlying: LruMap[String, Object])
         // remove expired entry
         underlying.remove(key)
         None
-      }
-      else Some(e.value)
+      } else Some(e.value)
     }
     logCacheHitOrMiss(key, result)
     Future.successful(result)

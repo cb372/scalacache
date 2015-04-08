@@ -3,9 +3,9 @@ package scalacache.lrumap
 import scala.concurrent.duration._
 
 import com.twitter.util.LruMap
-import org.joda.time.{DateTime, DateTimeUtils}
+import org.joda.time.{ DateTime, DateTimeUtils }
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import org.scalatest.{ BeforeAndAfter, FlatSpec, Matchers }
 
 class LruMapCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
   def newCache = new LruMap[String, Object](10)
