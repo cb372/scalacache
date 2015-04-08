@@ -326,6 +326,24 @@ val jedis = new Jedis(...)
 implicit val scalaCache = ScalaCache(RedisCache(jedis))
 ```
 
+### LruMap
+
+SBT:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-lrumap" % "0.6.1"
+```
+
+Usage:
+
+```scala
+import scalacache._
+import lrumap._
+
+// Just specified a maximum cache size in elements
+implicit val scalaCache = ScalaCache(LruMapCache(1000))
+```
+
 ## Troubleshooting/Restrictions
 
 Methods containing `memoize` blocks must have an explicit return type.
