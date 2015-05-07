@@ -190,6 +190,8 @@ Cache GETs and/or PUTs can be temporarily disabled using flags. This can be usef
 
 You can set flags by defining a [scalacache.Flags](core/src/main/scala/scalacache/Flags.scala) instance in implicit scope.
 
+Note that your memoized method must take an implicit parameter of type `Flags`. Otherwise any flags you try to set using an implicit will be silently ignored.
+
 Example:
 
 ```scala 
@@ -198,7 +200,7 @@ import memoization._
 
 implicit val scalaCache = ScalaCache(new MyCache())
 
-def getUser(id: Int): User = memoize {
+def getUser(id: Int)(implicit flags: Flags): User = memoize {
   // Do DB lookup here...
   User(id, s"user${id}")
 }
