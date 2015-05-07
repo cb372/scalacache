@@ -45,19 +45,19 @@ Assuming you have a `ScalaCache` in implicit scope:
 import scalacache._
 
 // Add an item to the cache
-put("myKey")("myValue")
+put("myKey")("myValue") // returns a Future[Unit]
 
 // Add an item to the cache with a Time To Live
 put("otherKey")("otherValue", ttl = 10.seconds)
 
 // Retrieve the added item
-get("myKey") // Some(myValue)
+get("myKey") // returns a Future of an Option
 
 // Remove it from the cache
-remove("myKey")
+remove("myKey") // returns a Future[Unit]
 
 // Wrap any block with caching
-val result = caching("myKey") {
+val result: String = caching("myKey") {
   // do stuff...
   "result of block"
 }
@@ -71,6 +71,18 @@ val result = cachingWithTTL("myKey")(10.seconds) {
 // You can also pass multiple parts to be combined into one key
 put("foo", 123, "bar")(value) // Will be cached with key "foo:123:bar"
 ```
+
+### Synchronous cache reads
+
+If you don't want to bother with Futures, you can do a blocking read from the cache using the `getSync` method. This just wraps the `get` method, blocking indefinitely.
+
+```scala
+import scalacache._
+
+val myValue: Option[String] = getSync("myKey")
+```
+
+If you're using an in-memory cache (e.g. Guava) then this is fine. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then `getSync` is not recommended. If the network goes down, your app could hang forever!
 
 ### Memoization of method results
 
