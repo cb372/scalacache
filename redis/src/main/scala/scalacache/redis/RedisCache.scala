@@ -75,6 +75,10 @@ class RedisCache(jedisPool: JedisPool, override val customClassloader: Option[Cl
     }
   }
 
+  override def close(): Unit = {
+    jedisPool.close()
+  }
+
   private def withJedisClient[T](f: Jedis => T): T = {
     val jedis = jedisPool.getResource()
     try {

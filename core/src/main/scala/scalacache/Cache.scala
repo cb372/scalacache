@@ -29,5 +29,15 @@ trait Cache {
    */
   def remove(key: String): Future[Unit]
 
+  /**
+   * You should call this when you have finished using this Cache.
+   * (e.g. when your application shuts down)
+   *
+   * It will take care of gracefully shutting down the underlying cache client.
+   *
+   * Note that you should not try to use this Cache instance after you have called this method.
+   */
+  def close(): Unit
+
 }
 

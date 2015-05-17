@@ -53,6 +53,10 @@ class EhcacheCache(underlying: Ehcache)
    */
   override def remove(key: String) = Future.successful(underlying.remove(key))
 
+  override def close(): Unit = {
+    // Nothing to do
+  }
+
 }
 
 object EhcacheCache {

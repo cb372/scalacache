@@ -62,6 +62,10 @@ class GuavaCache(underlying: GCache[String, Object])
    */
   override def remove(key: String) = Future.successful(underlying.invalidate(key))
 
+  override def close(): Unit = {
+    // Nothing to do
+  }
+
   private def toExpiryTime(ttl: Duration): DateTime = DateTime.now.plusMillis(ttl.toMillis.toInt)
 
 }
