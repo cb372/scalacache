@@ -68,7 +68,7 @@ object ScalaCacheBuild extends Build {
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
-        "net.sf.ehcache" % "ehcache" % "2.8.4",
+        "net.sf.ehcache" % "ehcache" % "2.10.0",
         "javax.transaction" % "jta" % "1.1"
       )
     )
