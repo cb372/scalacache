@@ -79,7 +79,7 @@ object ScalaCacheBuild extends Build {
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
-        "redis.clients" % "jedis" % "2.6.0"
+        "redis.clients" % "jedis" % "2.7.2"
       ) ++ playTesting
     )
     .dependsOn(core)
