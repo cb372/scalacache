@@ -31,7 +31,7 @@ trait Cache {
 
   /**
    * You should call this when you have finished using this Cache.
-   * (e.g. when your application shuts down.
+   * (e.g. when your application shuts down)
    *
    * It will take care of gracefully shutting down the underlying cache client.
    *
