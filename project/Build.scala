@@ -58,7 +58,7 @@ object ScalaCacheBuild extends Build {
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
-        "net.spy" % "spymemcached" % "2.11.4"
+        "net.spy" % "spymemcached" % "2.11.7"
       )
     )
     .dependsOn(core)
