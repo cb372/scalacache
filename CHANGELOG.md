@@ -1,3 +1,16 @@
+0.6.3 (2015/05/17)
+----
+
+Improvements:
+
+* [#49](https://github.com/cb372/scalacache/pull/49) adds a `close()` method to the `Cache` class, so you can clean up resources properly (i.e. close the Memcached/Redis client) when your app shuts down.
+
+Bumped dependencies:
+
+* Ehcache 2.8.4 -> 2.10.0
+* Spymemcached 2.11.4 -> 2.11.7
+* Jedis 2.6.0 -> 2.7.2
+
 0.6.2 (2015/04/08)
 ----
 
