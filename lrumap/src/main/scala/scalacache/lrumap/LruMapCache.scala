@@ -62,6 +62,10 @@ class LruMapCache(underlying: LruMap[String, Object])
   override def remove(key: String): Future[Unit] =
     Future.successful(underlying.remove(key))
 
+  override def close(): Unit = {
+    // Nothing to do
+  }
+
   private def toExpiryTime(ttl: Duration): DateTime = DateTime.now.plusMillis(ttl.toMillis.toInt)
 }
 

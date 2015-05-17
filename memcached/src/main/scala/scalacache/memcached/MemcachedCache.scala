@@ -71,6 +71,10 @@ class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitize
     p.future
   }
 
+  override def close(): Unit = {
+    client.shutdown()
+  }
+
 }
 
 object MemcachedCache {
