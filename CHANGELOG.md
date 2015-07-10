@@ -1,3 +1,14 @@
+0.6.4 (2015/07/10)
+----
+
+Improvements:
+
+* [#50](https://github.com/cb372/scalacache/pull/50) adds a `removeAll()` method to the `Cache` class, so you can flush the entire contents of the cache.
+
+Bumped dependencies:
+
+* Scala 2.11.7
+
 0.6.3 (2015/05/17)
 ----
 

@@ -56,6 +56,9 @@ get("myKey") // returns a Future of an Option
 // Remove it from the cache
 remove("myKey") // returns a Future[Unit]
 
+// Flush the cache
+removeAll() // returns a Future[Unit]
+
 // Wrap any block with caching
 val result: String = caching("myKey") {
   // do stuff...
