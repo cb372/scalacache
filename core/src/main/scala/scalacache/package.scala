@@ -51,6 +51,12 @@ package object scalacache extends StrictLogging {
     scalaCache.cache.remove(toKey(keyParts))
 
   /**
+   * Delete the entire contents of the cache. Use wisely!
+   */
+  def removeAll()(implicit scalaCache: ScalaCache): Future[Unit] =
+    scalaCache.cache.removeAll()
+
+  /**
    * Wrap the given block with a caching decorator.
    * First look in the cache. If the value is found, then return it immediately.
    * Otherwise run the block and save the result in the cache before returning it.

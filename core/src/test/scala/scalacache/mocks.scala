@@ -8,6 +8,7 @@ class EmptyCache extends Cache {
   override def get[V](key: String): Future[Option[V]] = Future.successful(None)
   override def put[V](key: String, value: V, ttl: Option[Duration]) = Future.successful((): Unit)
   override def remove(key: String) = Future.successful((): Unit)
+  override def removeAll() = Future.successful((): Unit)
   override def close(): Unit = {}
 }
 
@@ -15,6 +16,7 @@ class FullCache(value: Any) extends Cache {
   override def get[V](key: String): Future[Option[V]] = Future.successful(Some(value).asInstanceOf[Option[V]])
   override def put[V](key: String, value: V, ttl: Option[Duration]) = Future.successful((): Unit)
   override def remove(key: String) = Future.successful((): Unit)
+  override def removeAll() = Future.successful((): Unit)
   override def close(): Unit = {}
 }
 
@@ -22,6 +24,7 @@ class FailedFutureReturningCache extends Cache {
   override def get[V](key: String): Future[Option[V]] = Future.failed(new RuntimeException("failed to read"))
   override def put[V](key: String, value: V, ttl: Option[Duration]): Future[Unit] = Future.failed(new RuntimeException("failed to write"))
   override def remove(key: String) = Future.successful((): Unit)
+  override def removeAll() = Future.successful((): Unit)
   override def close(): Unit = {}
 }
 
@@ -43,6 +46,9 @@ class MockCache extends Cache {
 
   def remove(key: String) =
     Future.successful(mmap.remove(key))
+
+  def removeAll() =
+    Future.successful(mmap.clear())
 
   def close(): Unit = {}
 

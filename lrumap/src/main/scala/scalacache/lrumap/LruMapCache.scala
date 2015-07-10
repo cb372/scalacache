@@ -62,6 +62,8 @@ class LruMapCache(underlying: LruMap[String, Object])
   override def remove(key: String): Future[Unit] =
     Future.successful(underlying.remove(key))
 
+  override def removeAll() = Future.successful(underlying.clear())
+
   override def close(): Unit = {
     // Nothing to do
   }

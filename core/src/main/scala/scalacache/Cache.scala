@@ -30,6 +30,11 @@ trait Cache {
   def remove(key: String): Future[Unit]
 
   /**
+   * Delete the entire contents of the cache. Use wisely!
+   */
+  def removeAll(): Future[Unit]
+
+  /**
    * You should call this when you have finished using this Cache.
    * (e.g. when your application shuts down)
    *

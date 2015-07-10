@@ -62,6 +62,8 @@ class GuavaCache(underlying: GCache[String, Object])
    */
   override def remove(key: String) = Future.successful(underlying.invalidate(key))
 
+  override def removeAll() = Future.successful(underlying.invalidateAll())
+
   override def close(): Unit = {
     // Nothing to do
   }
