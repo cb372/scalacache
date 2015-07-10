@@ -18,7 +18,7 @@ import scala.language.postfixOps
 object ScalaCacheBuild extends Build {
   
   object Versions {
-    val scala = "2.11.6"
+    val scala = "2.11.7"
   }
 
   lazy val root = Project(id = "scalacache",base = file("."))
