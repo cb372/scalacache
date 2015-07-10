@@ -71,6 +71,17 @@ class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitize
     p.future
   }
 
+  override def removeAll() = {
+    val p = Promise[Unit]()
+    val f = client.flush()
+    f.addListener(new OperationCompletionListener {
+      def onComplete(g: OperationFuture[_]): Unit = p.complete {
+        Success(())
+      }
+    })
+    p.future
+  }
+
   override def close(): Unit = {
     client.shutdown()
   }

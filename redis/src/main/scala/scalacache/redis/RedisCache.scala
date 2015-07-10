@@ -75,6 +75,14 @@ class RedisCache(jedisPool: JedisPool, override val customClassloader: Option[Cl
     }
   }
 
+  override def removeAll() = Future {
+    blocking {
+      withJedisClient { client =>
+        client.flushDB()
+      }
+    }
+  }
+
   override def close(): Unit = {
     jedisPool.close()
   }
