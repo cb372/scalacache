@@ -48,7 +48,7 @@ import scalacache._
 put("myKey")("myValue") // returns a Future[Unit]
 
 // Add an item to the cache with a Time To Live
-put("otherKey")("otherValue", ttl = 10.seconds)
+put("otherKey")("otherValue", ttl = Some(10.seconds))
 
 // Retrieve the added item
 get("myKey") // returns a Future of an Option
