@@ -91,7 +91,7 @@ If you're using an in-memory cache (e.g. Guava) then this is fine. But if you're
 
 ```scala 
 import scalacache._
-import memoization._
+import scalacache.memoization._
 
 implicit val scalaCache = ScalaCache(new MyCache())
 
