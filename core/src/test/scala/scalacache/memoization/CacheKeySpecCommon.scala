@@ -1,11 +1,11 @@
 package scalacache.memoization
 
 import org.scalatest._
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 
 import scalacache.{ ScalaCache, MockCache }
 
-trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with BeforeAndAfter {
+trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with BeforeAndAfter with Eventually {
 
   val cache = new MockCache
   implicit def scalaCache: ScalaCache
@@ -19,8 +19,10 @@ trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with Befo
     val value = call
 
     // Check that the value is in the cache, with the expected key
-    whenReady(cache.get(expectedKey)) { result =>
-      result should be(Some(value))
+    eventually {
+      whenReady(cache.get(expectedKey)) { result =>
+        result should be(Some(value))
+      }
     }
   }
 

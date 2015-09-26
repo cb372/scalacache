@@ -1,10 +1,13 @@
 package scalacache
 
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.{ BeforeAndAfter, FlatSpec, Matchers }
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter {
+class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures with Eventually {
 
   val cache = new LoggingMockCache
   implicit val scalaCache = ScalaCache(cache)
@@ -65,9 +68,71 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter {
 
   behavior of "#caching"
 
+  it should "run the block and cache its result asynchronously with no TTL if the value is not found in the cache" in {
+    var called = false
+    val fResult = scalacache.caching("myKey") {
+      Future {
+        called = true
+        "result of block"
+      }
+    }
+
+    whenReady(fResult) { result =>
+      cache.getCalledWithArgs(0) should be("myKey")
+      called should be(true)
+      result should be("result of block")
+
+      eventually {
+        cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
+      }
+    }
+  }
+
+  it should "not run the block if the value is found in the cache" in {
+    cache.mmap.put("myKey", "value from cache")
+
+    var called = false
+    val fResult = scalacache.caching("myKey") {
+      Future {
+        called = true
+        "result of block"
+      }
+    }
+
+    whenReady(fResult) { result =>
+      cache.getCalledWithArgs(0) should be("myKey")
+      called should be(false)
+      result should be("value from cache")
+    }
+  }
+
+  behavior of "#cachingWithTTL"
+
+  it should "run the block and cache its result asynchronously with the given TTL if the value is not found in the cache" in {
+    var called = false
+    val fResult = scalacache.cachingWithTTL("myKey")(10.seconds) {
+      Future {
+        called = true
+        "result of block"
+      }
+    }
+
+    whenReady(fResult) { result =>
+      cache.getCalledWithArgs(0) should be("myKey")
+      called should be(true)
+      result should be("result of block")
+
+      eventually {
+        cache.putCalledWithArgs(0) should be("myKey", "result of block", Some(10.seconds))
+      }
+    }
+  }
+
+  behavior of "#cachingSync"
+
   it should "run the block and cache its result with no TTL if the value is not found in the cache" in {
     var called = false
-    val result = scalacache.caching("myKey") {
+    val result = scalacache.cachingSync("myKey") {
       called = true
       "result of block"
     }
@@ -82,7 +147,7 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter {
     cache.mmap.put("myKey", "value from cache")
 
     var called = false
-    val result = scalacache.caching("myKey") {
+    val result = scalacache.cachingSync("myKey") {
       called = true
       "result of block"
     }
@@ -98,7 +163,7 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter {
     implicit val flags = Flags(readsEnabled = false)
 
     var called = false
-    val result = scalacache.caching("myKey") {
+    val result = scalacache.cachingSync("myKey") {
       called = true
       "result of block"
     }
@@ -113,7 +178,7 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter {
     implicit val flags = Flags(writesEnabled = false)
 
     var called = false
-    val result = scalacache.caching("myKey") {
+    val result = scalacache.cachingSync("myKey") {
       called = true
       "result of block"
     }
@@ -124,11 +189,11 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter {
     result should be("result of block")
   }
 
-  behavior of "#cachingWithTTL"
+  behavior of "#cachingSyncWithTTL"
 
   it should "run the block and cache its result with the given TTL if the value is not found in the cache" in {
     var called = false
-    val result = scalacache.cachingWithTTL("myKey")(10.seconds) {
+    val result = scalacache.cachingSyncWithTTL("myKey")(10.seconds) {
       called = true
       "result of block"
     }
@@ -144,7 +209,7 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter {
     implicit val flags = Flags(readsEnabled = false)
 
     var called = false
-    val result = scalacache.cachingWithTTL("myKey")(10.seconds) {
+    val result = scalacache.cachingSyncWithTTL("myKey")(10.seconds) {
       called = true
       "result of block"
     }
@@ -159,7 +224,7 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter {
     implicit val flags = Flags(writesEnabled = false)
 
     var called = false
-    val result = scalacache.cachingWithTTL("myKey")(10.seconds) {
+    val result = scalacache.cachingSyncWithTTL("myKey")(10.seconds) {
       called = true
       "result of block"
     }

@@ -1,7 +1,7 @@
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{ ExecutionContext, Await, Future }
 import scala.util.{ Failure, Success, Try }
 
 package object scalacache extends StrictLogging {
@@ -21,38 +21,55 @@ package object scalacache extends StrictLogging {
     def removeAll(): Future[Unit] =
       scalacache.removeAll()
 
-    def caching(keyParts: Any*)(f: => V)(implicit flags: Flags): V = {
+    def caching(keyParts: Any*)(f: => Future[V])(implicit flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[V] = {
+      _caching(keyParts: _*)(None)(f)
+    }
+
+    def cachingWithTTL(keyParts: Any*)(ttl: Duration)(f: => Future[V])(implicit flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[V] = {
+      _caching(keyParts: _*)(Some(ttl))(f)
+    }
+
+    def cachingSync(keyParts: Any*)(f: => V)(implicit flags: Flags): V = {
+      _cachingSync(keyParts: _*)(None)(f)
+    }
+
+    def cachingSyncWithTTL(keyParts: Any*)(ttl: Duration)(f: => V)(implicit flags: Flags): V = {
+      _cachingSync(keyParts: _*)(Some(ttl))(f)
+    }
+
+    private def _caching(keyParts: Any*)(ttl: Option[Duration])(f: => Future[V])(implicit flags: Flags, execContext: ExecutionContext): Future[V] = {
       val key = toKey(keyParts)
-      val fromCache = Try(getSyncWithKey(key)) match {
-        case Success(result) => result
-        case Failure(e) =>
+
+      def asynchronouslyCacheResult(result: Future[V]): Unit = result onSuccess {
+        case computedValue =>
+          Try(putWithKey(key, computedValue, ttl)) recover {
+            case e => logger.warn(s"Failed to write to cache. Key = $key", e)
+          }
+      }
+
+      val fromCache: Future[Option[V]] = getWithKey(key).recover[Option[V]] {
+        case e =>
           logger.warn(s"Failed to read from cache. Key = $key", e)
           None
       }
-      fromCache getOrElse {
-        val result = f
-        Try(putWithKey(key, result, None)) recover {
-          case e => logger.warn(s"Failed to write to cache. Key = $key", e)
-        }
-        result
+
+      fromCache flatMap {
+        case Some(value) => Future.successful(value)
+        case None =>
+          val result: Future[V] = f
+          asynchronouslyCacheResult(result)
+          result
       }
     }
 
-    def cachingWithTTL(keyParts: Any*)(ttl: Duration)(f: => V)(implicit flags: Flags): V = {
-      val key = toKey(keyParts)
-      val fromCache = Try(getSyncWithKey(key)) match {
-        case Success(result) => result
-        case Failure(e) =>
-          logger.warn(s"Failed to read from cache. Key = $key", e)
-          None
-      }
-      fromCache getOrElse {
-        val result = f
-        Try(putWithKey(key, result, Some(ttl))) recover {
-          case e => logger.warn(s"Failed to write to cache. Key = $key", e)
-        }
-        result
-      }
+    /*
+    Note: we could put our clever trousers on and abstract over synchronicity by saying
+    `f` has to return an F[V] (where F is either a Future or an Id), but this would leak into the public API
+    and probably confuse a lot of users.
+     */
+    private def _cachingSync(keyParts: Any*)(ttl: Option[Duration])(f: => V)(implicit flags: Flags): V = {
+      val future = _caching(keyParts: _*)(ttl)(Future.successful(f))(flags, ExecutionContext.global)
+      Await.result(future, Duration.Inf)
     }
 
     private def getWithKey(key: String)(implicit flags: Flags): Future[Option[V]] = {
@@ -156,6 +173,12 @@ package object scalacache extends StrictLogging {
    * First look in the cache. If the value is found, then return it immediately.
    * Otherwise run the block and save the result in the cache before returning it.
    *
+   * All of the above happens asynchronously, so a `Future` is returned immediately.
+   * Specifically:
+   * - when the cache lookup completes, if it is a miss, the block execution is started.
+   * - at some point after the block execution completes, the result is written asynchronously to the cache.
+   * - the Future returned from this method does not wait for the cache write before completing.
+   *
    * Note: Because no TTL is specified, the result will be stored in the cache indefinitely.
    *
    * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
@@ -163,8 +186,45 @@ package object scalacache extends StrictLogging {
    * @tparam V the type of the block's result
    * @return the result, either retrived from the cache or returned by the block
    */
-  def caching[V](keyParts: Any*)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V =
+  def caching[V](keyParts: Any*)(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[V] =
     typed[V].caching(keyParts: _*)(f)
+
+  /**
+   * Wrap the given block with a caching decorator.
+   * First look in the cache. If the value is found, then return it immediately.
+   * Otherwise run the block and save the result in the cache before returning it.
+   *
+   * All of the above happens asynchronously, so a `Future` is returned immediately.
+   * Specifically:
+   * - when the cache lookup completes, if it is a miss, the block execution is started.
+   * - at some point after the block execution completes, the result is written asynchronously to the cache.
+   * - the Future returned from this method does not wait for the cache write before completing.
+   *
+   * The result will be stored in the cache until the given TTL expires.
+   *
+   * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
+   * @param ttl Time To Live
+   * @param f the block to run
+   * @tparam V the type of the block's result
+   * @return the result, either retrived from the cache or returned by the block
+   */
+  def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[V] =
+    typed[V].cachingWithTTL(keyParts: _*)(ttl)(f)
+
+  /**
+   * Wrap the given block with a caching decorator.
+   * First look in the cache. If the value is found, then return it immediately.
+   * Otherwise run the block and save the result in the cache before returning it.
+   *
+   * Note: Because no TTL is specified, the result will be stored in the cache indefinitely.
+   *
+   * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
+   * @param f the block to run
+   * @tparam V the type of the block's result
+   * @return the result, either retrived from the cache or returned by the block
+   */
+  def cachingSync[V](keyParts: Any*)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V =
+    typed[V].cachingSync(keyParts: _*)(f)
 
   /**
    * Wrap the given block with a caching decorator.
@@ -179,8 +239,8 @@ package object scalacache extends StrictLogging {
    * @tparam V the type of the block's result
    * @return the result, either retrived from the cache or returned by the block
    */
-  def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V =
-    typed[V].cachingWithTTL(keyParts: _*)(ttl)(f)
+  def cachingSyncWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V =
+    typed[V].cachingSyncWithTTL(keyParts: _*)(ttl)(f)
 
   private def toKey(parts: Seq[Any])(implicit scalaCache: ScalaCache): String =
     scalaCache.keyBuilder.toCacheKey(parts)(scalaCache.cacheConfig)

@@ -19,7 +19,7 @@ class Issue42Spec extends FlatSpec with Matchers {
 
   def generateNewName() = Random.alphanumeric.take(10).mkString
 
-  def getUser(id: Int)(implicit flags: Flags): User = caching(id) {
+  def getUser(id: Int)(implicit flags: Flags): User = cachingSync(id) {
     User(id, generateNewName())
   }
 
