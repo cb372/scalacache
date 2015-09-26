@@ -39,7 +39,7 @@ class SquerylIntegrationSpec extends FlatSpec with Matchers with BeforeAndAfterA
     val cache = new MockCache with LoggingCache
     implicit val scalaCache = ScalaCache(cache)
 
-    def findUser(userId: Int): Option[User] = memoize {
+    def findUser(userId: Int): Option[User] = memoizeSync {
       inTransaction {
         from(users)((u) =>
           select(u)

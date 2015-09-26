@@ -139,8 +139,11 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
     cache.getCalledWithArgs(0) should be("myKey")
     called should be(true)
-    cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
     result should be("result of block")
+
+    eventually {
+      cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
+    }
   }
 
   it should "not run the block if the value is found in the cache" in {
@@ -170,8 +173,11 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
     cache.getCalledWithArgs should be('empty)
     called should be(true)
-    cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
     result should be("result of block")
+
+    eventually {
+      cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
+    }
   }
 
   it should "run the block but not cache its result if cache writes are disabled" in {
@@ -200,8 +206,11 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
     cache.getCalledWithArgs(0) should be("myKey")
     called should be(true)
-    cache.putCalledWithArgs(0) should be("myKey", "result of block", Some(10.seconds))
     result should be("result of block")
+
+    eventually {
+      cache.putCalledWithArgs(0) should be("myKey", "result of block", Some(10.seconds))
+    }
   }
 
   it should "run the block and cache its result with the given TTL if cache reads are disabled" in {
@@ -216,8 +225,11 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
     cache.getCalledWithArgs should be('empty)
     called should be(true)
-    cache.putCalledWithArgs(0) should be("myKey", "result of block", Some(10.seconds))
     result should be("result of block")
+
+    eventually {
+      cache.putCalledWithArgs(0) should be("myKey", "result of block", Some(10.seconds))
+    }
   }
 
   it should "run the block but not cache its result if cache writes are disabled" in {

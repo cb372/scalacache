@@ -1,5 +1,6 @@
 package scalacache.memoization
 
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 import scala.concurrent.duration.Duration
@@ -8,13 +9,29 @@ import scalacache.{ Flags, ScalaCache }
 class Macros(val c: blackbox.Context) {
   import c.universe._
 
-  def memoizeImpl[A: c.WeakTypeTag](f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
+  /*
+  We get weird macro compilation errors if we write `f: c.Expr[Future[A]]`, so we'll cheat and just make it a `c.Tree`.
+  I think this is a macros bug.
+   */
+  def memoizeImpl[A: c.WeakTypeTag](f: c.Tree)(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext]): Tree = {
+    commonMacroImpl(scalaCache, { keyName =>
+      q"""_root_.scalacache.caching($keyName)($f)($scalaCache, $flags, $ec)"""
+    })
+  }
+
+  def memoizeImplWithTTL[A: c.WeakTypeTag](ttl: c.Expr[Duration])(f: c.Tree)(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext]): Tree = {
+    commonMacroImpl(scalaCache, { keyName =>
+      q"""_root_.scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags, $ec)"""
+    })
+  }
+
+  def memoizeSyncImpl[A: c.WeakTypeTag](f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
       q"""_root_.scalacache.cachingSync($keyName)($f)($scalaCache, $flags)"""
     })
   }
 
-  def memoizeImplWithTTL[A: c.WeakTypeTag](ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
+  def memoizeSyncImplWithTTL[A: c.WeakTypeTag](ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
       q"""_root_.scalacache.cachingSyncWithTTL($keyName)($ttl)($f)($scalaCache, $flags)"""
     })
