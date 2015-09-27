@@ -152,7 +152,7 @@ import memoization._
 
 implicit val scalaCache = ScalaCache(new MyCache())
 
-def getUser(id: Int): User = sync.memoize {
+def getUser(id: Int): User = memoizeSync {
   // Do DB lookup here...
   User(id, s"user${id}")
 }
@@ -173,7 +173,7 @@ For example, given the following method:
 package foo
 
 object Bar {
-  def baz(a: Int, b: String)(c: String): Int = sync.memoize {
+  def baz(a: Int, b: String)(c: String): Int = memoizeSync {
     // Reticulating splines...   
     123
   }
@@ -200,7 +200,7 @@ package foo
 
 class Bar(a: Int) {
 
-  def baz(b: Int): Int = memoize {
+  def baz(b: Int): Int = memoizeSync {
     a + b
   }
   
@@ -253,7 +253,7 @@ import memoization._
 
 implicit val scalaCache = ScalaCache(new MyCache())
 
-def getUser(id: Int)(implicit flags: Flags): User = memoize {
+def getUser(id: Int)(implicit flags: Flags): User = memoizeSync {
   // Do DB lookup here...
   User(id, s"user${id}")
 }
