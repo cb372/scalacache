@@ -14,7 +14,7 @@ package object scalacache extends StrictLogging {
       putWithKey(toKey(keyParts), value, ttl)
 
     def remove(keyParts: Any*): Future[Unit] =
-      scalacache.remove(toKey(keyParts))
+      scalacache.remove(keyParts: _*)
 
     def removeAll(): Future[Unit] =
       scalacache.removeAll()
