@@ -66,6 +66,18 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
     cache.removeCalledWithArgs(0) should be("baz")
   }
 
+  it should "concatenate key parts correctly" in {
+    scalacache.remove("hey", "yeah")
+    cache.removeCalledWithArgs(0) should be("hey:yeah")
+  }
+
+  behavior of "typed.remove"
+
+  it should "concatenate key parts correctly" in {
+    scalacache.typed[String].remove("oh", "wow")
+    cache.removeCalledWithArgs(0) should be("oh:wow")
+  }
+
   behavior of "#caching"
 
   it should "run the block and cache its result asynchronously with no TTL if the value is not found in the cache" in {

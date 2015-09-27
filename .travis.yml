@@ -1,7 +1,7 @@
 sudo: false
 language: scala
 scala:
-  - 2.11.6
+  - 2.11.7
 jdk:
   - oraclejdk8
   - oraclejdk7
@@ -9,7 +9,7 @@ services:
   - memcached
   - redis
 script: 
-  - sbt ++2.11.6 coverage test 
+  - sbt ++2.11.7 coverage test 
   - sbt ++2.11.2 test
   - sbt ++2.11.0 test
 after_success: "sbt coverageAggregate coveralls"
