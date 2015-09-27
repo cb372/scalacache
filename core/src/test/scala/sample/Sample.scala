@@ -3,7 +3,10 @@ package sample
 import scalacache._
 import memoization._
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+
 import language.postfixOps
 
 case class User(id: Int, name: String)
@@ -16,14 +19,14 @@ object Sample extends App {
   class UserRepository {
     implicit val cacheConfig = ScalaCache(new MockCache())
 
-    def getUser(id: Int): User = memoize {
+    def getUser(id: Int): Future[User] = memoize {
       // Do DB lookup here...
-      User(id, s"user$id")
+      Future { User(id, s"user$id") }
     }
 
-    def withExpiry(id: Int): User = memoize(60 seconds) {
+    def withExpiry(id: Int): Future[User] = memoize(60 seconds) {
       // Do DB lookup here...
-      User(id, s"user$id")
+      Future { User(id, s"user$id") }
     }
 
   }

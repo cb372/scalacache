@@ -5,7 +5,7 @@ import scalacache._
 package object pkg {
   implicit var scalaCache: ScalaCache = null
 
-  def insidePackageObject(a: Int): Int = memoize {
+  def insidePackageObject(a: Int): Int = memoizeSync {
     123
   }
 

@@ -1,5 +1,6 @@
 package scalacache
 
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.experimental.macros
 import scala.concurrent.duration._
 
@@ -14,15 +15,63 @@ package object memoization {
    * Perform the given operation and memoize its result to a cache before returning it.
    * If the result is already in the cache, return it without performing the operation.
    *
+   * All of the above happens asynchronously, so a `Future` is returned immediately.
+   * Specifically:
+   * - when the cache lookup completes, if it is a miss, the function execution is started.
+   * - at some point after the function completes, the result is written asynchronously to the cache.
+   * - the Future returned from this method does not wait for the cache write before completing.
+   *
    * The result is stored in the cache without a TTL, so it will remain until it is naturally evicted.
    *
-   * @param f function that returns some result. This result is the valued that will be cached.
+   * @param f function that asynchronously returns some result. This result is the value that will be cached.
+   * @param scalaCache cache configuration
+   * @param flags flags to customize ScalaCache behaviour
+   * @param ec An ExecutionContext in which to execute operations on Futures
+   * @tparam A type of the value to be cached
+   * @return a Future of the result, either retrieved from the cache or calculated by executing the function `f`
+   */
+  def memoize[A](f: => Future[A])(implicit scalaCache: ScalaCache, flags: Flags, ec: ExecutionContext): Future[A] = macro Macros.memoizeImpl[A]
+
+  /**
+   * Perform the given operation and memoize its result to a cache before returning it.
+   * If the result is already in the cache, return it without performing the operation.
+   *
+   * All of the above happens asynchronously, so a `Future` is returned immediately.
+   * Specifically:
+   * - when the cache lookup completes, if it is a miss, the function execution is started.
+   * - at some point after the function completes, the result is written asynchronously to the cache.
+   * - the Future returned from this method does not wait for the cache write before completing.
+   *
+   * The result is stored in the cache with the given TTL. It will be evicted when the TTL is up.
+   *
+   * Note that if the result is currently in the cache, changing the TTL has no effect.
+   * TTL is only set once, when the result is added to the cache.
+   *
+   * @param ttl Time To Live. How long the result should be stored in the cache.
+   * @param f function that asynchronously returns some result. This result is the value that will be cached.
+   * @param scalaCache cache configuration
+   * @param flags flags to customize ScalaCache behaviour
+   * @param ec An ExecutionContext in which to execute operations on Futures
+   * @tparam A type of the value to be cached
+   * @return a Future of the result, either retrieved from the cache or calculated by executing the function `f`
+   */
+  def memoize[A](ttl: Duration)(f: => Future[A])(implicit scalaCache: ScalaCache, flags: Flags, ec: ExecutionContext): Future[A] = macro Macros.memoizeImplWithTTL[A]
+
+  /**
+   * Perform the given operation and memoize its result to a cache before returning it.
+   * If the result is already in the cache, return it without performing the operation.
+   *
+   * The result is stored in the cache without a TTL, so it will remain until it is naturally evicted.
+   *
+   * Warning: may block indefinitely!
+   *
+   * @param f function that returns some result. This result is the value that will be cached.
    * @param scalaCache cache configuration
    * @param flags flags to customize ScalaCache behaviour
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoize[A](f: => A)(implicit scalaCache: ScalaCache, flags: Flags): A = macro Macros.memoizeImpl[A]
+  def memoizeSync[A](f: => A)(implicit scalaCache: ScalaCache, flags: Flags): A = macro Macros.memoizeSyncImpl[A]
 
   /**
    * Perform the given operation and memoize its result to a cache before returning it.
@@ -33,14 +82,16 @@ package object memoization {
    * Note that if the result is currently in the cache, changing the TTL has no effect.
    * TTL is only set once, when the result is added to the cache.
    *
+   * Warning: may block indefinitely!
+   *
    * @param ttl Time To Live. How long the result should be stored in the cache.
-   * @param f function that returns some result. This result is the valued that will be cached.
+   * @param f function that returns some result. This result is the value that will be cached.
    * @param scalaCache cache configuration
    * @param flags flags to customize ScalaCache behaviour
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoize[A](ttl: Duration)(f: => A)(implicit scalaCache: ScalaCache, flags: Flags): A = macro Macros.memoizeImplWithTTL[A]
+  def memoizeSync[A](ttl: Duration)(f: => A)(implicit scalaCache: ScalaCache, flags: Flags): A = macro Macros.memoizeSyncImplWithTTL[A]
 
 }
 

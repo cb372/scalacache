@@ -1,11 +1,11 @@
 package scalacache.memoization
 
 import org.scalatest._
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 
 import scalacache.{ ScalaCache, MockCache }
 
-trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with BeforeAndAfter {
+trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with BeforeAndAfter with Eventually {
 
   val cache = new MockCache
   implicit def scalaCache: ScalaCache
@@ -19,48 +19,50 @@ trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with Befo
     val value = call
 
     // Check that the value is in the cache, with the expected key
-    whenReady(cache.get(expectedKey)) { result =>
-      result should be(Some(value))
+    eventually {
+      whenReady(cache.get(expectedKey)) { result =>
+        result should be(Some(value))
+      }
     }
   }
 
-  def multipleArgLists(a: Int, b: String)(c: String, d: Int): Int = memoize {
+  def multipleArgLists(a: Int, b: String)(c: String, d: Int): Int = memoizeSync {
     123
   }
 
   case class CaseClass(a: Int) { override def toString = "custom toString" }
-  def takesCaseClass(cc: CaseClass): Int = memoize {
+  def takesCaseClass(cc: CaseClass): Int = memoizeSync {
     123
   }
 
-  def lazyArg(a: => Int): Int = memoize {
+  def lazyArg(a: => Int): Int = memoizeSync {
     123
   }
 
-  def functionArg(a: String => Int): Int = memoize {
+  def functionArg(a: String => Int): Int = memoizeSync {
     123
   }
 
-  def withExcludedParams(a: Int, @cacheKeyExclude b: String, c: String)(@cacheKeyExclude d: Int): Int = memoize {
+  def withExcludedParams(a: Int, @cacheKeyExclude b: String, c: String)(@cacheKeyExclude d: Int): Int = memoizeSync {
     123
   }
 
 }
 
 class AClass(implicit val scalaCache: ScalaCache) {
-  def insideClass(a: Int): Int = memoize {
+  def insideClass(a: Int): Int = memoizeSync {
     123
   }
 
   class InnerClass {
-    def insideInnerClass(a: Int): Int = memoize {
+    def insideInnerClass(a: Int): Int = memoizeSync {
       123
     }
   }
   val inner = new InnerClass
 
   object InnerObject {
-    def insideInnerObject(a: Int): Int = memoize {
+    def insideInnerObject(a: Int): Int = memoizeSync {
       123
     }
   }
@@ -69,28 +71,28 @@ class AClass(implicit val scalaCache: ScalaCache) {
 trait ATrait {
   implicit val scalaCache: ScalaCache
 
-  def insideTrait(a: Int): Int = memoize {
+  def insideTrait(a: Int): Int = memoizeSync {
     123
   }
 }
 
 object AnObject {
   implicit var scalaCache: ScalaCache = null
-  def insideObject(a: Int): Int = memoize {
+  def insideObject(a: Int): Int = memoizeSync {
     123
   }
 }
 
 class ClassWithConstructorParams(b: Int) {
   implicit var scalaCache: ScalaCache = null
-  def foo(a: Int): Int = memoize {
+  def foo(a: Int): Int = memoizeSync {
     a + b
   }
 }
 
 class ClassWithExcludedConstructorParam(b: Int, @cacheKeyExclude c: Int) {
   implicit var scalaCache: ScalaCache = null
-  def foo(a: Int): Int = memoize {
+  def foo(a: Int): Int = memoizeSync {
     a + b + c
   }
 }

@@ -42,7 +42,7 @@ object Global extends GlobalSettings {
     jedisPool.destroy()
   }
 
-  def getItems(ids: List[Int]): List[Item] = memoize {
+  def getItems(ids: List[Int]): List[Item] = memoizeSync {
     ids map { Item(_, "Chris") }
   }
 }

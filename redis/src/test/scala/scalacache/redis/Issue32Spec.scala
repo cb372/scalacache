@@ -22,7 +22,7 @@ class Issue32Spec
 
     implicit val scalaCache = ScalaCache(RedisCache(pool))
 
-    def getUser(id: Int): List[User] = memoize {
+    def getUser(id: Int): List[User] = memoizeSync {
       List(User(id, "Taro"))
     }
 
