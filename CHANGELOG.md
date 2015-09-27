@@ -1,3 +1,25 @@
+0.7.0 (2015/09/27)
+----
+
+New features:
+
+* [#55](https://github.com/cb372/scalacache/pull/55) adds a Typed API, so you can ensure you don't accidentally read/write something of the wrong type. See the README for more details.
+* [#62](https://github.com/cb372/scalacache/pull/62) adds asynchronous versions of `caching` and `memoize`. See the README for more details.
+
+Breaking API changes (sorry!):
+
+#62 resulted in a few breaking changes, as follows:
+
+* `scalacache.caching` and `scalacache.cachingWithTTL` have been renamed to `scalacache.sync.caching` and `scalacache.sync.cachingWithTTL` respectively. This is to make way for the new asynchronous versions of these methods.
+* `scalacache.getSync` has been deprecated and will be removed soon. Please use `scalacache.sync.get` instead.
+* Both of the overloaded `scalacache.memoization.memoize` methods have been renamed to `scalacache.memoization.memoizeSync`. This is to make way for the new asynchronous versions of these methods.
+
+Other stuff:
+
+* README fixes
+* Bump Scala, sbt
+* Use macro bundles, thanks to @philwills
+
 0.6.4 (2015/07/10)
 ----
 
