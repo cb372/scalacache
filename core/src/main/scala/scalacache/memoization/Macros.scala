@@ -27,13 +27,13 @@ class Macros(val c: blackbox.Context) {
 
   def memoizeSyncImpl[A: c.WeakTypeTag](f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.cachingSync($keyName)($f)($scalaCache, $flags)"""
+      q"""_root_.scalacache.sync.caching($keyName)($f)($scalaCache, $flags)"""
     })
   }
 
   def memoizeSyncImplWithTTL[A: c.WeakTypeTag](ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.cachingSyncWithTTL($keyName)($ttl)($f)($scalaCache, $flags)"""
+      q"""_root_.scalacache.sync.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags)"""
     })
   }
 
