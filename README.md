@@ -60,32 +60,50 @@ remove("myKey") // returns a Future[Unit]
 removeAll() // returns a Future[Unit]
 
 // Wrap any block with caching
-val result: String = caching("myKey") {
-  // do stuff...
-  "result of block"
+val future: Future[String] = caching("myKey") {
+  Future { 
+    // e.g. call an external API ...
+    "result of block" 
+  }
 }
 
 // You can specify a Time To Live if you like
-val result = cachingWithTTL("myKey")(10.seconds) {
-  // do stuff...
-  "result of block"
+val future: Future[String] = cachingWithTTL("myKey")(10.seconds) {
+  Future {
+    // do stuff...
+    "result of block"
+  }
 }
 
 // You can also pass multiple parts to be combined into one key
 put("foo", 123, "bar")(value) // Will be cached with key "foo:123:bar"
 ```
 
-### Synchronous cache reads
+### Synchronous API
 
 If you don't want to bother with Futures, you can do a blocking read from the cache using the `getSync` method. This just wraps the `get` method, blocking indefinitely.
 
 ```scala
 import scalacache._
 
-val myValue: Option[String] = getSync("myKey")
+val myValue: Option[String] = sync.get("myKey")
 ```
 
 If you're using an in-memory cache (e.g. Guava) then this is fine. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then `getSync` is not recommended. If the network goes down, your app could hang forever!
+
+There are also synchronous versions of the `caching` and `cachingWithTTL` methods available:
+
+```scala
+val result = sync.caching("myKey") {
+  // do stuff...
+  "result of block"
+}
+
+val result = sync.cachingWithTTL("myKey")(10.seconds) {
+  // do stuff...
+  "result of block"
+}
+```
 
 ### Memoization of method results
 
@@ -95,9 +113,11 @@ import memoization._
 
 implicit val scalaCache = ScalaCache(new MyCache())
 
-def getUser(id: Int): User = memoize {
-  // Do DB lookup here...
-  User(id, s"user${id}")
+def getUser(id: Int): Future[User] = memoize {
+  Future {
+    // Retrieve data from a remote API here ...
+    User(id, s"user${id}")
+  }
 }
 ```
 
@@ -112,13 +132,31 @@ You can optionally specify a Time To Live for the cached result:
 import concurrent.duration._
 import language.postfixOps
 
-def getUser(id: Int): User = memoize(60 seconds) {
-  // Do DB lookup here...
-  User(id, s"user${id}")
+def getUser(id: Int): Future[User] = memoize(60 seconds) {
+  Future {
+    // Retrieve data from a remote API here ...
+    User(id, s"user${id}")
+  }
 }
 ```
 
 In the above sample, the retrieved User object will be evicted from the cache after 60 seconds.
+
+#### Synchronous memoization API
+
+Again, there are synchronous equivalents available for the case where you don't want to bother with Futures:
+
+```scala 
+import scalacache._
+import memoization._
+
+implicit val scalaCache = ScalaCache(new MyCache())
+
+def getUser(id: Int): User = sync.memoize {
+  // Do DB lookup here...
+  User(id, s"user${id}")
+}
+```
 
 #### How it works
 
@@ -135,7 +173,7 @@ For example, given the following method:
 package foo
 
 object Bar {
-  def baz(a: Int, b: String)(c: String): Int = memoize {
+  def baz(a: Int, b: String)(c: String): Int = sync.memoize {
     // Reticulating splines...   
     123
   }
@@ -224,6 +262,23 @@ def getUser(id: Int, skipCache: Boolean): User = {
   implicit val flags = Flags(readsEnabled = !skipCache)
   getUser(id)
 }
+```
+
+### Typed API
+
+If you are only storing one type of object in your cache, and you want to ensure you don't accidentally cache something of the wrong type, you can use the Typed API:
+
+```scala
+import scalacache._
+
+implicit val scalaCache = ScalaCache(new MyCache())
+
+val cache = typed[User]
+
+cache.put("key", User(123, "Chris")) // OK
+cache.put("key", "wibble") // Compile error!
+
+cache.get("key") // returns Future[Option[User]]
 ```
 
 ## Cache implementations
@@ -370,7 +425,7 @@ If you don't specify the return type, you'll get a confusing compiler error alon
 For example, this is OK
 
 ```scala
-def getUser(id: Int): User = memoize {
+def getUser(id: Int): Future[User] = memoize {
   // Do stuff...
 }
 ```
