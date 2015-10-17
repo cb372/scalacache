@@ -399,6 +399,26 @@ val jedis = new Jedis(...)
 implicit val scalaCache = ScalaCache(RedisCache(jedis))
 ```
 
+For [sharded](https://github.com/xetorthio/jedis/wiki/AdvancedUsage#shardedjedis) caching, use a ShardedRedisCache:
+
+```scala
+import scalacache._
+import redis._
+
+implicit val scalaCache = ScalaCache(ShardedRedisCache(("host1", 6379), ("host2", 6380)))
+```
+
+or provide a ShardedJedisPool:
+
+```scala
+import scalacache._
+import redis._
+import redis.clients.jedis._
+
+val jedis = new ShardedJedisPool(...)
+implicit val scalaCache = ScalaCache(ShardedRedisCache(jedis))
+```
+
 ### LruMap (twitter-util)
 
 SBT:
