@@ -1,3 +1,14 @@
+0.7.1 (2015/10/27)
+----
+
+Bug fixes:
+
+* [#69](https://github.com/cb372/scalacache/pull/69) fixes an integer overflow issue when using a TTL longer than Int.MaxValue milliseconds (about 23 days) with Guava.
+
+Other stuff:
+
+* Bumped the sbt plugins. Some of them were pretty ancient.
+
 0.7.0 (2015/09/27)
 ----
 
