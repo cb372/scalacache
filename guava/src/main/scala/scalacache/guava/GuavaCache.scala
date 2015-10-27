@@ -68,7 +68,7 @@ class GuavaCache(underlying: GCache[String, Object])
     // Nothing to do
   }
 
-  private def toExpiryTime(ttl: Duration): DateTime = DateTime.now.plusMillis(ttl.toMillis.toInt)
+  private def toExpiryTime(ttl: Duration): DateTime = DateTime.now.plus(ttl.toMillis)
 
 }
 
