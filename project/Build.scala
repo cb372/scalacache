@@ -6,11 +6,10 @@ import xerial.sbt.Sonatype._
 import SonatypeKeys._
 import net.virtualvoid.sbt.graph.Plugin._
 import org.scoverage.coveralls.CoverallsPlugin
-import org.scoverage.coveralls.CoverallsPlugin.CoverallsKeys._
+import org.scoverage.coveralls.Imports.CoverallsKeys._
 import com.typesafe.sbt.pgp.PgpKeys
-import sbtrelease._
-import sbtrelease.ReleasePlugin._
-import sbtrelease.ReleasePlugin.ReleaseKeys._
+import sbtrelease.ReleasePlugin
+import sbtrelease.ReleasePlugin.autoImport._
 import sbtrelease.ReleaseStateTransformations._
 
 import scala.language.postfixOps
@@ -22,10 +21,11 @@ object ScalaCacheBuild extends Build {
   }
 
   lazy val root = Project(id = "scalacache",base = file("."))
+    .enablePlugins(ReleasePlugin)
     .settings(commonSettings: _*)
     .settings(sonatypeSettings: _*)
     .settings(publishArtifact := false)
-    .settings(coverallsTokenFile := "coveralls-token.txt")
+    .settings(coverallsTokenFile := Some("coveralls-token.txt"))
     .aggregate(core, guava, memcached, ehcache, redis, lrumap)
 
   lazy val core = Project(id = "scalacache-core", base = file("core"))
@@ -131,7 +131,6 @@ object ScalaCacheBuild extends Build {
     scalariformSettings ++
     formatterPrefs ++
     graphSettings ++
-    releaseSettings ++
     Seq(
       organization := "com.github.cb372",
       scalaVersion := Versions.scala,
@@ -139,8 +138,7 @@ object ScalaCacheBuild extends Build {
       resolvers += Resolver.typesafeRepo("releases"),
       libraryDependencies ++= commonDeps,
       parallelExecution in Test := false,
-      publishArtifactsAction := PgpKeys.publishSigned.value,
-      ReleaseKeys.releaseProcess := Seq[ReleaseStep](
+      releaseProcess := Seq[ReleaseStep](
         checkSnapshotDependencies,
         inquireVersions,
         runClean,
@@ -149,11 +147,11 @@ object ScalaCacheBuild extends Build {
         commitReleaseVersion,
         updateVersionInReadme,
         tagRelease,
-        publishArtifacts,
+        ReleaseStep(action = Command.process("publishSigned", _)),
         setNextVersion,
         commitNextVersion,
-        pushChanges,
-        deployToMavenCentral
+        ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+        pushChanges
       ),
       commands += Command.command("update-version-in-readme")(updateVersionInReadme)
     )
@@ -214,7 +212,6 @@ object ScalaCacheBuild extends Build {
     st
   })
 
-  lazy val deployToMavenCentral = ReleaseStep(action = releaseTask(sonatypeReleaseAll))
 }
 
 
