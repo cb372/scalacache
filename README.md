@@ -14,6 +14,7 @@ The following cache implementations are supported, and it's easy to plugin your 
 * Ehcache
 * Redis
 * twitter-util [LruMap](https://github.com/twitter/util/blob/master/util-collection/src/main/scala/com/twitter/util/LruMap.scala)
+* [Caffeine](https://github.com/ben-manes/caffeine)
 
 ## Versioning
 
@@ -416,6 +417,33 @@ import lrumap._
 // Just specified a maximum cache size in elements
 implicit val scalaCache = ScalaCache(LruMapCache(1000))
 ```
+
+## Caffeine
+
+SBT:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.7.1"
+```
+
+Usage:
+
+```scala
+import scalacache._
+import caffeine._
+
+implicit val scalaCache = ScalaCache(CaffeineCache())
+```
+
+This will build a Caffeine cache with all the default settings. If you want to customize your Caffeine cache, then build it yourself and pass it to `CaffeineCache` like this:
+
+```scala
+import scalacache._
+import caffeine._
+import com.github.benmanes.caffeine.cache.Caffeine
+
+val underlyingCaffeineCache = Caffeine.newBuilder().maximumSize(10000L).build[String, Object]
+implicit val scalaCache = ScalaCache(CaffeineCache(underlyingCaffeineCache))
 
 ## Troubleshooting/Restrictions
 

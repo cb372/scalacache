@@ -1,39 +1,39 @@
-package scalacache.guava
+package scalacache.caffeine
 
 import scalacache.Entry
-import org.scalatest.{ BeforeAndAfter, Matchers, FlatSpec }
-import com.google.common.cache.CacheBuilder
+import org.scalatest.{ BeforeAndAfter, ShouldMatchers, FlatSpec }
+import com.github.benmanes.caffeine.cache.Caffeine
 import org.joda.time.{ DateTimeUtils, DateTime }
 import scala.concurrent.duration._
 import org.scalatest.concurrent.ScalaFutures
 
-class GuavaCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
+class CaffeineCacheSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter with ScalaFutures {
 
-  def newGCache = CacheBuilder.newBuilder.build[String, Object]
+  def newCCache = Caffeine.newBuilder.build[String, Object]
 
   behavior of "get"
 
   it should "return the value stored in the underlying cache" in {
-    val underlying = newGCache
+    val underlying = newCCache
     val entry = Entry("hello", expiresAt = None)
     underlying.put("key1", entry)
-    whenReady(GuavaCache(underlying).get("key1")) { result =>
+    whenReady(CaffeineCache(underlying).get("key1")) { result =>
       result should be(Some("hello"))
     }
   }
 
   it should "return None if the given key does not exist in the underlying cache" in {
-    val underlying = newGCache
-    whenReady(GuavaCache(underlying).get("non-existent key")) { result =>
+    val underlying = newCCache
+    whenReady(CaffeineCache(underlying).get("non-existent key")) { result =>
       result should be(None)
     }
   }
 
   it should "return None if the given key exists but the value has expired" in {
-    val underlying = newGCache
+    val underlying = newCCache
     val expiredEntry = Entry("hello", expiresAt = Some(DateTime.now.minusSeconds(1)))
     underlying.put("key1", expiredEntry)
-    whenReady(GuavaCache(underlying).get("non-existent key")) { result =>
+    whenReady(CaffeineCache(underlying).get("non-existent key")) { result =>
       result should be(None)
     }
   }
@@ -41,8 +41,8 @@ class GuavaCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Sca
   behavior of "put"
 
   it should "store the given key-value pair in the underlying cache with no TTL" in {
-    val underlying = newGCache
-    GuavaCache(underlying).put("key1", "hello", None)
+    val underlying = newCCache
+    CaffeineCache(underlying).put("key1", "hello", None)
     underlying.getIfPresent("key1") should be(Entry("hello", None))
   }
 
@@ -52,8 +52,8 @@ class GuavaCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Sca
     val now = DateTime.now
     DateTimeUtils.setCurrentMillisFixed(now.getMillis)
 
-    val underlying = newGCache
-    GuavaCache(underlying).put("key1", "hello", Some(10.seconds))
+    val underlying = newCCache
+    CaffeineCache(underlying).put("key1", "hello", Some(10.seconds))
     underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(now.plusSeconds(10))))
   }
 
@@ -61,20 +61,20 @@ class GuavaCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Sca
     val now = new DateTime("2015-10-01T00:00:00Z")
     DateTimeUtils.setCurrentMillisFixed(now.getMillis)
 
-    val underlying = newGCache
-    GuavaCache(underlying).put("key1", "hello", Some(30.days))
+    val underlying = newCCache
+    CaffeineCache(underlying).put("key1", "hello", Some(30.days))
     underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(new DateTime("2015-10-31T00:00:00Z"))))
   }
 
   behavior of "remove"
 
   it should "delete the given key and its value from the underlying cache" in {
-    val underlying = newGCache
+    val underlying = newCCache
     val entry = Entry("hello", expiresAt = None)
     underlying.put("key1", entry)
     underlying.getIfPresent("key1") should be(entry)
 
-    GuavaCache(underlying).remove("key1")
+    CaffeineCache(underlying).remove("key1")
     underlying.getIfPresent("key1") should be(null)
   }
 
