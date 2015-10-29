@@ -1,4 +1,4 @@
-package scalacache.guava
+package scalacache
 
 import org.joda.time.DateTime
 

@@ -26,7 +26,7 @@ object ScalaCacheBuild extends Build {
     .settings(sonatypeSettings: _*)
     .settings(publishArtifact := false)
     .settings(coverallsTokenFile := Some("coveralls-token.txt"))
-    .aggregate(core, guava, memcached, ehcache, redis, lrumap)
+    .aggregate(core, guava, memcached, ehcache, redis, lrumap, caffeine)
 
   lazy val core = Project(id = "scalacache-core", base = file("core"))
     .settings(commonSettings: _*)
@@ -95,6 +95,17 @@ object ScalaCacheBuild extends Build {
     .dependsOn(core)
     .disablePlugins(CoverallsPlugin)
 
+  lazy val caffeine = Project(id = "scalacache-caffeine", base = file("caffeine"))
+    .settings(implProjectSettings: _*)
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.github.ben-manes.caffeine" % "caffeine" % "1.3.3",
+        "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
+      )
+    )
+    .dependsOn(core)
+    .disablePlugins(CoverallsPlugin)
+
   lazy val jodaTime = Seq(
     "joda-time" % "joda-time" % "2.5",
     "org.joda" % "joda-convert" % "1.7"
@@ -120,10 +131,8 @@ object ScalaCacheBuild extends Build {
   // Dependencies common to all projects
   lazy val commonDeps =
     scalaLogging ++
-    scalaTest
-
-  // Dependencies common to all implementation projects (i.e. everything except core)
-  lazy val implProjectDeps = jodaTime
+    scalaTest ++
+    jodaTime
 
   lazy val commonSettings = 
     Defaults.coreDefaultSettings ++ 
@@ -156,9 +165,7 @@ object ScalaCacheBuild extends Build {
       commands += Command.command("update-version-in-readme")(updateVersionInReadme)
     )
 
-  lazy val implProjectSettings = commonSettings ++ Seq(
-    libraryDependencies ++= implProjectDeps
-  )
+  lazy val implProjectSettings = commonSettings
 
   lazy val mavenSettings = Seq(
     pomExtra :=

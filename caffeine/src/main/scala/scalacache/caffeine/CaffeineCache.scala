@@ -1,21 +1,22 @@
-package scalacache.guava
+package scalacache.caffeine
 
 import scalacache.{ LoggingSupport, Cache, Entry }
-import com.google.common.cache.{ Cache => GCache, CacheBuilder => GCacheBuilder }
+import com.github.benmanes.caffeine.cache.{ Cache => CCache, Caffeine }
+
 import scala.concurrent.duration.Duration
 import org.joda.time.DateTime
 import com.typesafe.scalalogging.StrictLogging
 import scala.concurrent.Future
 
 /*
- * Thin wrapper around Google Guava.
- * Since Guava is in-memory and non-blocking,
+ * Thin wrapper around Caffeine.
+ * Since Caffeine is in-memory and non-blocking,
  * all operations are performed synchronously, i.e. ExecutionContext is not needed.
  *
- * Note: Would be nice to use Any here, but that doesn't conform to GCache's type bounds,
+ * Note: Would be nice to use Any here, but that doesn't conform to CCache's type bounds,
  * because Any does not extend java.lang.Object.
  */
-class GuavaCache(underlying: GCache[String, Object])
+class CaffeineCache(underlying: CCache[String, Object])
     extends Cache
     with LoggingSupport
     with StrictLogging {
@@ -48,7 +49,7 @@ class GuavaCache(underlying: GCache[String, Object])
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V](key: String, value: V, ttl: Option[Duration]) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration] = None) = {
     val entry = Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
     logCachePut(key, ttl)
@@ -72,17 +73,17 @@ class GuavaCache(underlying: GCache[String, Object])
 
 }
 
-object GuavaCache {
+object CaffeineCache {
 
   /**
-   * Create a new Guava cache
+   * Create a new Caffeine cache
    */
-  def apply(): GuavaCache = apply(GCacheBuilder.newBuilder().build[String, Object]())
+  def apply(): CaffeineCache = apply(Caffeine.newBuilder().build[String, Object]())
 
   /**
-   * Create a new cache utilizing the given underlying Guava cache.
-   * @param underlying a Guava cache
+   * Create a new cache utilizing the given underlying Caffeine cache.
+   * @param underlying a Caffeine cache
    */
-  def apply(underlying: GCache[String, Object]): GuavaCache = new GuavaCache(underlying)
+  def apply(underlying: CCache[String, Object]): CaffeineCache = new CaffeineCache(underlying)
 
 }
