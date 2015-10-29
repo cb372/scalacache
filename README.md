@@ -420,6 +420,8 @@ implicit val scalaCache = ScalaCache(LruMapCache(1000))
 
 ## Caffeine
 
+Note that Caffeine requires Java 8 or newer.
+
 SBT:
 
 ```
@@ -444,6 +446,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 
 val underlyingCaffeineCache = Caffeine.newBuilder().maximumSize(10000L).build[String, Object]
 implicit val scalaCache = ScalaCache(CaffeineCache(underlyingCaffeineCache))
+```
 
 ## Troubleshooting/Restrictions
 
