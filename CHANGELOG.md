@@ -1,3 +1,10 @@
+0.7.2 (2015/10/29)
+----
+
+New features:
+
+* [#71](https://github.com/cb372/scalacache/pull/71) adds a new cache implementation, [Caffeine](https://github.com/ben-manes/caffeine) (thanks to @mchv)
+
 0.7.1 (2015/10/27)
 ----
 
@@ -19,7 +26,7 @@ New features:
 
 Breaking API changes (sorry!):
 
-#62 resulted in a few breaking changes, as follows:
+ #62 resulted in a few breaking changes, as follows:
 
 * `scalacache.caching` and `scalacache.cachingWithTTL` have been renamed to `scalacache.sync.caching` and `scalacache.sync.cachingWithTTL` respectively. This is to make way for the new asynchronous versions of these methods.
 * `scalacache.getSync` has been deprecated and will be removed soon. Please use `scalacache.sync.get` instead.
