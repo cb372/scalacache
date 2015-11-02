@@ -27,8 +27,8 @@ package object scalacache extends StrictLogging {
       _caching(keyParts: _*)(Some(ttl))(f)
     }
 
-    def cachingWithOptionalTTL(keyParts: Any*)(optionalttl: Option[Duration])(f: => Future[V])(implicit flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[V] = {
-      _caching(keyParts: _*)(optionalttl)(f)
+    def cachingWithOptionalTTL(keyParts: Any*)(optionalTtl: Option[Duration])(f: => Future[V])(implicit flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[V] = {
+      _caching(keyParts: _*)(optionalTtl)(f)
     }
 
     private def _caching(keyParts: Any*)(ttl: Option[Duration])(f: => Future[V])(implicit flags: Flags, execContext: ExecutionContext): Future[V] = {
@@ -286,13 +286,13 @@ package object scalacache extends StrictLogging {
      * The result will be stored in the cache until the given TTL expires.
      *
      * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-     * @param optionalttl Optional Time To Live
+     * @param optionalTtl Optional Time To Live
      * @param f the block to run
      * @tparam V the type of the block's result
      * @return the result, either retrived from the cache or returned by the block
      */
-    def cachingWithOptionalTTL[V](keyParts: Any*)(optionalttl: Option[Duration])(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V = {
-      optionalttl match {
+    def cachingWithOptionalTTL[V](keyParts: Any*)(optionalTtl: Option[Duration])(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V = {
+      optionalTtl match {
         case Some(ttl) => typed[V].sync.cachingWithTTL(keyParts: _*)(ttl)(f)
         case None => typed[V].sync.caching(keyParts: _*)(f)
       }

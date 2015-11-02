@@ -25,9 +25,9 @@ class Macros(val c: blackbox.Context) {
     })
   }
 
-  def memoizeImplWithOptionalTTL[A: c.WeakTypeTag](optionalttl: c.Expr[Option[Duration]])(f: c.Tree)(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext]): Tree = {
+  def memoizeImplWithOptionalTTL[A: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(f: c.Tree)(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.cachingWithOptionalTTL($keyName)($optionalttl)($f)($scalaCache, $flags, $ec)"""
+      q"""_root_.scalacache.cachingWithOptionalTTL($keyName)($optionalTtl)($f)($scalaCache, $flags, $ec)"""
     })
   }
 
@@ -43,9 +43,9 @@ class Macros(val c: blackbox.Context) {
     })
   }
 
-  def memoizeSyncImplWithOptionalTTL[A: c.WeakTypeTag](optionalttl: c.Expr[Option[Duration]])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
+  def memoizeSyncImplWithOptionalTTL[A: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.sync.cachingWithOptionalTTL($keyName)($optionalttl)($f)($scalaCache, $flags)"""
+      q"""_root_.scalacache.sync.cachingWithOptionalTTL($keyName)($optionalTtl)($f)($scalaCache, $flags)"""
     })
   }
 

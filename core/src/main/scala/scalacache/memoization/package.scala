@@ -71,16 +71,16 @@ package object memoization {
    *
    * Note that if the result is currently in the cache, changing the TTL has no effect.
    * TTL is only set once, when the result is added to the cache.
-   * 
-   * @param optionalttl Optional Time to Live. If defined, how long the result should be stored in the cache. 
+   *
+   * @param optionalTtl Optional Time to Live. If defined, how long the result should be stored in the cache.
    * @param f function that returns some result. This result is the value that will be cached.
    * @param scalaCache cache configuration
    * @param flags flags to customize ScalaCache behaviour
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoize[A](optionalttl: Option[Duration])(f: => Future[A])(implicit scalaCache: ScalaCache, flags: Flags, ec: ExecutionContext): Future[A] = macro Macros.memoizeImplWithOptionalTTL[A]
-  
+  def memoize[A](optionalTtl: Option[Duration])(f: => Future[A])(implicit scalaCache: ScalaCache, flags: Flags, ec: ExecutionContext): Future[A] = macro Macros.memoizeImplWithOptionalTTL[A]
+
   /**
    * Perform the given operation and memoize its result to a cache before returning it.
    * If the result is already in the cache, return it without performing the operation.
@@ -128,13 +128,13 @@ package object memoization {
    *
    * Warning: may block indefinitely!
    *
-   * @param optionalttl Optional Time to Live. If defined, how long the result should be stored in the cache. 
+   * @param optionalTtl Optional Time to Live. If defined, how long the result should be stored in the cache.
    * @param f function that returns some result. This result is the value that will be cached.
    * @param scalaCache cache configuration
    * @param flags flags to customize ScalaCache behaviour
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoizeSync[A](optionalttl: Option[Duration])(f: => A)(implicit scalaCache: ScalaCache, flags: Flags): A = macro Macros.memoizeSyncImplWithOptionalTTL[A]
+  def memoizeSync[A](optionalTtl: Option[Duration])(f: => A)(implicit scalaCache: ScalaCache, flags: Flags): A = macro Macros.memoizeSyncImplWithOptionalTTL[A]
 }
 
