@@ -25,6 +25,12 @@ class Macros(val c: blackbox.Context) {
     })
   }
 
+  def memoizeImplWithOptionalTTL[A: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(f: c.Tree)(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext]): Tree = {
+    commonMacroImpl(scalaCache, { keyName =>
+      q"""_root_.scalacache.cachingWithOptionalTTL($keyName)($optionalTtl)($f)($scalaCache, $flags, $ec)"""
+    })
+  }
+
   def memoizeSyncImpl[A: c.WeakTypeTag](f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
       q"""_root_.scalacache.sync.caching($keyName)($f)($scalaCache, $flags)"""
@@ -34,6 +40,12 @@ class Macros(val c: blackbox.Context) {
   def memoizeSyncImplWithTTL[A: c.WeakTypeTag](ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
       q"""_root_.scalacache.sync.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags)"""
+    })
+  }
+
+  def memoizeSyncImplWithOptionalTTL[A: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
+    commonMacroImpl(scalaCache, { keyName =>
+      q"""_root_.scalacache.sync.cachingWithOptionalTTL($keyName)($optionalTtl)($f)($scalaCache, $flags)"""
     })
   }
 
@@ -71,9 +83,11 @@ class Macros(val c: blackbox.Context) {
 
     def getMethodSymbolRecursively(sym: Symbol): Symbol = {
       if (sym == null || sym == NoSymbol || sym.owner == sym)
-        c.abort(c.enclosingPosition,
+        c.abort(
+          c.enclosingPosition,
           "This memoize block does not appear to be inside a method. " +
-            "Memoize blocks must be placed inside methods, so that a cache key can be generated.")
+            "Memoize blocks must be placed inside methods, so that a cache key can be generated."
+        )
       else if (sym.isMethod)
         sym
       else
