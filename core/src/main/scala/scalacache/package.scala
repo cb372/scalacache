@@ -225,6 +225,9 @@ package object scalacache extends StrictLogging {
   def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[V] =
     typed[V].cachingWithTTL(keyParts: _*)(ttl)(f)
 
+  def cachingWithOptionalTtl[V](keyParts: Any*)(optionalTtl: Option[Duration])(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[V] =
+    typed[V].cachingWithOptionalTTL(keyParts: _*)(optionalTtl)(f)
+
   private def toKey(parts: Seq[Any])(implicit scalaCache: ScalaCache): String =
     scalaCache.keyBuilder.toCacheKey(parts)(scalaCache.cacheConfig)
 
