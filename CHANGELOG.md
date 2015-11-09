@@ -1,3 +1,10 @@
+0.7.3 (2015/11/09)
+----
+
+Improvements:
+
+* [#72](https://github.com/cb372/scalacache/pull/72) adds some convenience methods that take an optional TTL as an `Option[Duration]` (thanks to @mdedetrich)
+
 0.7.2 (2015/10/29)
 ----
 
