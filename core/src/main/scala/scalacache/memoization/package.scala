@@ -60,7 +60,7 @@ package object memoization {
   /**
    * Perform the given operation and memoize its result to a cache before returning it.
    * If the result is already in the cache, return it without performing the operation.
-   * 
+   *
    * All of the above happens asynchronously, so a `Future` is returned immediately.
    * Specifically:
    * - when the cache lookup completes, if it is a miss, the function execution is started.
