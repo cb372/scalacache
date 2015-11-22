@@ -1,3 +1,14 @@
+0.7.4 (2015/11/22)
+----
+
+Improvements:
+
+* Bumped Caffeine to v2.0.1. Version 2 of Caffeine contains [performance and cache efficiency improvments](https://github.com/ben-manes/caffeine/releases/tag/v2.0.0).
+
+Bug fixes:
+
+* [#73](https://github.com/cb372/scalacache/pull/73) fixes a typo in the new variant of `memoize` that was added in #72 (thanks to @mdedetrich)
+
 0.7.3 (2015/11/09)
 ----
 
