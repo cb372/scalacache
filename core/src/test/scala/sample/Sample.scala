@@ -29,6 +29,14 @@ object Sample extends App {
       Future { User(id, s"user$id") }
     }
 
+    def withOptionalExpiry(id: Int): Future[User] = memoize(Option(60 seconds)) {
+      Future { User(id, s"user$id") }
+    }
+
+    def withOptionalExpiryNone(id: Int): Future[User] = memoize(None) {
+      Future { User(id, s"user$id") }
+    }
+
   }
 
 }
