@@ -99,7 +99,7 @@ object ScalaCacheBuild extends Build {
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
-        "com.github.ben-manes.caffeine" % "caffeine" % "1.3.3",
+        "com.github.ben-manes.caffeine" % "caffeine" % "2.0.1",
         "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
       )
     )
