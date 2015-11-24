@@ -4,7 +4,6 @@ import scalacache.{ LoggingSupport, Cache }
 import scala.concurrent.duration._
 import com.typesafe.scalalogging.StrictLogging
 import redis.clients.jedis.{ JedisPool, Jedis }
-import java.nio.charset.Charset
 import scala.concurrent.{ Future, ExecutionContext, blocking }
 
 /**

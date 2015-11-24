@@ -1,7 +1,5 @@
 package scalacache.redis
 
-import java.nio.charset.Charset
-
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import redis.clients.jedis.{ Jedis, JedisSentinelPool }
@@ -9,7 +7,6 @@ import redis.clients.jedis.{ Jedis, JedisSentinelPool }
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future, blocking }
 import scalacache.{ Cache, LoggingSupport }
-import redis.clients.util.Pool
 import scala.collection.JavaConversions.setAsJavaSet
 
 /**
