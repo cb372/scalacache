@@ -1,18 +1,23 @@
 package scalacache.redis
 
-import scalacache.{ LoggingSupport, Cache }
-import scala.concurrent.duration._
-import com.typesafe.scalalogging.StrictLogging
-import redis.clients.jedis.{ JedisPool, Jedis }
 import java.nio.charset.Charset
-import scala.concurrent.{ Future, ExecutionContext, blocking }
+
+import com.typesafe.scalalogging.StrictLogging
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
+import redis.clients.jedis.{ Jedis, JedisSentinelPool }
+
+import scala.concurrent.duration._
+import scala.concurrent.{ ExecutionContext, Future, blocking }
+import scalacache.{ Cache, LoggingSupport }
+import redis.clients.util.Pool
+import scala.collection.JavaConversions.setAsJavaSet
 
 /**
- * Thin wrapper around Jedis
+ * A wrapper around Jedis to configure JedisSentinelPool
  * @param customClassloader a classloader to use when deserializing objects from the cache.
  *                          If you are using Play, you should pass in `app.classloader`.
  */
-class RedisCache(jedisPool: JedisPool, override val customClassloader: Option[ClassLoader] = None)(implicit execContext: ExecutionContext = ExecutionContext.global)
+class RedisSentinalCache(jedisSentinelPool: JedisSentinelPool, override val customClassloader: Option[ClassLoader] = None)(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache
     with RedisSerialization
     with LoggingSupport
@@ -84,34 +89,48 @@ class RedisCache(jedisPool: JedisPool, override val customClassloader: Option[Cl
   }
 
   override def close(): Unit = {
-    jedisPool.close()
+    jedisSentinelPool.close()
   }
 
   private def withJedisClient[T](f: Jedis => T): T = {
-    val jedis = jedisPool.getResource()
+    val jedis = jedisSentinelPool.getResource()
     try {
       f(jedis)
     } finally {
       jedis.close()
     }
   }
-
 }
 
-object RedisCache {
+object RedisSentinalCache {
 
   /**
-   * Create a Redis client connecting to the given host and use it for caching
+   * Create a cache that uses default GenericObjectPoolConfig to create JedisSentinelPool.
+   *
+   * @param clusterName Name of the redis cluster
+   * @param sentinels set of sentinels in format [host1:port, host2:port]
+   * @param password password of the cluster
    */
-  def apply(host: String, port: Int): RedisCache = apply(new JedisPool(host, port))
+  def apply(clusterName: String, sentinels: Set[String], password: String): RedisSentinalCache =
+    apply(new JedisSentinelPool(clusterName, sentinels, new GenericObjectPoolConfig, password))
 
   /**
-   * Create a cache that uses the given Jedis client pool
-   * @param jedisPool a Jedis pool
+   * Create a cache that uses passed GenericObjectPoolConfig to create JedisSentinelPool.
+   *
+   * @param clusterName Name of the redis cluster
+   * @param sentinels set of sentinels in format [host1:port, host2:port]
+   * @param password password of the cluster
+   * @param poolConfig config of the underlying pool
+   */
+  def apply(clusterName: String, sentinels: Set[String], poolConfig: GenericObjectPoolConfig, password: String): RedisSentinalCache =
+    apply(new JedisSentinelPool(clusterName, sentinels, poolConfig, password))
+
+  /**
+   * Create a cache that uses the given JedisSentinelPool
+   * @param jedisSentinelPool a JedisSentinelPool
    * @param customClassloader a classloader to use when deserializing objects from the cache.
    *                          If you are using Play, you should pass in `app.classloader`.
    */
-  def apply(jedisPool: JedisPool, customClassloader: Option[ClassLoader] = None): RedisCache =
-    new RedisCache(jedisPool, customClassloader)
+  def apply(jedisSentinelPool: JedisSentinelPool, customClassloader: Option[ClassLoader] = None): RedisSentinalCache =
+    new RedisSentinalCache(jedisSentinelPool, customClassloader)
 }
-
