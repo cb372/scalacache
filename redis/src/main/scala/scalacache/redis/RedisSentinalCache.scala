@@ -7,7 +7,7 @@ import redis.clients.jedis.{ Jedis, JedisSentinelPool }
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future, blocking }
 import scalacache.{ Cache, LoggingSupport }
-import scala.collection.JavaConversions.setAsJavaSet
+import scala.collection.JavaConversions._
 
 /**
  * A wrapper around Jedis to configure JedisSentinelPool
