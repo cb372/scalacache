@@ -1,7 +1,7 @@
 package scalacache.redis
 
 import org.scalatest.Alerting
-import redis.clients.jedis.{ JedisPool, Jedis }
+import redis.clients.jedis._
 
 import scala.util.{ Success, Failure, Try }
 
