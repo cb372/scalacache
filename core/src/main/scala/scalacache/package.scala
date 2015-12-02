@@ -67,7 +67,8 @@ package object scalacache extends StrictLogging {
 
     private def putWithKey(key: String, value: V, ttl: Option[Duration] = None)(implicit flags: Flags): Future[Unit] = {
       if (flags.writesEnabled) {
-        scalaCache.cache.put(key, value, ttl)
+        val finiteTtl = ttl.filter(_.isFinite()) // discard Duration.Inf, Duration.Undefined
+        scalaCache.cache.put(key, value, finiteTtl)
       } else {
         logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
         Future.successful(())

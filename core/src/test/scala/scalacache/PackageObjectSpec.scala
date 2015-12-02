@@ -59,6 +59,11 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
     cache.putCalledWithArgs should be('empty)
   }
 
+  it should "call put with no TTL if the provided TTL is not finite" in {
+    scalacache.put("foo")("bar", Some(Duration.Inf))
+    cache.putCalledWithArgs(0) should be(("foo", "bar", None))
+  }
+
   behavior of "#remove"
 
   it should "call get on the cache found in the ScalaCache" in {
