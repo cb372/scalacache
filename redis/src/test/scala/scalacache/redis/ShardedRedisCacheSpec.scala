@@ -11,7 +11,7 @@ class ShardedRedisCacheSpec extends RedisCacheSpecBase {
   type JClient = ShardedJedis
   type JPool = ShardedJedisPool
 
-  def withJedis(tests: (JPool, JClient) => Unit): Unit = assumingMultipleRedisAreRunning _
+  val withJedis = assumingMultipleRedisAreRunning _
 
   def constructCache(pool: JPool): Cache = ShardedRedisCache(pool)
 
@@ -34,5 +34,7 @@ class ShardedRedisCacheSpec extends RedisCacheSpecBase {
         f(pool, client)
     }
   }
+
+  runTestsIfPossible()
 
 }
