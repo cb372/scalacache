@@ -1,3 +1,18 @@
+0.7.5 (2015/12/10)
+----
+
+New features:
+
+* [#81](https://github.com/cb372/scalacache/pull/81) adds support for sharded Redis and Redis Sentinel. Thanks to @jareddellitt and @ctblog for the original PRs (#66 and #78) that inspired this.
+
+Improvements:
+
+* Added support for passing `Duration.Inf` or `Duration.Undefined` as a TTL. It is interpreted as meaning "cache with no TTL".
+
+Other stuff:
+
+* Bumped Jedis version from 2.7.2 to 2.8.0.
+
 0.7.4 (2015/11/22)
 ----
 
