@@ -400,6 +400,8 @@ val jedis = new Jedis(...)
 implicit val scalaCache = ScalaCache(RedisCache(jedis))
 ```
 
+ScalaCache also supports [sharded Redis](https://github.com/xetorthio/jedis/wiki/AdvancedUsage#shardedjedis) and [Redis Sentinel](http://redis.io/topics/sentinel). Just create a `ShardedRedisCache` or `SentinelRedisCache` respectively.
+
 ### LruMap (twitter-util)
 
 SBT:

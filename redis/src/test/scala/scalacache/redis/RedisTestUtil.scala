@@ -1,7 +1,7 @@
 package scalacache.redis
 
 import org.scalatest.Alerting
-import redis.clients.jedis.{ JedisPool, Jedis }
+import redis.clients.jedis._
 
 import scala.util.{ Success, Failure, Try }
 
@@ -15,8 +15,7 @@ trait RedisTestUtil { self: Alerting =>
       (jedisPool, jedis)
     } match {
       case Failure(_) => alert("Skipping tests because Redis does not appear to be running on localhost.")
-      case Success((pool, client)) =>
-        f(pool, client)
+      case Success((pool, client)) => f(pool, client)
     }
   }
 
