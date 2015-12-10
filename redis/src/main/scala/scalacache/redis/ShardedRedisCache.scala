@@ -4,8 +4,10 @@ import redis.clients.jedis._
 import scala.concurrent.{ Future, ExecutionContext, blocking }
 import scala.collection.JavaConverters._
 
-class ShardedRedisCache(jedisPool: ShardedJedisPool, override val customClassloader: Option[ClassLoader] = None)(implicit val execContext: ExecutionContext = ExecutionContext.global)
+class ShardedRedisCache(val jedisPool: ShardedJedisPool, override val customClassloader: Option[ClassLoader] = None)(implicit val execContext: ExecutionContext = ExecutionContext.global)
     extends RedisCacheBase {
+
+  type JClient = ShardedJedis
 
   override def removeAll() = Future {
     blocking {
@@ -15,19 +17,6 @@ class ShardedRedisCache(jedisPool: ShardedJedisPool, override val customClassloa
       } finally {
         jedis.close()
       }
-    }
-  }
-
-  override def close(): Unit = {
-    jedisPool.close()
-  }
-
-  override def withJedisCommands[T](f: BinaryJedisCommands => T): T = {
-    val jedis = jedisPool.getResource()
-    try {
-      f(jedis)
-    } finally {
-      jedis.close()
     }
   }
 

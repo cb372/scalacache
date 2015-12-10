@@ -1,6 +1,9 @@
 package scalacache.redis
 
+import java.io.Closeable
+
 import redis.clients.jedis._
+import redis.clients.util.Pool
 import scala.concurrent.{ ExecutionContext, Future, blocking }
 import scalacache.{ LoggingSupport, Cache }
 import scala.concurrent.duration._
@@ -8,6 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 /**
  * Contains implementations of all methods that can be implemented independent of the type of Redis client.
+ * This is everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.
  */
 trait RedisCacheBase
     extends Cache
@@ -19,7 +23,25 @@ trait RedisCacheBase
 
   implicit val execContext: ExecutionContext
 
-  protected def withJedisCommands[T](f: BinaryJedisCommands => T): T
+  protected type JClient <: BinaryJedisCommands with Closeable
+
+  protected val jedisPool: Pool[JClient]
+
+  /**
+   * Borrow a Jedis client from the pool, perform some operation and then return the client to the pool.
+   * @param f block that uses the Jedis client
+   * @tparam T return type of the block
+   * @return the result of executing the block
+   */
+  protected final def withJedisCommands[T](f: BinaryJedisCommands => T): T = {
+    val jedis = jedisPool.getResource()
+    try {
+      f(jedis)
+    } finally {
+      jedis.close()
+    }
+  }
+
 
   /**
    * Get the value corresponding to the given key from the cache
@@ -73,6 +95,10 @@ trait RedisCacheBase
         jedis.del(key.utf8bytes)
       }
     }
+  }
+
+  final override def close(): Unit = {
+    jedisPool.close()
   }
 
 }

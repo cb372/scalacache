@@ -30,8 +30,7 @@ class ShardedRedisCacheSpec extends RedisCacheSpecBase {
       (jedisPool, jedis)
     } match {
       case Failure(_) => alert("Skipping tests because it does not appear that multiple instances of Redis are running on localhost.")
-      case Success((pool, client)) =>
-        f(pool, client)
+      case Success((pool, client)) => f(pool, client)
     }
   }
 
