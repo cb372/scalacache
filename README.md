@@ -52,7 +52,7 @@ put("myKey")("myValue") // returns a Future[Unit]
 put("otherKey")("otherValue", ttl = Some(10.seconds))
 
 // Retrieve the added item
-get("myKey") // returns a Future of an Option
+get[String]("myKey") // returns a Future of an Option
 
 // Remove it from the cache
 remove("myKey") // returns a Future[Unit]
