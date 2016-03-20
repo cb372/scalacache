@@ -4,6 +4,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 import scala.concurrent.duration.Duration
+import scalacache.serdes.Codec
 import scalacache.{ Flags, ScalaCache }
 
 class Macros(val c: blackbox.Context) {
@@ -13,39 +14,39 @@ class Macros(val c: blackbox.Context) {
   We get weird macro compilation errors if we write `f: c.Expr[Future[A]]`, so we'll cheat and just make it a `c.Tree`.
   I think this is a macros bug.
    */
-  def memoizeImpl[A: c.WeakTypeTag](f: c.Tree)(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext]): Tree = {
+  def memoizeImpl[A: c.WeakTypeTag](f: c.Tree)(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext], codec: c.Expr[Codec[A]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.caching($keyName)($f)($scalaCache, $flags, $ec)"""
+      q"""_root_.scalacache.caching($keyName)($f)($scalaCache, $flags, $ec, $codec)"""
     })
   }
 
-  def memoizeImplWithTTL[A: c.WeakTypeTag](ttl: c.Expr[Duration])(f: c.Tree)(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext]): Tree = {
+  def memoizeImplWithTTL[A: c.WeakTypeTag](ttl: c.Expr[Duration])(f: c.Tree)(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext], codec: c.Expr[Codec[A]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags, $ec)"""
+      q"""_root_.scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags, $ec, $codec)"""
     })
   }
 
-  def memoizeImplWithOptionalTTL[A: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(f: c.Tree)(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext]): Tree = {
+  def memoizeImplWithOptionalTTL[A: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(f: c.Tree)(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext], codec: c.Expr[Codec[A]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.cachingWithOptionalTTL($keyName)($optionalTtl)($f)($scalaCache, $flags, $ec)"""
+      q"""_root_.scalacache.cachingWithOptionalTTL($keyName)($optionalTtl)($f)($scalaCache, $flags, $ec, $codec)"""
     })
   }
 
-  def memoizeSyncImpl[A: c.WeakTypeTag](f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
+  def memoizeSyncImpl[A: c.WeakTypeTag](f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], codec: c.Expr[Codec[A]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.sync.caching($keyName)($f)($scalaCache, $flags)"""
+      q"""_root_.scalacache.sync.caching($keyName)($f)($scalaCache, $flags, $codec)"""
     })
   }
 
-  def memoizeSyncImplWithTTL[A: c.WeakTypeTag](ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
+  def memoizeSyncImplWithTTL[A: c.WeakTypeTag](ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], codec: c.Expr[Codec[A]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.sync.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags)"""
+      q"""_root_.scalacache.sync.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags, $codec)"""
     })
   }
 
-  def memoizeSyncImplWithOptionalTTL[A: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags]): Tree = {
+  def memoizeSyncImplWithOptionalTTL[A: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache], flags: c.Expr[Flags], codec: c.Expr[Codec[A]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.sync.cachingWithOptionalTTL($keyName)($optionalTtl)($f)($scalaCache, $flags)"""
+      q"""_root_.scalacache.sync.cachingWithOptionalTTL($keyName)($optionalTtl)($f)($scalaCache, $flags, $codec)"""
     })
   }
 

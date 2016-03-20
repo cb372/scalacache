@@ -3,6 +3,7 @@ package scalacache
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.experimental.macros
 import scala.concurrent.duration._
+import scalacache.serdes.Codec
 
 /**
  * Utilities for memoizing the results of method calls in a cache.
@@ -30,7 +31,7 @@ package object memoization {
    * @tparam A type of the value to be cached
    * @return a Future of the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoize[A](f: => Future[A])(implicit scalaCache: ScalaCache, flags: Flags, ec: ExecutionContext): Future[A] = macro Macros.memoizeImpl[A]
+  def memoize[A](f: => Future[A])(implicit scalaCache: ScalaCache, flags: Flags, ec: ExecutionContext, codec: Codec[A]): Future[A] = macro Macros.memoizeImpl[A]
 
   /**
    * Perform the given operation and memoize its result to a cache before returning it.
@@ -55,7 +56,7 @@ package object memoization {
    * @tparam A type of the value to be cached
    * @return a Future of the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoize[A](ttl: Duration)(f: => Future[A])(implicit scalaCache: ScalaCache, flags: Flags, ec: ExecutionContext): Future[A] = macro Macros.memoizeImplWithTTL[A]
+  def memoize[A](ttl: Duration)(f: => Future[A])(implicit scalaCache: ScalaCache, flags: Flags, ec: ExecutionContext, codec: Codec[A]): Future[A] = macro Macros.memoizeImplWithTTL[A]
 
   /**
    * Perform the given operation and memoize its result to a cache before returning it.
@@ -79,7 +80,7 @@ package object memoization {
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoize[A](optionalTtl: Option[Duration])(f: => Future[A])(implicit scalaCache: ScalaCache, flags: Flags, ec: ExecutionContext): Future[A] = macro Macros.memoizeImplWithOptionalTTL[A]
+  def memoize[A](optionalTtl: Option[Duration])(f: => Future[A])(implicit scalaCache: ScalaCache, flags: Flags, ec: ExecutionContext, codec: Codec[A]): Future[A] = macro Macros.memoizeImplWithOptionalTTL[A]
 
   /**
    * Perform the given operation and memoize its result to a cache before returning it.
@@ -95,7 +96,7 @@ package object memoization {
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoizeSync[A](f: => A)(implicit scalaCache: ScalaCache, flags: Flags): A = macro Macros.memoizeSyncImpl[A]
+  def memoizeSync[A](f: => A)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[A]): A = macro Macros.memoizeSyncImpl[A]
 
   /**
    * Perform the given operation and memoize its result to a cache before returning it.
@@ -115,7 +116,7 @@ package object memoization {
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoizeSync[A](ttl: Duration)(f: => A)(implicit scalaCache: ScalaCache, flags: Flags): A = macro Macros.memoizeSyncImplWithTTL[A]
+  def memoizeSync[A](ttl: Duration)(f: => A)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[A]): A = macro Macros.memoizeSyncImplWithTTL[A]
 
   /**
    * Perform the given operation and memoize its result to a cache before returning it.
@@ -135,6 +136,6 @@ package object memoization {
    * @tparam A type of the value to be cached
    * @return the result, either retrieved from the cache or calculated by executing the function `f`
    */
-  def memoizeSync[A](optionalTtl: Option[Duration])(f: => A)(implicit scalaCache: ScalaCache, flags: Flags): A = macro Macros.memoizeSyncImplWithOptionalTTL[A]
+  def memoizeSync[A](optionalTtl: Option[Duration])(f: => A)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[A]): A = macro Macros.memoizeSyncImplWithOptionalTTL[A]
 }
 

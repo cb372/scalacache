@@ -9,6 +9,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scalacache.serdes.Codec
+import scalacache.serdes.JavaSerializationCodecs._
 import scalacache.Cache
 
 trait RedisCacheSpecBase
@@ -41,11 +43,11 @@ trait RedisCacheSpecBase
 
       it should "return the value stored in Redis" in {
         client.set(bytes("key1"), serialize(123))
-        whenReady(cache.get("key1")) { _ should be(Some(123)) }
+        whenReady(cache.get[Int]("key1")) { _ should be(Some(123)) }
       }
 
       it should "return None if the given key does not exist in the underlying cache" in {
-        whenReady(cache.get("non-existent-key")) { _ should be(None) }
+        whenReady(cache.get[Int]("non-existent-key")) { _ should be(None) }
       }
 
       behavior of "put"
@@ -94,8 +96,8 @@ trait RedisCacheSpecBase
 
       behavior of "caching with serialization"
 
-      def roundTrip[V](key: String, value: V): Future[Option[V]] = {
-        cache.put(key, value, None).flatMap(_ => cache.get(key))
+      def roundTrip[V: Codec](key: String, value: V): Future[Option[V]] = {
+        cache.put(key, value, None).flatMap(_ => cache.get[V](key))
       }
 
       it should "round-trip a String" in {

@@ -24,13 +24,13 @@ class EhcacheCacheSpec extends FlatSpec with Matchers with Eventually with Befor
 
   it should "return the value stored in Ehcache" in {
     underlying.put(new Element("key1", 123))
-    whenReady(EhcacheCache(underlying).get("key1")) { result =>
+    whenReady(EhcacheCache(underlying).get[String]("key1")) { result =>
       result should be(Some(123))
     }
   }
 
   it should "return None if the given key does not exist in the underlying cache" in {
-    whenReady(EhcacheCache(underlying).get("non-existent-key")) { result =>
+    whenReady(EhcacheCache(underlying).get[String]("non-existent-key")) { result =>
       result should be(None)
     }
   }

@@ -1,6 +1,7 @@
 package scalacache.redis
 
 import org.scalatest.{ FlatSpec, Matchers }
+import scalacache.serdes.JavaSerializationCodecs._
 
 class RedisSerializationSpec extends FlatSpec with Matchers with RedisSerialization {
 

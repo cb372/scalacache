@@ -17,14 +17,14 @@ class GuavaCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Sca
     val underlying = newGCache
     val entry = Entry("hello", expiresAt = None)
     underlying.put("key1", entry)
-    whenReady(GuavaCache(underlying).get("key1")) { result =>
+    whenReady(GuavaCache(underlying).get[String]("key1")) { result =>
       result should be(Some("hello"))
     }
   }
 
   it should "return None if the given key does not exist in the underlying cache" in {
     val underlying = newGCache
-    whenReady(GuavaCache(underlying).get("non-existent key")) { result =>
+    whenReady(GuavaCache(underlying).get[String]("non-existent key")) { result =>
       result should be(None)
     }
   }
@@ -33,7 +33,7 @@ class GuavaCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Sca
     val underlying = newGCache
     val expiredEntry = Entry("hello", expiresAt = Some(DateTime.now.minusSeconds(1)))
     underlying.put("key1", expiredEntry)
-    whenReady(GuavaCache(underlying).get("non-existent key")) { result =>
+    whenReady(GuavaCache(underlying).get[String]("non-existent key")) { result =>
       result should be(None)
     }
   }

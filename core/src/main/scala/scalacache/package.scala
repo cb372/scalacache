@@ -1,12 +1,14 @@
+
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ ExecutionContext, Await, Future }
 import scala.util.Try
+import scalacache.serdes.Codec
 
 package object scalacache extends StrictLogging {
 
-  class TypedApi[V](implicit val scalaCache: ScalaCache) {
+  class TypedApi[V](implicit val scalaCache: ScalaCache, codec: Codec[V]) {
 
     def get(keyParts: Any*)(implicit flags: Flags): Future[Option[V]] = getWithKey(toKey(keyParts))
 
@@ -126,7 +128,7 @@ package object scalacache extends StrictLogging {
    *
    * @tparam V the type of values that the cache will accept
    */
-  def typed[V](implicit scalaCache: ScalaCache) = new TypedApi[V]()(scalaCache)
+  def typed[V: Codec](implicit scalaCache: ScalaCache) = new TypedApi[V]()(scalaCache, implicitly[Codec[V]])
 
   /**
    * Get the value corresponding to the given key from the cache.
@@ -137,7 +139,7 @@ package object scalacache extends StrictLogging {
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags): Future[Option[V]] =
+  def get[V: Codec](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags): Future[Option[V]] =
     typed[V].get(keyParts: _*)
 
   /**
@@ -150,7 +152,7 @@ package object scalacache extends StrictLogging {
    * @return the value, if there is one
    */
   @deprecated("This method has moved. Please use scalacache.sync.get", "0.7.0")
-  def getSync[V](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags): Option[V] =
+  def getSync[V: Codec](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags): Option[V] =
     sync.get[V](keyParts: _*)
 
   /**
@@ -163,7 +165,7 @@ package object scalacache extends StrictLogging {
    * @param ttl Time To Live (optional, if not specified then the entry will be cached indefinitely)
    * @tparam V the type of the corresponding value
    */
-  def put[V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache, flags: Flags): Future[Unit] =
+  def put[V: Codec](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache, flags: Flags): Future[Unit] =
     typed[V].put(keyParts: _*)(value, ttl)
 
   /**
@@ -201,7 +203,7 @@ package object scalacache extends StrictLogging {
    * @tparam V the type of the block's result
    * @return the result, either retrived from the cache or returned by the block
    */
-  def caching[V](keyParts: Any*)(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[V] =
+  def caching[V](keyParts: Any*)(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V]): Future[V] =
     typed[V].caching(keyParts: _*)(f)
 
   /**
@@ -223,10 +225,10 @@ package object scalacache extends StrictLogging {
    * @tparam V the type of the block's result
    * @return the result, either retrived from the cache or returned by the block
    */
-  def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[V] =
+  def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V]): Future[V] =
     typed[V].cachingWithTTL(keyParts: _*)(ttl)(f)
 
-  def cachingWithOptionalTTL[V](keyParts: Any*)(optionalTtl: Option[Duration])(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[V] =
+  def cachingWithOptionalTTL[V](keyParts: Any*)(optionalTtl: Option[Duration])(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V]): Future[V] =
     typed[V].cachingWithOptionalTTL(keyParts: _*)(optionalTtl)(f)
 
   private def toKey(parts: Seq[Any])(implicit scalaCache: ScalaCache): String =
@@ -246,7 +248,7 @@ package object scalacache extends StrictLogging {
      * @tparam V the type of the corresponding value
      * @return the value, if there is one
      */
-    def get[V](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags): Option[V] =
+    def get[V](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): Option[V] =
       typed[V].sync.get(keyParts: _*)
 
     /**
@@ -263,7 +265,7 @@ package object scalacache extends StrictLogging {
      * @tparam V the type of the block's result
      * @return the result, either retrived from the cache or returned by the block
      */
-    def caching[V](keyParts: Any*)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V =
+    def caching[V](keyParts: Any*)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): V =
       typed[V].sync.caching(keyParts: _*)(f)
 
     /**
@@ -279,7 +281,7 @@ package object scalacache extends StrictLogging {
      * @tparam V the type of the block's result
      * @return the result, either retrived from the cache or returned by the block
      */
-    def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V =
+    def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): V =
       typed[V].sync.cachingWithTTL(keyParts: _*)(ttl)(f)
 
     /**
@@ -295,7 +297,7 @@ package object scalacache extends StrictLogging {
      * @tparam V the type of the block's result
      * @return the result, either retrived from the cache or returned by the block
      */
-    def cachingWithOptionalTTL[V](keyParts: Any*)(optionalTtl: Option[Duration])(f: => V)(implicit scalaCache: ScalaCache, flags: Flags): V = {
+    def cachingWithOptionalTTL[V](keyParts: Any*)(optionalTtl: Option[Duration])(f: => V)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): V = {
       optionalTtl match {
         case Some(ttl) => typed[V].sync.cachingWithTTL(keyParts: _*)(ttl)(f)
         case None => typed[V].sync.caching(keyParts: _*)(f)

@@ -20,25 +20,25 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
   behavior of "#get"
 
   it should "call get on the cache found in the ScalaCache" in {
-    scalacache.get("foo")
+    scalacache.get[String]("foo")
     cache.getCalledWithArgs(0) should be("foo")
   }
 
   it should "use the CacheKeyBuilder to build the cache key" in {
-    scalacache.get("foo", 123)
+    scalacache.get[String]("foo", 123)
     cache.getCalledWithArgs(0) should be("foo:123")
   }
 
   it should "not call get on the cache found in the ScalaCache if cache reads are disabled" in {
     implicit val flags = Flags(readsEnabled = false)
-    scalacache.get("foo")
+    scalacache.get[String]("foo")
     cache.getCalledWithArgs should be('empty)
   }
 
   it should "conditionally call get on the cache found in the ScalaCache depending on the readsEnabled flag" in {
     def possiblyGetFromCache(key: String): Unit = {
       implicit def flags = Flags(readsEnabled = (key == "foo"))
-      scalacache.get(key)
+      scalacache.get[String](key)
     }
     possiblyGetFromCache("foo")
     possiblyGetFromCache("bar")

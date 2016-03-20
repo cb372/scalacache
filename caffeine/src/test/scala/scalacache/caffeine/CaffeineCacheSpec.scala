@@ -17,14 +17,14 @@ class CaffeineCacheSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter
     val underlying = newCCache
     val entry = Entry("hello", expiresAt = None)
     underlying.put("key1", entry)
-    whenReady(CaffeineCache(underlying).get("key1")) { result =>
+    whenReady(CaffeineCache(underlying).get[String]("key1")) { result =>
       result should be(Some("hello"))
     }
   }
 
   it should "return None if the given key does not exist in the underlying cache" in {
     val underlying = newCCache
-    whenReady(CaffeineCache(underlying).get("non-existent key")) { result =>
+    whenReady(CaffeineCache(underlying).get[String]("non-existent key")) { result =>
       result should be(None)
     }
   }
@@ -33,7 +33,7 @@ class CaffeineCacheSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter
     val underlying = newCCache
     val expiredEntry = Entry("hello", expiresAt = Some(DateTime.now.minusSeconds(1)))
     underlying.put("key1", expiredEntry)
-    whenReady(CaffeineCache(underlying).get("non-existent key")) { result =>
+    whenReady(CaffeineCache(underlying).get[String]("non-existent key")) { result =>
       result should be(None)
     }
   }
