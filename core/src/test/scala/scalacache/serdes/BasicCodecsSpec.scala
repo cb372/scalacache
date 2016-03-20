@@ -27,6 +27,10 @@ class BasicCodecsSpec extends FlatSpec with Matchers with GeneratorDrivenPropert
     serdesCheck[Double]
   }
 
+  it should "serialize and deserialize Floats" in {
+    serdesCheck[Float]
+  }
+
   it should "serialize and deserialize Booleans" in {
     serdesCheck[Boolean]
   }

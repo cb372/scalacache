@@ -31,6 +31,19 @@ trait BaseCodecs {
     }
   }
 
+  implicit object FloatBinaryCodec extends Codec[Float] {
+    import java.lang.{ Float => JvmFloat }
+    def serialize(value: Float): Array[Byte] = {
+      val i = JvmFloat.floatToIntBits(value)
+      IntBinaryCodec.serialize(i)
+    }
+
+    def deserialize(data: Array[Byte]): Float = {
+      val i = IntBinaryCodec.deserialize(data)
+      JvmFloat.intBitsToFloat(i)
+    }
+  }
+
   implicit object LongBinaryCodec extends Codec[Long] {
     def serialize(value: Long): Array[Byte] =
       Array(
