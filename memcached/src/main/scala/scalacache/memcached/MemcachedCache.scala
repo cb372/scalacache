@@ -26,13 +26,13 @@ class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitize
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V: Codec](key: String) = {
+  override def get[V](key: String)(implicit codec: Codec[V]) = {
     val p = Promise[Option[V]]()
     val f = client.asyncGet(keySanitizer.toValidMemcachedKey(key))
     f.addListener(new GetCompletionListener {
       def onComplete(g: GetFuture[_]): Unit = p.complete {
         val byteArray = Option(f.get.asInstanceOf[Array[Byte]])
-        val result = byteArray.map(implicitly[Codec[V]].deserialize)
+        val result = byteArray.map(codec.deserialize)
         logCacheHitOrMiss(key, result)
         Success(result)
       }
@@ -48,9 +48,9 @@ class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitize
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V: Codec](key: String, value: V, ttl: Option[Duration]) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]) = {
     val p = Promise[Unit]()
-    val serialized = implicitly[Codec[V]].serialize(value)
+    val serialized = codec.serialize(value)
     val f = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), serialized)
     f.addListener(new OperationCompletionListener {
       def onComplete(g: OperationFuture[_]): Unit = p.complete {

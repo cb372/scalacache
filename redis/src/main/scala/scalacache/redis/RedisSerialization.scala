@@ -11,12 +11,12 @@ trait RedisSerialization {
 
   protected def customClassloader: Option[ClassLoader] = None
 
-  def serialize[A: Codec](value: A): Array[Byte] = {
-    implicitly[Codec[A]].serialize(value)
+  def serialize[A](value: A)(implicit codec: Codec[A]): Array[Byte] = {
+    codec.serialize(value)
   }
 
-  def deserialize[A: Codec](bytes: Array[Byte]): A = {
-    implicitly[Codec[A]].deserialize(bytes)
+  def deserialize[A](bytes: Array[Byte])(implicit codec: Codec[A]): A = {
+    codec.deserialize(bytes)
   }
 
 }

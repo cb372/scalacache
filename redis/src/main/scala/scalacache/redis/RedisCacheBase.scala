@@ -52,11 +52,11 @@ trait RedisCacheBase
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  final override def get[V: Codec](key: String) = Future {
+  final override def get[V](key: String)(implicit codec: Codec[V]) = Future {
     blocking {
       withJedisCommands { jedis =>
         val resultBytes = Option(jedis.get(key.utf8bytes))
-        val result = resultBytes.map(implicitly[Codec[V]].deserialize)
+        val result = resultBytes.map(codec.deserialize)
         logCacheHitOrMiss(key, result)
         result
       }
@@ -71,11 +71,11 @@ trait RedisCacheBase
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  final override def put[V: Codec](key: String, value: V, ttl: Option[Duration]) = Future {
+  final override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]) = Future {
     blocking {
       withJedisCommands { jedis =>
         val keyBytes = key.utf8bytes
-        val valueBytes = implicitly[Codec[V]].serialize(value)
+        val valueBytes = codec.serialize(value)
         ttl match {
           case None => jedis.set(keyBytes, valueBytes)
           case Some(Duration.Zero) => jedis.set(keyBytes, valueBytes)

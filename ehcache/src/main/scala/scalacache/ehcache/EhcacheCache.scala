@@ -25,7 +25,7 @@ class EhcacheCache(underlying: Ehcache)
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V: Codec](key: String) = {
+  override def get[V](key: String)(implicit codec: Codec[V]) = {
     val result = for {
       e <- Option(underlying.get(key))
       v <- Option(e.getObjectValue.asInstanceOf[V])
@@ -42,7 +42,7 @@ class EhcacheCache(underlying: Ehcache)
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V: Codec](key: String, value: V, ttl: Option[Duration]) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]) = {
     val element = new Element(key, value)
     ttl.foreach(t => element.setTimeToLive(t.toSeconds.toInt))
     underlying.put(element)

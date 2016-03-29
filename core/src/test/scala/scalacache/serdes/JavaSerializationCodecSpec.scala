@@ -7,8 +7,9 @@ class JavaSerializationCodecSpec extends FlatSpec with Matchers {
 
   it should "serialize and deserialize case classes" in {
     val hello = Phone(1, "Apple")
-    val serialised = implicitly[Codec[Phone]].serialize(hello)
-    implicitly[Codec[Phone]].deserialize(serialised) shouldBe hello
+    val phoneCodec = implicitly[Codec[Phone]]
+    val serialised = phoneCodec.serialize(hello)
+    phoneCodec.deserialize(serialised) shouldBe hello
   }
 
 }

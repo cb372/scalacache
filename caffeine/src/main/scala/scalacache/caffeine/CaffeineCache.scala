@@ -29,7 +29,7 @@ class CaffeineCache(underlying: CCache[String, Object])
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V: Codec](key: String) = {
+  override def get[V](key: String)(implicit codec: Codec[V]) = {
     val entry = Option(underlying.getIfPresent(key).asInstanceOf[Entry[V]])
     /*
      Note: we could delete the entry from the cache if it has expired,
@@ -52,7 +52,7 @@ class CaffeineCache(underlying: CCache[String, Object])
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V: Codec](key: String, value: V, ttl: Option[Duration] = None) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration] = None)(implicit codec: Codec[V]) = {
     val entry = Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
     logCachePut(key, ttl)

@@ -1,10 +1,10 @@
 package scalacache.serdes
 
 /**
-  * Primitive type Codec instances
-  *
-  * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
-  */
+ * Primitive type Codec instances
+ *
+ * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
+ */
 trait BaseCodecs {
 
   implicit object IntBinaryCodec extends Codec[Int] {
