@@ -282,6 +282,26 @@ cache.put("key", "wibble") // Compile error!
 cache.get("key") // returns Future[Option[User]]
 ```
 
+## Serialization / Deserialization
+
+For cache implementations that do not store their data locally (like [Memcached](#Memcached) and [Redis](#Redis)), serialization and
+deserialization of data to and from `Array[Byte]` is handled by a `Codec` type class. We provide efficient `Codec` instances for all primitive
+types, and provide an implementation for objects based on Java serialisation. 
+
+### Custom Codec
+
+If you want to use a custom `Codec` for your object of type `A`, simply implement an instance of `Codec[A]` and make sure it
+is in scope at your `set`/`put` call site.
+
+### Backwards compatibility
+
+In the interests of keeping backward compatibility with older versions of ScalaCache before serialization was handled by `Codec`,
+`MemcachedCache`, `RedisCache`, `SentinelRedisCache`, and `SharedRedisCache` have a `useLegacySerialization` boolean parameter,
+which allows you to continue using the original ScalaCache serialization/deserialization logic.
+
+Legacy users who want to avoid deserialization errors when uprading should set this parameter to `true` *or* clear your caches
+before deploying code that depends on ScalaCache after version `0.7.5`
+
 ## Cache implementations
 
 ### Google Guava
@@ -348,7 +368,7 @@ ScalaCache provides two `KeySanitizer` implementations that convert your cache k
 
 * `ReplaceAndTruncateSanitizer` simply replaces non-ASCII characters with underscores and truncates long keys to 250 chars. This sanitizer is convenient because it keeps your keys human-readable. Use it if you only expect ASCII characters to appear in cache keys and you don't use any massively long keys.
 
-* `HashingMemcachedKeySanitizer` uses a hash of your cache key, so it can turn any string into a valid Memcached key. The only downside is that it turns your keys into gobbledigook, which can make debugging a pain.
+* `HashingMemcachedKeySanitizer` uses a hash of your cache key, so it can turn any string into a valid Memcached key. The only downside is that it turns your keys into gobbledigook, which can make debugging a pain. 
 
 ### Ehcache
 

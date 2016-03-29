@@ -8,7 +8,9 @@ import scala.concurrent.{ Future, ExecutionContext, blocking }
  * @param customClassloader a classloader to use when deserializing objects from the cache.
  *                          If you are using Play, you should pass in `app.classloader`.
  */
-class RedisCache(val jedisPool: JedisPool, override val customClassloader: Option[ClassLoader] = None)(implicit val execContext: ExecutionContext = ExecutionContext.global)
+class RedisCache(val jedisPool: JedisPool,
+                 override val customClassloader: Option[ClassLoader] = None,
+                 override val useLegacySerialization: Boolean = false)(implicit val execContext: ExecutionContext = ExecutionContext.global)
     extends RedisCacheBase {
 
   type JClient = Jedis

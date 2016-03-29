@@ -4,7 +4,9 @@ import redis.clients.jedis._
 import scala.concurrent.{ Future, ExecutionContext, blocking }
 import scala.collection.JavaConverters._
 
-class ShardedRedisCache(val jedisPool: ShardedJedisPool, override val customClassloader: Option[ClassLoader] = None)(implicit val execContext: ExecutionContext = ExecutionContext.global)
+class ShardedRedisCache(val jedisPool: ShardedJedisPool,
+                        override val customClassloader: Option[ClassLoader] = None,
+                        override val useLegacySerialization: Boolean = false)(implicit val execContext: ExecutionContext = ExecutionContext.global)
     extends RedisCacheBase {
 
   type JClient = ShardedJedis

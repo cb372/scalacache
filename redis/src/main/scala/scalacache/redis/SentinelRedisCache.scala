@@ -6,7 +6,9 @@ import redis.clients.jedis._
 import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future, blocking }
 
-class SentinelRedisCache(val jedisPool: JedisSentinelPool, override val customClassloader: Option[ClassLoader] = None)(implicit val execContext: ExecutionContext = ExecutionContext.global)
+class SentinelRedisCache(val jedisPool: JedisSentinelPool,
+                         override val customClassloader: Option[ClassLoader] = None,
+                         override val useLegacySerialization: Boolean = false)(implicit val execContext: ExecutionContext = ExecutionContext.global)
     extends RedisCacheBase {
 
   type JClient = Jedis

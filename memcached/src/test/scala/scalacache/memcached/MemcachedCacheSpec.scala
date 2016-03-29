@@ -1,5 +1,6 @@
 package scalacache.memcached
 
+import common.LegacyCodecCheckSupport
 import org.scalatest.{ BeforeAndAfter, Matchers, FlatSpec }
 import net.spy.memcached._
 import scala.concurrent.duration._
@@ -10,7 +11,13 @@ import scala.language.postfixOps
 import scalacache.serialization.Codec
 
 class MemcachedCacheSpec
-    extends FlatSpec with Matchers with Eventually with BeforeAndAfter with ScalaFutures with IntegrationPatience {
+    extends FlatSpec
+    with Matchers
+    with Eventually
+    with BeforeAndAfter
+    with ScalaFutures
+    with IntegrationPatience
+    with LegacyCodecCheckSupport {
 
   val client = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
 
@@ -74,6 +81,10 @@ class MemcachedCacheSpec
       }
     }
 
+    legacySupportCheck { legacySerialization =>
+      new MemcachedCache(client = client, useLegacySerialization = legacySerialization)
+    }
   }
 
 }
+

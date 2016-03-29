@@ -60,7 +60,7 @@ object ScalaCacheBuild extends Build {
         "net.spy" % "spymemcached" % "2.11.7"
       )
     )
-    .dependsOn(core)
+    .dependsOn(core % "test->test;compile->compile")
     .disablePlugins(CoverallsPlugin)
 
   lazy val ehcache = Project(id = "scalacache-ehcache", base = file("ehcache"))
@@ -81,7 +81,7 @@ object ScalaCacheBuild extends Build {
         "redis.clients" % "jedis" % "2.8.0"
       ) ++ playTesting
     )
-    .dependsOn(core)
+    .dependsOn(core % "test->test;compile->compile")
     .disablePlugins(CoverallsPlugin)
 
   lazy val lrumap = Project(id = "scalacache-lrumap", base = file("lrumap"))

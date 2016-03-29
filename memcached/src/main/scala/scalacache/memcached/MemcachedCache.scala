@@ -1,19 +1,20 @@
 package scalacache.memcached
 
 import net.spy.memcached.internal.{ OperationFuture, OperationCompletionListener, GetFuture, GetCompletionListener }
-import net.spy.memcached.transcoders.Transcoder
-import net.spy.memcached.{ CachedData, AddrUtil, BinaryConnectionFactory, MemcachedClient }
+import net.spy.memcached.{ AddrUtil, BinaryConnectionFactory, MemcachedClient }
 import scala.concurrent.duration.Duration
 import scala.util.Success
 import scalacache.serialization.Codec
 import scalacache.{ LoggingSupport, Cache }
 import com.typesafe.scalalogging.StrictLogging
-import scala.concurrent.{ Promise, Future, ExecutionContext }
+import scala.concurrent.{ Promise, ExecutionContext }
 
 /**
  * Wrapper around spymemcached
  */
-class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(implicit execContext: ExecutionContext = ExecutionContext.global)
+class MemcachedCache(client: MemcachedClient,
+                     keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer(),
+                     useLegacySerialization: Boolean = false)(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache
     with MemcachedTTLConverter
     with StrictLogging
@@ -31,8 +32,13 @@ class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitize
     val f = client.asyncGet(keySanitizer.toValidMemcachedKey(key))
     f.addListener(new GetCompletionListener {
       def onComplete(g: GetFuture[_]): Unit = p.complete {
-        val byteArray = Option(f.get.asInstanceOf[Array[Byte]])
-        val result = byteArray.map(codec.deserialize)
+        val maybeResult = Option(f.get)
+        val result = maybeResult.map { result =>
+          if (useLegacySerialization)
+            result.asInstanceOf[V]
+          else
+            codec.deserialize(result.asInstanceOf[Array[Byte]])
+        }
         logCacheHitOrMiss(key, result)
         Success(result)
       }
@@ -50,8 +56,8 @@ class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitize
    */
   override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]) = {
     val p = Promise[Unit]()
-    val serialized = codec.serialize(value)
-    val f = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), serialized)
+    val valueToSend = if (useLegacySerialization) value else codec.serialize(value)
+    val f = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)
     f.addListener(new OperationCompletionListener {
       def onComplete(g: OperationFuture[_]): Unit = p.complete {
         logCachePut(key, ttl)

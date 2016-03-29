@@ -1,5 +1,6 @@
 package scalacache.redis
 
+import common.LegacyCodecCheckSupport
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
@@ -20,20 +21,21 @@ trait RedisCacheSpecBase
     with BeforeAndAfter
     with RedisSerialization
     with ScalaFutures
-    with IntegrationPatience {
+    with IntegrationPatience
+    with LegacyCodecCheckSupport {
 
   type JPool
   type JClient <: JedisCommands with BinaryJedisCommands
 
   def withJedis: ((JPool, JClient) => Unit) => Unit
-  def constructCache(pool: JPool): Cache
+  def constructCache(pool: JPool, useLegacySerialisation: Boolean): Cache
   def flushRedis(client: JClient): Unit
 
   def runTestsIfPossible() = {
 
     withJedis { (pool, client) =>
 
-      val cache = constructCache(pool)
+      val cache = constructCache(pool, false)
 
       before {
         flushRedis(client)
@@ -136,6 +138,10 @@ trait RedisCacheSpecBase
         whenReady(cache.remove("key1")) { _ =>
           client.get("key1") should be(null)
         }
+      }
+
+      legacySupportCheck { useLegacySerialisation =>
+        constructCache(pool = pool, useLegacySerialisation = useLegacySerialisation)
       }
 
     }

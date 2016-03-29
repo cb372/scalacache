@@ -22,11 +22,11 @@ trait RedisCacheBase
 
   import StringEnrichment.StringWithUtf8Bytes
 
-  implicit val execContext: ExecutionContext
+  implicit def execContext: ExecutionContext
 
   protected type JClient <: BinaryJedisCommands with Closeable
 
-  protected val jedisPool: Pool[JClient]
+  protected def jedisPool: Pool[JClient]
 
   /**
    * Borrow a Jedis client from the pool, perform some operation and then return the client to the pool.
@@ -56,7 +56,7 @@ trait RedisCacheBase
     blocking {
       withJedisCommands { jedis =>
         val resultBytes = Option(jedis.get(key.utf8bytes))
-        val result = resultBytes.map(codec.deserialize)
+        val result = resultBytes.map(deserialize[V])
         logCacheHitOrMiss(key, result)
         result
       }
@@ -75,7 +75,7 @@ trait RedisCacheBase
     blocking {
       withJedisCommands { jedis =>
         val keyBytes = key.utf8bytes
-        val valueBytes = codec.serialize(value)
+        val valueBytes = serialize(value)
         ttl match {
           case None => jedis.set(keyBytes, valueBytes)
           case Some(Duration.Zero) => jedis.set(keyBytes, valueBytes)
