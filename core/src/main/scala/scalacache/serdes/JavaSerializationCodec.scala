@@ -5,6 +5,11 @@ import java.io._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
+/**
+  * Holds a Java-serialisation-based Codec[Object <: Serializable] instance
+  *
+  * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
+  */
 trait JavaSerializationCodec {
 
   private[this] class GenericCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S] {
