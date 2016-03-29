@@ -3,7 +3,7 @@ package scalacache
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.experimental.macros
 import scala.concurrent.duration._
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 
 /**
  * Utilities for memoizing the results of method calls in a cache.

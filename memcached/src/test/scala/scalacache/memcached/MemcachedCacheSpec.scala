@@ -7,7 +7,7 @@ import org.scalatest.concurrent.{ ScalaFutures, Eventually, IntegrationPatience 
 import org.scalatest.time.{ Span, Seconds }
 
 import scala.language.postfixOps
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 
 class MemcachedCacheSpec
     extends FlatSpec with Matchers with Eventually with BeforeAndAfter with ScalaFutures with IntegrationPatience {

@@ -1,4 +1,4 @@
-package scalacache.serdes
+package scalacache.serialization
 
 import scala.annotation.implicitNotFound
 import scala.language.implicitConversions

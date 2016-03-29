@@ -1,4 +1,4 @@
-package scalacache.serdes
+package scalacache.serialization
 
 import org.scalacheck._
 import org.scalatest.{ Matchers, FlatSpec }

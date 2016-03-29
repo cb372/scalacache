@@ -2,7 +2,7 @@ package scalacache
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 
 trait Cache {
 

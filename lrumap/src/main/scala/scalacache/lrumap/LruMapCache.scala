@@ -5,7 +5,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 import scalacache.{ LoggingSupport, Cache }
 
 import org.joda.time.DateTime

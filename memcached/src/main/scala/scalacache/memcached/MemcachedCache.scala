@@ -5,7 +5,7 @@ import net.spy.memcached.transcoders.Transcoder
 import net.spy.memcached.{ CachedData, AddrUtil, BinaryConnectionFactory, MemcachedClient }
 import scala.concurrent.duration.Duration
 import scala.util.Success
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 import scalacache.{ LoggingSupport, Cache }
 import com.typesafe.scalalogging.StrictLogging
 import scala.concurrent.{ Promise, Future, ExecutionContext }

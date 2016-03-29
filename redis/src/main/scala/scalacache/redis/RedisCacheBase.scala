@@ -5,7 +5,7 @@ import java.io.Closeable
 import redis.clients.jedis._
 import redis.clients.util.Pool
 import scala.concurrent.{ ExecutionContext, Future, blocking }
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 import scalacache.{LoggingSupport, Cache}
 import scala.concurrent.duration._
 import com.typesafe.scalalogging.StrictLogging

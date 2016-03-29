@@ -4,7 +4,7 @@ import com.typesafe.scalalogging.StrictLogging
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ ExecutionContext, Await, Future }
 import scala.util.Try
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 
 package object scalacache extends StrictLogging {
 

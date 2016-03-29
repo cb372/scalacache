@@ -1,6 +1,6 @@
 package scalacache.redis
 
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 
 /**
  * Custom serialization for caching arbitrary objects in Redis.

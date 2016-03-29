@@ -2,7 +2,7 @@ package scalacache.ehcache
 
 import com.typesafe.scalalogging.StrictLogging
 
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 import scalacache.{ LoggingSupport, Cache }
 import scala.concurrent.duration.Duration
 import net.sf.ehcache.{ Cache => Ehcache, Element }

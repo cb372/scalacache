@@ -1,6 +1,6 @@
 package scalacache.caffeine
 
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 import scalacache.{ LoggingSupport, Cache, Entry }
 import com.github.benmanes.caffeine.cache.{ Cache => CCache, Caffeine }
 

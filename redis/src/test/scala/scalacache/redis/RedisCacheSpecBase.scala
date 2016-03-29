@@ -9,8 +9,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scalacache.serdes.Codec
-import scalacache.serdes.JavaSerializationCodecs._
+import scalacache.serialization.Codec
+import scalacache.serialization.JavaSerializationCodecs._
 import scalacache.Cache
 
 trait RedisCacheSpecBase

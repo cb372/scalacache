@@ -4,7 +4,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 import scala.concurrent.duration.Duration
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 import scalacache.{ Flags, ScalaCache }
 
 class Macros(val c: blackbox.Context) {

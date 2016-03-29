@@ -1,4 +1,4 @@
-package scalacache.serdes
+package scalacache.serialization
 
 /**
  * Provides plain Java serialization in addition to simple primitive codecs.

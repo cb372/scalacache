@@ -3,7 +3,7 @@ package scalacache
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 
 class EmptyCache extends Cache {
   override def get[V](key: String)(implicit codec: Codec[V]): Future[Option[V]] = Future.successful(None)

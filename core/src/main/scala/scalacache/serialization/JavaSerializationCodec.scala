@@ -1,4 +1,4 @@
-package scalacache.serdes
+package scalacache.serialization
 
 import java.io._
 

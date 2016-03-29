@@ -3,7 +3,7 @@ package scalacache.redis
 import org.scalatest.{ BeforeAndAfter, Matchers, FlatSpec }
 
 import scalacache._
-import scalacache.serdes.JavaSerializationCodecs._
+import scalacache.serialization.JavaSerializationCodecs._
 import memoization._
 import redis._
 

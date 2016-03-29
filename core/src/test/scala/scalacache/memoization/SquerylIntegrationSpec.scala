@@ -8,7 +8,7 @@ import org.squeryl.annotations.Column
 import org.squeryl._
 import org.squeryl.PrimitiveTypeMode._
 
-import scalacache.serdes.JavaSerializationCodecs._
+import scalacache.serialization.JavaSerializationCodecs._
 
 import scalacache.{ MockCache, LoggingCache, ScalaCache }
 

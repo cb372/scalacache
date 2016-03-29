@@ -1,6 +1,6 @@
 package scalacache.guava
 
-import scalacache.serdes.Codec
+import scalacache.serialization.Codec
 import scalacache.{ LoggingSupport, Cache, Entry }
 import com.google.common.cache.{ Cache => GCache, CacheBuilder => GCacheBuilder }
 import scala.concurrent.duration.Duration

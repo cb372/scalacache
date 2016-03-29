@@ -8,7 +8,7 @@ import play.api.{ Application, GlobalSettings }
 
 import scalacache._
 import scalacache.memoization._
-import scalacache.serdes.JavaSerializationCodecs._
+import scalacache.serialization.JavaSerializationCodecs._
 
 class PlayIntegrationSpec extends FlatSpec with Matchers with OneAppPerTest {
 
