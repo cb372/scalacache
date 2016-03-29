@@ -4,6 +4,9 @@ import org.scalacheck._
 import org.scalatest.{ Matchers, FlatSpec }
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
+/**
+  * Inspired by Shade @ https://github.com/alexandru/shade/blob/master/src/test/scala/shade/tests/CodecsSuite.scala
+  */
 class BasicCodecsSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks {
 
   private def serdesCheck[A: Arbitrary: Codec]: Unit = {
