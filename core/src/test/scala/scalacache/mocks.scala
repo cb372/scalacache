@@ -67,7 +67,7 @@ trait LoggingCache extends Cache {
 
   abstract override def get[V](key: String)(implicit codec: Codec[V]): Future[Option[V]] = {
     getCalledWithArgs.append(key)
-    super.get(key)
+    super.get[V](key)
   }
 
   abstract override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]) = {

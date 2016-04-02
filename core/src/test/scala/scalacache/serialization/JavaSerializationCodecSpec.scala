@@ -1,7 +1,6 @@
 package scalacache.serialization
 
 import org.scalatest.{ Matchers, FlatSpec }
-import JavaSerializationCodecs._
 
 class JavaSerializationCodecSpec extends FlatSpec with Matchers {
 

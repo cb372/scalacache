@@ -3,11 +3,11 @@ package common
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatest.{ Matchers, FlatSpec }
 
-import scalacache.Cache
+import scalacache._
 import scalacache.serialization.Codec
 
 object Snack {
-  val Jagabee = Snack("Jagabee")
+  val Jagabee: Snack = Snack("Jagabee")
 }
 
 case class Snack(name: String)

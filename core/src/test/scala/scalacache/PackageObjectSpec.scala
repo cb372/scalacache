@@ -2,6 +2,7 @@ package scalacache
 
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.{ BeforeAndAfter, FlatSpec, Matchers }
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._

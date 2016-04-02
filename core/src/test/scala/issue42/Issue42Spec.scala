@@ -3,7 +3,7 @@ package issue42
 import org.scalatest.{ FlatSpec, Matchers }
 
 import scala.util.Random
-import scalacache.serialization.JavaSerializationCodecs._
+import scalacache._
 
 class Issue42Spec extends FlatSpec with Matchers {
 

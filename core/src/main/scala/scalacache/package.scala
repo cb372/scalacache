@@ -2,11 +2,11 @@
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ ExecutionContext, Await, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.Try
-import scalacache.serialization.Codec
+import scalacache.serialization.{ Codec, JavaSerializationCodec }
 
-package object scalacache extends StrictLogging {
+package object scalacache extends StrictLogging with JavaSerializationCodec {
 
   class TypedApi[V](implicit val scalaCache: ScalaCache, codec: Codec[V]) {
 
@@ -60,7 +60,7 @@ package object scalacache extends StrictLogging {
 
     private def getWithKey(key: String)(implicit flags: Flags): Future[Option[V]] = {
       if (flags.readsEnabled) {
-        scalaCache.cache.get(key)
+        scalaCache.cache.get[V](key)
       } else {
         logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
         Future.successful(None)

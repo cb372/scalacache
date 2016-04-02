@@ -1,7 +1,6 @@
 package sample
 
 import scalacache._
-import scalacache.serialization.JavaSerializationCodecs._
 import memoization._
 
 import scala.concurrent.Future

@@ -6,8 +6,7 @@ import com.twitter.util.LruMap
 import org.joda.time.{ DateTime, DateTimeUtils }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ BeforeAndAfter, FlatSpec, Matchers }
-import scalacache.serialization.JavaSerializationCodecs
-import JavaSerializationCodecs._
+import scalacache._
 
 class LruMapCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
   def newCache = new LruMap[String, Object](10)
