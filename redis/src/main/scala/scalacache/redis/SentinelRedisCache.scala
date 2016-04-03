@@ -6,6 +6,14 @@ import redis.clients.jedis._
 import scala.collection.JavaConverters._
 import scala.concurrent.{ ExecutionContext, Future, blocking }
 
+/**
+ * Thin wrapper around Jedis that works with Redis Sentinel.
+ *
+ * @param customClassloader a classloader to use when deserializing objects from the cache.
+ *                          If you are using Play and `useLegacySerialization` is true, you should pass in `app.classloader`.
+ * @param useLegacySerialization set this to true to use Jedis's serialization mechanism
+ *                               to maintain compatibility with ScalaCache 0.7.x or earlier.
+ */
 class SentinelRedisCache(val jedisPool: JedisSentinelPool,
                          override val customClassloader: Option[ClassLoader] = None,
                          override val useLegacySerialization: Boolean = false)(implicit val execContext: ExecutionContext = ExecutionContext.global)

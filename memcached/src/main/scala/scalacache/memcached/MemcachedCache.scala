@@ -11,6 +11,9 @@ import scala.concurrent.{ Promise, ExecutionContext }
 
 /**
  * Wrapper around spymemcached
+ *
+ * @param useLegacySerialization set this to true to use Spymemcached's serialization mechanism
+ *                               to maintain compatibility with ScalaCache 0.7.x or earlier.
  */
 class MemcachedCache(client: MemcachedClient,
                      keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer(),

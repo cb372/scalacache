@@ -1,4 +1,4 @@
-0.7.6
+0.8.0 (2016/04/03)
 ----
 
 New features:
@@ -7,6 +7,16 @@ New features:
 
   Note that the addition of this feature may require you to add type annotations in your code in places where you are
   getting items from the cache (e.g. `get[String]("foo")` instead of `get("foo")`).
+
+Breaking changes:
+
+This release changes the serialisation format used in the Memcached and Redis cache implementations.
+If you are using `scalacache-memcached` or `scalacache-redis`, you will not be able to retrieve any data
+that you inserted into the cache using ScalaCache 0.7.x or earlier.
+
+If you want to avoid this problem, you can set the `useLegacySerialization` flag in the cache's constructor.
+This will preserve the ScalaCache 0.7.x behaviour, using the underlying library's mechanism for serialisation
+instead of the new typeclass-based mechanism.
 
 0.7.5 (2015/12/10)
 ----

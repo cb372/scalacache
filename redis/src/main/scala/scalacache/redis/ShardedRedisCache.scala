@@ -4,6 +4,14 @@ import redis.clients.jedis._
 import scala.concurrent.{ Future, ExecutionContext, blocking }
 import scala.collection.JavaConverters._
 
+/**
+ * Thin wrapper around Jedis that works with sharded Redis.
+ *
+ * @param customClassloader a classloader to use when deserializing objects from the cache.
+ *                          If you are using Play and `useLegacySerialization` is true, you should pass in `app.classloader`.
+ * @param useLegacySerialization set this to true to use Jedis's serialization mechanism
+ *                               to maintain compatibility with ScalaCache 0.7.x or earlier.
+ */
 class ShardedRedisCache(val jedisPool: ShardedJedisPool,
                         override val customClassloader: Option[ClassLoader] = None,
                         override val useLegacySerialization: Boolean = false)(implicit val execContext: ExecutionContext = ExecutionContext.global)

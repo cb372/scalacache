@@ -11,8 +11,9 @@ import scalacache.serialization.Codec
 trait RedisSerialization {
 
   /**
-   * Decides whether this cache will use legacy ScalaCache (non-customisable) seriasation/deserialisation or use
-   * the newer call-site customisable Codec.
+   * Decides whether this cache will use legacy ScalaCache (non-customisable) serialisation/deserialisation
+   * (i.e. rely on Jedis's transformers for serialisation)
+   * or use the newer call-site customisable Codec.
    *
    * Defaults to false
    */
