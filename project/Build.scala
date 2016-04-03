@@ -3,7 +3,6 @@ import Keys._
 import com.typesafe.sbt.SbtScalariform._
 import scalariform.formatter.preferences._
 import xerial.sbt.Sonatype._
-import net.virtualvoid.sbt.graph.Plugin._
 import org.scoverage.coveralls.CoverallsPlugin
 import org.scoverage.coveralls.Imports.CoverallsKeys._
 import sbtrelease.ReleasePlugin
@@ -138,7 +137,6 @@ object ScalaCacheBuild extends Build {
     mavenSettings ++
     scalariformSettings ++
     formatterPrefs ++
-    graphSettings ++
     Seq(
       organization := "com.github.cb372",
       scalaVersion := Versions.scala,
