@@ -1,14 +1,21 @@
 sudo: false
 language: scala
 scala:
-  - 2.11.7
+  - 2.11.8
 jdk:
   - oraclejdk8
 services:
   - memcached
   - redis
-script: 
-  - sbt ++2.11.7 coverage test 
+script:
+  - sbt ++2.11.8 coverage test
   - sbt ++2.11.2 test
   - sbt ++2.11.0 test
 after_success: "sbt coverageAggregate coveralls"
+cache:
+  directories:
+  - $HOME/.sbt
+  - $HOME/.ivy2
+before_cache:
+  - find $HOME/.sbt -name "*.lock" -type f -delete -print
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete -print

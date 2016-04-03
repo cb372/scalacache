@@ -15,9 +15,9 @@ import sbtrelease.ReleaseStateTransformations._
 import scala.language.postfixOps
 
 object ScalaCacheBuild extends Build {
-  
+
   object Versions {
-    val scala = "2.11.7"
+    val scala = "2.11.8"
   }
 
   lazy val root = Project(id = "scalacache",base = file("."))
@@ -134,9 +134,9 @@ object ScalaCacheBuild extends Build {
     scalaTest ++
     jodaTime
 
-  lazy val commonSettings = 
-    Defaults.coreDefaultSettings ++ 
-    mavenSettings ++ 
+  lazy val commonSettings =
+    Defaults.coreDefaultSettings ++
+    mavenSettings ++
     scalariformSettings ++
     formatterPrefs ++
     graphSettings ++
