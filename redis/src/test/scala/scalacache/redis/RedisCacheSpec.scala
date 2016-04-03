@@ -14,7 +14,7 @@ class RedisCacheSpec
 
   val withJedis = assumingRedisIsRunning _
 
-  def constructCache(pool: JPool): Cache = RedisCache(pool)
+  def constructCache(pool: JPool, useLegacySerialization: Boolean): Cache = new RedisCache(jedisPool = pool, useLegacySerialization = useLegacySerialization)
 
   def flushRedis(client: JClient): Unit = client.flushDB()
 

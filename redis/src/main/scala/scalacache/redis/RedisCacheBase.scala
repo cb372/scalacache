@@ -5,7 +5,8 @@ import java.io.Closeable
 import redis.clients.jedis._
 import redis.clients.util.Pool
 import scala.concurrent.{ ExecutionContext, Future, blocking }
-import scalacache.{ LoggingSupport, Cache }
+import scalacache.serialization.Codec
+import scalacache.{LoggingSupport, Cache}
 import scala.concurrent.duration._
 import com.typesafe.scalalogging.StrictLogging
 
@@ -21,14 +22,15 @@ trait RedisCacheBase
 
   import StringEnrichment.StringWithUtf8Bytes
 
-  implicit val execContext: ExecutionContext
+  implicit def execContext: ExecutionContext
 
   protected type JClient <: BinaryJedisCommands with Closeable
 
-  protected val jedisPool: Pool[JClient]
+  protected def jedisPool: Pool[JClient]
 
   /**
    * Borrow a Jedis client from the pool, perform some operation and then return the client to the pool.
+ *
    * @param f block that uses the Jedis client
    * @tparam T return type of the block
    * @return the result of executing the block
@@ -45,11 +47,12 @@ trait RedisCacheBase
 
   /**
    * Get the value corresponding to the given key from the cache
+ *
    * @param key cache key
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  final override def get[V](key: String) = Future {
+  final override def get[V](key: String)(implicit codec: Codec[V]) = Future {
     blocking {
       withJedisCommands { jedis =>
         val resultBytes = Option(jedis.get(key.utf8bytes))
@@ -62,12 +65,13 @@ trait RedisCacheBase
 
   /**
    * Insert the given key-value pair into the cache, with an optional Time To Live.
+ *
    * @param key cache key
    * @param value corresponding value
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  final override def put[V](key: String, value: V, ttl: Option[Duration]) = Future {
+  final override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]) = Future {
     blocking {
       withJedisCommands { jedis =>
         val keyBytes = key.utf8bytes
@@ -87,6 +91,7 @@ trait RedisCacheBase
   /**
    * Remove the given key and its associated value from the cache, if it exists.
    * If the key is not in the cache, do nothing.
+ *
    * @param key cache key
    */
   final override def remove(key: String) = Future {

@@ -1,5 +1,6 @@
 package scalacache.caffeine
 
+import scalacache.serialization.Codec
 import scalacache.{ LoggingSupport, Cache, Entry }
 import com.github.benmanes.caffeine.cache.{ Cache => CCache, Caffeine }
 
@@ -23,11 +24,12 @@ class CaffeineCache(underlying: CCache[String, Object])
 
   /**
    * Get the value corresponding to the given key from the cache
+   *
    * @param key cache key
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V](key: String) = {
+  override def get[V](key: String)(implicit codec: Codec[V]) = {
     val entry = Option(underlying.getIfPresent(key).asInstanceOf[Entry[V]])
     /*
      Note: we could delete the entry from the cache if it has expired,
@@ -44,12 +46,13 @@ class CaffeineCache(underlying: CCache[String, Object])
 
   /**
    * Insert the given key-value pair into the cache, with an optional Time To Live.
+   *
    * @param key cache key
    * @param value corresponding value
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V](key: String, value: V, ttl: Option[Duration] = None) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration] = None)(implicit codec: Codec[V]) = {
     val entry = Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
     logCachePut(key, ttl)
@@ -59,6 +62,7 @@ class CaffeineCache(underlying: CCache[String, Object])
   /**
    * Remove the given key and its associated value from the cache, if it exists.
    * If the key is not in the cache, do nothing.
+   *
    * @param key cache key
    */
   override def remove(key: String) = Future.successful(underlying.invalidate(key))
@@ -82,6 +86,7 @@ object CaffeineCache {
 
   /**
    * Create a new cache utilizing the given underlying Caffeine cache.
+   *
    * @param underlying a Caffeine cache
    */
   def apply(underlying: CCache[String, Object]): CaffeineCache = new CaffeineCache(underlying)

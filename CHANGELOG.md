@@ -1,3 +1,13 @@
+0.7.6
+----
+
+New features:
+
+* [#86](https://github.com/cb372/scalacache/pull/86) adds support for custom serialisation. Thanks to @lloydmeta
+
+  Note that the addition of this feature may require you to add type annotations in your code in places where you are
+  getting items from the cache (e.g. `get[String]("foo")` instead of `get("foo")`).
+
 0.7.5 (2015/12/10)
 ----
 

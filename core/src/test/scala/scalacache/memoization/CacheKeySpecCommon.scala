@@ -20,7 +20,7 @@ trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with Befo
 
     // Check that the value is in the cache, with the expected key
     eventually {
-      whenReady(cache.get(expectedKey)) { result =>
+      whenReady(cache.get[Int](expectedKey)) { result =>
         result should be(Some(value))
       }
     }

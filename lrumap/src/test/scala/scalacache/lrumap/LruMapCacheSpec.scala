@@ -6,6 +6,7 @@ import com.twitter.util.LruMap
 import org.joda.time.{ DateTime, DateTimeUtils }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ BeforeAndAfter, FlatSpec, Matchers }
+import scalacache._
 
 class LruMapCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
   def newCache = new LruMap[String, Object](10)
@@ -16,14 +17,14 @@ class LruMapCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Sc
     val underlying = newCache
     val entry = LruMapCache.Entry("hello", expiresAt = None)
     underlying.put("key1", entry)
-    whenReady(LruMapCache(underlying).get("key1")) { result =>
+    whenReady(LruMapCache(underlying).get[String]("key1")) { result =>
       result should be(Some("hello"))
     }
   }
 
   it should "return None if the given key does not exist in the underlying cache" in {
     val underlying = newCache
-    whenReady(LruMapCache(underlying).get("non-existent key")) { result =>
+    whenReady(LruMapCache(underlying).get[String]("non-existent key")) { result =>
       result should be(None)
     }
   }
@@ -32,7 +33,7 @@ class LruMapCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Sc
     val underlying = newCache
     val expiredEntry = LruMapCache.Entry("hello", expiresAt = Some(DateTime.now.minusSeconds(1)))
     underlying.put("key1", expiredEntry)
-    whenReady(LruMapCache(underlying).get("non-existent key")) { result =>
+    whenReady(LruMapCache(underlying).get[String]("non-existent key")) { result =>
       result should be(None)
     }
   }

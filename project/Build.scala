@@ -3,11 +3,9 @@ import Keys._
 import com.typesafe.sbt.SbtScalariform._
 import scalariform.formatter.preferences._
 import xerial.sbt.Sonatype._
-import SonatypeKeys._
 import net.virtualvoid.sbt.graph.Plugin._
 import org.scoverage.coveralls.CoverallsPlugin
 import org.scoverage.coveralls.Imports.CoverallsKeys._
-import com.typesafe.sbt.pgp.PgpKeys
 import sbtrelease.ReleasePlugin
 import sbtrelease.ReleasePlugin.autoImport._
 import sbtrelease.ReleaseStateTransformations._
@@ -15,7 +13,7 @@ import sbtrelease.ReleaseStateTransformations._
 import scala.language.postfixOps
 
 object ScalaCacheBuild extends Build {
-  
+
   object Versions {
     val scala = "2.11.7"
   }
@@ -38,7 +36,8 @@ object ScalaCacheBuild extends Build {
     .settings(
       libraryDependencies ++= Seq(
         "org.squeryl" %% "squeryl" % "0.9.5-7" % "test",
-        "com.h2database" % "h2" % "1.4.182" % "test"
+        "com.h2database" % "h2" % "1.4.182" % "test",
+        "org.scalacheck" %% "scalacheck" % "1.12.5" % Test
       )
     )
     .disablePlugins(CoverallsPlugin)
@@ -61,7 +60,7 @@ object ScalaCacheBuild extends Build {
         "net.spy" % "spymemcached" % "2.11.7"
       )
     )
-    .dependsOn(core)
+    .dependsOn(core % "test->test;compile->compile")
     .disablePlugins(CoverallsPlugin)
 
   lazy val ehcache = Project(id = "scalacache-ehcache", base = file("ehcache"))
@@ -82,7 +81,7 @@ object ScalaCacheBuild extends Build {
         "redis.clients" % "jedis" % "2.8.0"
       ) ++ playTesting
     )
-    .dependsOn(core)
+    .dependsOn(core % "test->test;compile->compile")
     .disablePlugins(CoverallsPlugin)
 
   lazy val lrumap = Project(id = "scalacache-lrumap", base = file("lrumap"))
@@ -116,7 +115,7 @@ object ScalaCacheBuild extends Build {
   )
 
   lazy val scalaTest = Seq(
-    "org.scalatest" %% "scalatest" % "2.2.2" % "test"
+    "org.scalatest" %% "scalatest" % "2.2.6" % "test"
   ) ++ (if (Versions.scala.startsWith("2.11")) {
     // used in the scalatest reporter
     Seq("org.scala-lang.modules" %% "scala-xml" % "1.0.1" % "test")
@@ -134,9 +133,9 @@ object ScalaCacheBuild extends Build {
     scalaTest ++
     jodaTime
 
-  lazy val commonSettings = 
-    Defaults.coreDefaultSettings ++ 
-    mavenSettings ++ 
+  lazy val commonSettings =
+    Defaults.coreDefaultSettings ++
+    mavenSettings ++
     scalariformSettings ++
     formatterPrefs ++
     graphSettings ++

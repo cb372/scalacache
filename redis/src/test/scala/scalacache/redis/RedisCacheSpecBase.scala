@@ -1,5 +1,6 @@
 package scalacache.redis
 
+import common.LegacyCodecCheckSupport
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
@@ -9,6 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scalacache.serialization.Codec
 import scalacache.Cache
 
 trait RedisCacheSpecBase
@@ -18,20 +20,21 @@ trait RedisCacheSpecBase
     with BeforeAndAfter
     with RedisSerialization
     with ScalaFutures
-    with IntegrationPatience {
+    with IntegrationPatience
+    with LegacyCodecCheckSupport {
 
   type JPool
   type JClient <: JedisCommands with BinaryJedisCommands
 
   def withJedis: ((JPool, JClient) => Unit) => Unit
-  def constructCache(pool: JPool): Cache
+  def constructCache(pool: JPool, useLegacySerialisation: Boolean): Cache
   def flushRedis(client: JClient): Unit
 
   def runTestsIfPossible() = {
 
     withJedis { (pool, client) =>
 
-      val cache = constructCache(pool)
+      val cache = constructCache(pool, false)
 
       before {
         flushRedis(client)
@@ -41,11 +44,11 @@ trait RedisCacheSpecBase
 
       it should "return the value stored in Redis" in {
         client.set(bytes("key1"), serialize(123))
-        whenReady(cache.get("key1")) { _ should be(Some(123)) }
+        whenReady(cache.get[Int]("key1")) { _ should be(Some(123)) }
       }
 
       it should "return None if the given key does not exist in the underlying cache" in {
-        whenReady(cache.get("non-existent-key")) { _ should be(None) }
+        whenReady(cache.get[Int]("non-existent-key")) { _ should be(None) }
       }
 
       behavior of "put"
@@ -94,8 +97,8 @@ trait RedisCacheSpecBase
 
       behavior of "caching with serialization"
 
-      def roundTrip[V](key: String, value: V): Future[Option[V]] = {
-        cache.put(key, value, None).flatMap(_ => cache.get(key))
+      def roundTrip[V](key: String, value: V)(implicit codec: Codec[V]): Future[Option[V]] = {
+        cache.put(key, value, None).flatMap(_ => cache.get[V](key))
       }
 
       it should "round-trip a String" in {
@@ -134,6 +137,10 @@ trait RedisCacheSpecBase
         whenReady(cache.remove("key1")) { _ =>
           client.get("key1") should be(null)
         }
+      }
+
+      legacySupportCheck { useLegacySerialisation =>
+        constructCache(pool = pool, useLegacySerialisation = useLegacySerialisation)
       }
 
     }

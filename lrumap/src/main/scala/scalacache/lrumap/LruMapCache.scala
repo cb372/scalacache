@@ -5,6 +5,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
+import scalacache.serialization.Codec
 import scalacache.{ LoggingSupport, Cache }
 
 import org.joda.time.DateTime
@@ -22,11 +23,12 @@ class LruMapCache(underlying: LruMap[String, Object])
 
   /**
    * Get the value corresponding to the given key from the cache
+   *
    * @param key cache key
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V](key: String): Future[Option[V]] = {
+  override def get[V](key: String)(implicit codec: Codec[V]): Future[Option[V]] = {
     val entry = underlying.get(key).map(_.asInstanceOf[LruMapCache.Entry[V]])
 
     val result = entry.flatMap { e =>
@@ -42,12 +44,13 @@ class LruMapCache(underlying: LruMap[String, Object])
 
   /**
    * Insert the given key-value pair into the cache, with an optional Time To Live.
+   *
    * @param key cache key
    * @param value corresponding value
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V](key: String, value: V, ttl: Option[Duration]): Future[Unit] = {
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): Future[Unit] = {
     val entry = LruMapCache.Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
     logCachePut(key, ttl)
@@ -57,6 +60,7 @@ class LruMapCache(underlying: LruMap[String, Object])
   /**
    * Remove the given key and its associated value from the cache, if it exists.
    * If the key is not in the cache, do nothing.
+   *
    * @param key cache key
    */
   override def remove(key: String): Future[Unit] =
