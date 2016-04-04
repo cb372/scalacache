@@ -290,8 +290,18 @@ types, and provide an implementation for objects based on Java serialisation.
 
 ### Custom Codec
 
-If you want to use a custom `Codec` for your object of type `A`, simply implement an instance of `Codec[A]` and make sure it
+If you want to use a custom `Codec` for your object of type `A`, simply implement an instance of `Codec[A, Array[Byte]]` and make sure it
 is in scope at your `set`/`put` call site.
+
+### Compression of `Codec[A, Array[Byte]]`
+
+If you want to compress your serialised data before sending it to your cache, ScalaCache has a built-in `GZippingBinaryCodec[A]` mix-in
+trait that will automatically apply GZip  compression before sending it over the wire if the `Array[Byte]` representation is above a `sizeThreshold`. 
+It also takes care of properly decompressing data upon retrieval. To use it, simply extend your `Codec[A, Array[Byte] with GZippingBinaryCodec[A]` 
+**last** (it should be the right-most extended trait).
+
+Those who want to use GZip compression with standard Java serialisation can `import scalacache.serialization.GZippingJavaAnyBinaryCodec._` or
+provide an implicit `GZippingJavaAnyBinaryCodec` at the cache call site.
 
 ### Backwards compatibility
 

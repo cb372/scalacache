@@ -8,8 +8,8 @@ package scalacache.serialization
 trait BaseCodecs {
 
   /**
-    * Noop Codec that does nothing when you just want to put stuff into in-memory cache representations
-    */
+   * Noop Codec that does nothing when you just want to put stuff into in-memory cache representations
+   */
   implicit def anyToNoSerialization[A] = new Codec[A, InMemoryRepr] {
     def serialize(value: A): InMemoryRepr = throw new RuntimeException("Cache using InMemoryRepr trying to serialize data")
     def deserialize(data: InMemoryRepr): A = throw new RuntimeException("Cache using InMemoryRepr trying to deserialize data")
