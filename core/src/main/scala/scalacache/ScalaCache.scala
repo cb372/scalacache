@@ -8,7 +8,11 @@ import scalacache.memoization.MemoizationConfig
  * @param memoization Configuration related to method memoization
  */
 case class ScalaCache(
-  cache: Cache,
-  cacheConfig: CacheConfig = CacheConfig(),
-  keyBuilder: CacheKeyBuilder = DefaultCacheKeyBuilder,
-  memoization: MemoizationConfig = MemoizationConfig())
+    cache: Cache,
+    cacheConfig: CacheConfig = CacheConfig(),
+    keyBuilder: CacheKeyBuilder = DefaultCacheKeyBuilder,
+    memoization: MemoizationConfig = MemoizationConfig()) {
+
+  type CodecTarget = cache.CodecTarget
+
+}

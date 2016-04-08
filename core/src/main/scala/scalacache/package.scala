@@ -4,11 +4,13 @@ import com.typesafe.scalalogging.StrictLogging
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.Try
-import scalacache.serialization.{ Codec, JavaSerializationCodec }
+import scalacache.serialization.{DummyCodec, Codec, JavaSerializationCodec}
+import scalacache.util.SingletonOf
 
-package object scalacache extends StrictLogging with JavaSerializationCodec {
+package object scalacache extends StrictLogging with JavaSerializationCodec with DummyCodec {
 
-  class TypedApi[V](implicit val scalaCache: ScalaCache, codec: Codec[V]) {
+
+  class TypedApi[V, foo <: { type CodecTarget }](implicit val sc: SingletonOf[ScalaCache, foo], scalaCache: ScalaCache, codec: Codec[V, foo#CodecTarget]) {
 
     def get(keyParts: Any*)(implicit flags: Flags): Future[Option[V]] = getWithKey(toKey(keyParts))
 
@@ -128,7 +130,7 @@ package object scalacache extends StrictLogging with JavaSerializationCodec {
    *
    * @tparam V the type of values that the cache will accept
    */
-  def typed[V](implicit scalaCache: ScalaCache, codec: Codec[V]) = new TypedApi[V]()(scalaCache, codec)
+  def typed[V, foo <: { type CodecTarget }](implicit sc: SingletonOf[ScalaCache, foo], scalaCache: ScalaCache, codec: Codec[V, foo#CodecTarget]) = new TypedApi[V, foo]()(sc, scalaCache, codec)
 
   /**
    * Get the value corresponding to the given key from the cache.
@@ -139,21 +141,21 @@ package object scalacache extends StrictLogging with JavaSerializationCodec {
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): Future[Option[V]] =
-    typed[V].get(keyParts: _*)
+  def get[V, foo <: { type CodecTarget }](keyParts: Any*)(implicit sc: SingletonOf[ScalaCache, foo], scalaCache: ScalaCache, codec: Codec[V, foo#CodecTarget], flags: Flags): Future[Option[V]] =
+    typed[V, foo].get(keyParts: _*)
 
-  /**
-   * Convenience method to get a value from the cache synchronously.
-   *
-   * Warning: may block indefinitely!
-   *
-   * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-   * @tparam V the type of the corresponding value
-   * @return the value, if there is one
-   */
-  @deprecated("This method has moved. Please use scalacache.sync.get", "0.7.0")
-  def getSync[V](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): Option[V] =
-    sync.get[V](keyParts: _*)
+//  /**
+//   * Convenience method to get a value from the cache synchronously.
+//   *
+//   * Warning: may block indefinitely!
+//   *
+//   * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
+//   * @tparam V the type of the corresponding value
+//   * @return the value, if there is one
+//   */
+//  @deprecated("This method has moved. Please use scalacache.sync.get", "0.7.0")
+//  def getSync[V](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): Option[V] =
+//    sync.get[V](keyParts: _*)
 
   /**
    * Insert the given key-value pair into the cache, with an optional Time To Live.
@@ -165,8 +167,8 @@ package object scalacache extends StrictLogging with JavaSerializationCodec {
    * @param ttl Time To Live (optional, if not specified then the entry will be cached indefinitely)
    * @tparam V the type of the corresponding value
    */
-  def put[V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): Future[Unit] =
-    typed[V].put(keyParts: _*)(value, ttl)
+  def put[V, foo <: { type CodecTarget }](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit sc: SingletonOf[ScalaCache, foo], scalaCache: ScalaCache, codec: Codec[V, foo#CodecTarget], flags: Flags): Future[Unit] =
+    typed[V, foo].put(keyParts: _*)(value, ttl)
 
   /**
    * Remove the given key and its associated value from the cache, if it exists.
@@ -203,8 +205,9 @@ package object scalacache extends StrictLogging with JavaSerializationCodec {
    * @tparam V the type of the block's result
    * @return the result, either retrived from the cache or returned by the block
    */
-  def caching[V](keyParts: Any*)(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V]): Future[V] =
-    typed[V].caching(keyParts: _*)(f)
+  def caching[V, foo <: { type CodecTarget }](keyParts: Any*)(f: => Future[V])
+                                             (implicit sc: SingletonOf[ScalaCache, foo], scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V, foo#CodecTarget]): Future[V] =
+    typed[V, foo].caching(keyParts: _*)(f)
 
   /**
    * Wrap the given block with a caching decorator.
@@ -225,85 +228,87 @@ package object scalacache extends StrictLogging with JavaSerializationCodec {
    * @tparam V the type of the block's result
    * @return the result, either retrived from the cache or returned by the block
    */
-  def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V]): Future[V] =
-    typed[V].cachingWithTTL(keyParts: _*)(ttl)(f)
+  def cachingWithTTL[V, foo <: { type CodecTarget }](keyParts: Any*)(ttl: Duration)(f: => Future[V])
+                                                    (implicit sc: SingletonOf[ScalaCache, foo], scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V, foo#CodecTarget]): Future[V] =
+    typed[V, foo].cachingWithTTL(keyParts: _*)(ttl)(f)
 
-  def cachingWithOptionalTTL[V](keyParts: Any*)(optionalTtl: Option[Duration])(f: => Future[V])(implicit scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V]): Future[V] =
-    typed[V].cachingWithOptionalTTL(keyParts: _*)(optionalTtl)(f)
+  def cachingWithOptionalTTL[V, foo <: { type CodecTarget }](keyParts: Any*)(optionalTtl: Option[Duration])(f: => Future[V])
+                                                            (implicit sc: SingletonOf[ScalaCache, foo], scalaCache: ScalaCache, flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V, foo#CodecTarget]): Future[V] =
+    typed[V, foo].cachingWithOptionalTTL(keyParts: _*)(optionalTtl)(f)
 
   private def toKey(parts: Seq[Any])(implicit scalaCache: ScalaCache): String =
     scalaCache.keyBuilder.toCacheKey(parts)(scalaCache.cacheConfig)
 
-  /**
-   * Synchronous API, for the case when you don't want to deal with Futures.
-   */
-  object sync {
-
-    /**
-     * Convenience method to get a value from the cache synchronously.
-     *
-     * Warning: may block indefinitely!
-     *
-     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-     * @tparam V the type of the corresponding value
-     * @return the value, if there is one
-     */
-    def get[V](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): Option[V] =
-      typed[V].sync.get(keyParts: _*)
-
-    /**
-     * Wrap the given block with a caching decorator.
-     * First look in the cache. If the value is found, then return it immediately.
-     * Otherwise run the block and save the result in the cache before returning it.
-     *
-     * Note: Because no TTL is specified, the result will be stored in the cache indefinitely.
-     *
-     * Warning: may block indefinitely!
-     *
-     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-     * @param f the block to run
-     * @tparam V the type of the block's result
-     * @return the result, either retrived from the cache or returned by the block
-     */
-    def caching[V](keyParts: Any*)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): V =
-      typed[V].sync.caching(keyParts: _*)(f)
-
-    /**
-     * Wrap the given block with a caching decorator.
-     * First look in the cache. If the value is found, then return it immediately.
-     * Otherwise run the block and save the result in the cache before returning it.
-     *
-     * The result will be stored in the cache until the given TTL expires.
-     *
-     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-     * @param ttl Time To Live
-     * @param f the block to run
-     * @tparam V the type of the block's result
-     * @return the result, either retrived from the cache or returned by the block
-     */
-    def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): V =
-      typed[V].sync.cachingWithTTL(keyParts: _*)(ttl)(f)
-
-    /**
-     * Wrap the given block with a caching decorator.
-     * First look in the cache. If the value is found, then return it immediately.
-     * Otherwise run the block and save the result in the cache before returning it.
-     *
-     * The result will be stored in the cache until the given TTL expires.
-     *
-     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-     * @param optionalTtl Optional Time To Live
-     * @param f the block to run
-     * @tparam V the type of the block's result
-     * @return the result, either retrived from the cache or returned by the block
-     */
-    def cachingWithOptionalTTL[V](keyParts: Any*)(optionalTtl: Option[Duration])(f: => V)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): V = {
-      optionalTtl match {
-        case Some(ttl) => typed[V].sync.cachingWithTTL(keyParts: _*)(ttl)(f)
-        case None => typed[V].sync.caching(keyParts: _*)(f)
-      }
-    }
-
-  }
+//  /**
+//   * Synchronous API, for the case when you don't want to deal with Futures.
+//   */
+//  object sync {
+//
+//    /**
+//     * Convenience method to get a value from the cache synchronously.
+//     *
+//     * Warning: may block indefinitely!
+//     *
+//     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
+//     * @tparam V the type of the corresponding value
+//     * @return the value, if there is one
+//     */
+//    def get[V](keyParts: Any*)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): Option[V] =
+//      typed[V].sync.get(keyParts: _*)
+//
+//    /**
+//     * Wrap the given block with a caching decorator.
+//     * First look in the cache. If the value is found, then return it immediately.
+//     * Otherwise run the block and save the result in the cache before returning it.
+//     *
+//     * Note: Because no TTL is specified, the result will be stored in the cache indefinitely.
+//     *
+//     * Warning: may block indefinitely!
+//     *
+//     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
+//     * @param f the block to run
+//     * @tparam V the type of the block's result
+//     * @return the result, either retrived from the cache or returned by the block
+//     */
+//    def caching[V](keyParts: Any*)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): V =
+//      typed[V].sync.caching(keyParts: _*)(f)
+//
+//    /**
+//     * Wrap the given block with a caching decorator.
+//     * First look in the cache. If the value is found, then return it immediately.
+//     * Otherwise run the block and save the result in the cache before returning it.
+//     *
+//     * The result will be stored in the cache until the given TTL expires.
+//     *
+//     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
+//     * @param ttl Time To Live
+//     * @param f the block to run
+//     * @tparam V the type of the block's result
+//     * @return the result, either retrived from the cache or returned by the block
+//     */
+//    def cachingWithTTL[V](keyParts: Any*)(ttl: Duration)(f: => V)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): V =
+//      typed[V].sync.cachingWithTTL(keyParts: _*)(ttl)(f)
+//
+//    /**
+//     * Wrap the given block with a caching decorator.
+//     * First look in the cache. If the value is found, then return it immediately.
+//     * Otherwise run the block and save the result in the cache before returning it.
+//     *
+//     * The result will be stored in the cache until the given TTL expires.
+//     *
+//     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
+//     * @param optionalTtl Optional Time To Live
+//     * @param f the block to run
+//     * @tparam V the type of the block's result
+//     * @return the result, either retrived from the cache or returned by the block
+//     */
+//    def cachingWithOptionalTTL[V](keyParts: Any*)(optionalTtl: Option[Duration])(f: => V)(implicit scalaCache: ScalaCache, flags: Flags, codec: Codec[V]): V = {
+//      optionalTtl match {
+//        case Some(ttl) => typed[V].sync.cachingWithTTL(keyParts: _*)(ttl)(f)
+//        case None => typed[V].sync.caching(keyParts: _*)(f)
+//      }
+//    }
+//
+//  }
 
 }

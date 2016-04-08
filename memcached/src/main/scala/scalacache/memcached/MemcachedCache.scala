@@ -23,6 +23,8 @@ class MemcachedCache(client: MemcachedClient,
     with StrictLogging
     with LoggingSupport {
 
+  type CodecTarget = Array[Byte]
+
   /**
    * Get the value corresponding to the given key from the cache
    *
@@ -30,7 +32,7 @@ class MemcachedCache(client: MemcachedClient,
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V](key: String)(implicit codec: Codec[V]) = {
+  override def get[V](key: String)(implicit codec: Codec[V, CodecTarget]) = {
     val p = Promise[Option[V]]()
     val f = client.asyncGet(keySanitizer.toValidMemcachedKey(key))
     f.addListener(new GetCompletionListener {
@@ -57,7 +59,7 @@ class MemcachedCache(client: MemcachedClient,
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, CodecTarget]) = {
     val p = Promise[Unit]()
     val valueToSend = if (useLegacySerialization) value else codec.serialize(value)
     val f = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)

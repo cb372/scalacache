@@ -7,10 +7,10 @@ import scala.language.implicitConversions
  * Represents a type class that needs to be implemented
  * for serialization/deserialization to work.
  */
-@implicitNotFound("Could not find any Codecs for type ${T}. Please provide one or import scalacache._")
-trait Codec[T] {
-  def serialize(value: T): Array[Byte]
-  def deserialize(data: Array[Byte]): T
+@implicitNotFound("Could not find any Codecs for ${From} -> ${To}. Please provide one or import scalacache._")
+trait Codec[From, To] {
+  def serialize(value: From): To
+  def deserialize(data: To): From
 }
 
 /**

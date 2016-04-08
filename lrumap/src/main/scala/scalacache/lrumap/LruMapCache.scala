@@ -5,7 +5,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scalacache.serialization.Codec
+import scalacache.serialization.{ Dummy, Codec }
 import scalacache.{ LoggingSupport, Cache }
 
 import org.joda.time.DateTime
@@ -20,6 +20,8 @@ class LruMapCache(underlying: LruMap[String, Object])
     extends Cache
     with LoggingSupport
     with StrictLogging {
+
+  type CodecTarget = Dummy
 
   /**
    * Get the value corresponding to the given key from the cache

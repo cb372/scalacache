@@ -20,6 +20,8 @@ trait RedisCacheBase
     with LoggingSupport
     with StrictLogging {
 
+  type CodecTarget = Array[Byte]
+
   import StringEnrichment.StringWithUtf8Bytes
 
   implicit def execContext: ExecutionContext
@@ -52,7 +54,7 @@ trait RedisCacheBase
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  final override def get[V](key: String)(implicit codec: Codec[V]) = Future {
+  final override def get[V](key: String)(implicit codec: Codec[V, CodecTarget]) = Future {
     blocking {
       withJedisCommands { jedis =>
         val resultBytes = Option(jedis.get(key.utf8bytes))
@@ -71,7 +73,7 @@ trait RedisCacheBase
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  final override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]) = Future {
+  final override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, CodecTarget]) = Future {
     blocking {
       withJedisCommands { jedis =>
         val keyBytes = key.utf8bytes
