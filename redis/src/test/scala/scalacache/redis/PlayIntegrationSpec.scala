@@ -31,7 +31,7 @@ case class Item(id: Int, name: String)
 
 object Global extends GlobalSettings {
   @volatile implicit var jedisPool: JedisPool = _
-  @volatile implicit var scalaCache: ScalaCache = _
+  @volatile implicit var scalaCache: ScalaCache[Array[Byte]] = _
 
   override def onStart(app: Application): Unit = {
     jedisPool = new JedisPool("localhost", 6379)

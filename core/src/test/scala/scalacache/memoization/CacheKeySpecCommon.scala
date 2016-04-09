@@ -3,12 +3,13 @@ package scalacache.memoization
 import org.scalatest._
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 
-import scalacache.{ ScalaCache, MockCache }
+import scalacache.serialization.InMemoryRepr
+import scalacache.{ MockCache, ScalaCache }
 
 trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with BeforeAndAfter with Eventually {
 
   val cache = new MockCache
-  implicit def scalaCache: ScalaCache
+  implicit def scalaCache: ScalaCache[InMemoryRepr]
 
   before {
     cache.mmap.clear()
@@ -49,7 +50,7 @@ trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with Befo
 
 }
 
-class AClass(implicit val scalaCache: ScalaCache) {
+class AClass(implicit val scalaCache: ScalaCache[InMemoryRepr]) {
   def insideClass(a: Int): Int = memoizeSync {
     123
   }
@@ -69,7 +70,7 @@ class AClass(implicit val scalaCache: ScalaCache) {
 }
 
 trait ATrait {
-  implicit val scalaCache: ScalaCache
+  implicit val scalaCache: ScalaCache[InMemoryRepr]
 
   def insideTrait(a: Int): Int = memoizeSync {
     123
@@ -77,21 +78,21 @@ trait ATrait {
 }
 
 object AnObject {
-  implicit var scalaCache: ScalaCache = null
+  implicit var scalaCache: ScalaCache[InMemoryRepr] = null
   def insideObject(a: Int): Int = memoizeSync {
     123
   }
 }
 
 class ClassWithConstructorParams(b: Int) {
-  implicit var scalaCache: ScalaCache = null
+  implicit var scalaCache: ScalaCache[InMemoryRepr] = null
   def foo(a: Int): Int = memoizeSync {
     a + b
   }
 }
 
 class ClassWithExcludedConstructorParam(b: Int, @cacheKeyExclude c: Int) {
-  implicit var scalaCache: ScalaCache = null
+  implicit var scalaCache: ScalaCache[InMemoryRepr] = null
   def foo(a: Int): Int = memoizeSync {
     a + b + c
   }

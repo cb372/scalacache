@@ -21,14 +21,14 @@ trait RedisSerialization {
 
   protected def customClassloader: Option[ClassLoader] = None
 
-  def serialize[A](value: A)(implicit codec: Codec[A]): Array[Byte] = {
+  def serialize[A](value: A)(implicit codec: Codec[A, Array[Byte]]): Array[Byte] = {
     if (useLegacySerialization)
       Legacy.serialize(value)
     else
       codec.serialize(value)
   }
 
-  def deserialize[A](bytes: Array[Byte])(implicit codec: Codec[A]): A = {
+  def deserialize[A](bytes: Array[Byte])(implicit codec: Codec[A, Array[Byte]]): A = {
     if (useLegacySerialization)
       Legacy.deserialize[A](bytes)
     else

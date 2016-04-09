@@ -2,10 +2,11 @@ package scalacache.ehcache
 
 import com.typesafe.scalalogging.StrictLogging
 
-import scalacache.serialization.Codec
-import scalacache.{ LoggingSupport, Cache }
+import scalacache.serialization.{ Codec, InMemoryRepr }
+import scalacache.{ Cache, LoggingSupport }
 import scala.concurrent.duration.Duration
-import net.sf.ehcache.{ Cache => Ehcache, Element }
+import net.sf.ehcache.{ Element, Cache => Ehcache }
+
 import scala.concurrent.Future
 
 /**
@@ -14,7 +15,7 @@ import scala.concurrent.Future
  * all operations are performed synchronously, i.e. ExecutionContext is not needed.
  */
 class EhcacheCache(underlying: Ehcache)
-    extends Cache
+    extends Cache[InMemoryRepr]
     with LoggingSupport
     with StrictLogging {
 
@@ -25,7 +26,7 @@ class EhcacheCache(underlying: Ehcache)
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V](key: String)(implicit codec: Codec[V]) = {
+  override def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]) = {
     val result = for {
       e <- Option(underlying.get(key))
       v <- Option(e.getObjectValue.asInstanceOf[V])
@@ -42,7 +43,7 @@ class EhcacheCache(underlying: Ehcache)
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, InMemoryRepr]) = {
     val element = new Element(key, value)
     ttl.foreach(t => element.setTimeToLive(t.toSeconds.toInt))
     underlying.put(element)
