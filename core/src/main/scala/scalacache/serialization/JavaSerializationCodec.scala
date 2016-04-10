@@ -12,7 +12,7 @@ import scala.util.control.NonFatal
   */
 trait JavaSerializationCodec {
 
-  private[this] class GenericCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S] {
+  private[this] class GenericCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S, Array[Byte]] {
 
     def using[T <: Closeable, R](obj: T)(f: T => R): R =
       try
@@ -43,7 +43,7 @@ trait JavaSerializationCodec {
   /**
     * Uses plain Java serialization to deserialize objects
     */
-  implicit def AnyRefBinaryCodec[S <: Serializable](implicit ev: ClassTag[S]): Codec[S] =
+  implicit def AnyRefBinaryCodec[S <: Serializable](implicit ev: ClassTag[S]): Codec[S, Array[Byte]] =
     new GenericCodec[S](ev)
 
 }

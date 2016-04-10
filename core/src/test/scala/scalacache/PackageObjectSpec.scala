@@ -7,6 +7,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scalacache.serialization.InMemoryRepr
 
 class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures with Eventually {
 
@@ -21,25 +22,25 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
   behavior of "#get"
 
   it should "call get on the cache found in the ScalaCache" in {
-    scalacache.get[String]("foo")
+    scalacache.get[String, InMemoryRepr]("foo")
     cache.getCalledWithArgs(0) should be("foo")
   }
 
   it should "use the CacheKeyBuilder to build the cache key" in {
-    scalacache.get[String]("foo", 123)
+    scalacache.get[String, InMemoryRepr]("foo", 123)
     cache.getCalledWithArgs(0) should be("foo:123")
   }
 
   it should "not call get on the cache found in the ScalaCache if cache reads are disabled" in {
     implicit val flags = Flags(readsEnabled = false)
-    scalacache.get[String]("foo")
+    scalacache.get[String, InMemoryRepr]("foo")
     cache.getCalledWithArgs should be('empty)
   }
 
   it should "conditionally call get on the cache found in the ScalaCache depending on the readsEnabled flag" in {
     def possiblyGetFromCache(key: String): Unit = {
       implicit def flags = Flags(readsEnabled = (key == "foo"))
-      scalacache.get[String](key)
+      scalacache.get[String, InMemoryRepr](key)
     }
     possiblyGetFromCache("foo")
     possiblyGetFromCache("bar")
@@ -80,7 +81,7 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
   behavior of "typed.remove"
 
   it should "concatenate key parts correctly" in {
-    scalacache.typed[String].remove("oh", "wow")
+    scalacache.typed[String, InMemoryRepr].remove("oh", "wow")
     cache.removeCalledWithArgs(0) should be("oh:wow")
   }
 

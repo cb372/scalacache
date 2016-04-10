@@ -12,7 +12,7 @@ object Snack {
 
 case class Snack(name: String)
 
-class DummySnackCodec extends Codec[Snack] {
+class DummySnackCodec extends Codec[Snack, Array[Byte]] {
   var serialiserUsed = false
   var deserialiserUsed = false
   def serialize(value: Snack): Array[Byte] = {
@@ -34,7 +34,7 @@ trait LegacyCodecCheckSupport { this: FlatSpec with Matchers with ScalaFutures w
    * @param buildCache function that takes a boolean indicating whether not the cache returned should make use of
    *                   in-scope Codecs
    */
-  def legacySupportCheck(buildCache: Boolean => Cache): Unit = {
+  def legacySupportCheck(buildCache: Boolean => Cache[Array[Byte]]): Unit = {
 
     behavior of "useLegacySerialization"
 

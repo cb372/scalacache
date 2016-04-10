@@ -5,9 +5,8 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scalacache.serialization.Codec
-import scalacache.{ LoggingSupport, Cache }
-
+import scalacache.serialization.{ Codec, InMemoryRepr }
+import scalacache.{ Cache, LoggingSupport }
 import org.joda.time.DateTime
 
 /**
@@ -17,7 +16,7 @@ import org.joda.time.DateTime
  *
  */
 class LruMapCache(underlying: LruMap[String, Object])
-    extends Cache
+    extends Cache[InMemoryRepr]
     with LoggingSupport
     with StrictLogging {
 
@@ -28,7 +27,7 @@ class LruMapCache(underlying: LruMap[String, Object])
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V](key: String)(implicit codec: Codec[V]): Future[Option[V]] = {
+  override def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]): Future[Option[V]] = {
     val entry = underlying.get(key).map(_.asInstanceOf[LruMapCache.Entry[V]])
 
     val result = entry.flatMap { e =>
@@ -50,7 +49,7 @@ class LruMapCache(underlying: LruMap[String, Object])
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): Future[Unit] = {
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, InMemoryRepr]): Future[Unit] = {
     val entry = LruMapCache.Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
     logCachePut(key, ttl)

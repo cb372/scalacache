@@ -1,12 +1,13 @@
 package scalacache.caffeine
 
-import scalacache.serialization.Codec
-import scalacache.{ LoggingSupport, Cache, Entry }
-import com.github.benmanes.caffeine.cache.{ Cache => CCache, Caffeine }
+import scalacache.serialization.{ Codec, InMemoryRepr }
+import scalacache.{ Cache, Entry, LoggingSupport }
+import com.github.benmanes.caffeine.cache.{ Caffeine, Cache => CCache }
 
 import scala.concurrent.duration.Duration
 import org.joda.time.DateTime
 import com.typesafe.scalalogging.StrictLogging
+
 import scala.concurrent.Future
 
 /*
@@ -18,7 +19,7 @@ import scala.concurrent.Future
  * because Any does not extend java.lang.Object.
  */
 class CaffeineCache(underlying: CCache[String, Object])
-    extends Cache
+    extends Cache[InMemoryRepr]
     with LoggingSupport
     with StrictLogging {
 
@@ -29,7 +30,7 @@ class CaffeineCache(underlying: CCache[String, Object])
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V](key: String)(implicit codec: Codec[V]) = {
+  override def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]) = {
     val entry = Option(underlying.getIfPresent(key).asInstanceOf[Entry[V]])
     /*
      Note: we could delete the entry from the cache if it has expired,
@@ -52,7 +53,7 @@ class CaffeineCache(underlying: CCache[String, Object])
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V](key: String, value: V, ttl: Option[Duration] = None)(implicit codec: Codec[V]) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration] = None)(implicit codec: Codec[V, InMemoryRepr]) = {
     val entry = Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
     logCachePut(key, ttl)

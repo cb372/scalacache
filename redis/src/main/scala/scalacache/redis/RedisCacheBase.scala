@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.StrictLogging
  * This is everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.
  */
 trait RedisCacheBase
-    extends Cache
+    extends Cache[Array[Byte]]
     with RedisSerialization
     with LoggingSupport
     with StrictLogging {
@@ -52,7 +52,7 @@ trait RedisCacheBase
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  final override def get[V](key: String)(implicit codec: Codec[V]) = Future {
+  final override def get[V](key: String)(implicit codec: Codec[V, Array[Byte]]) = Future {
     blocking {
       withJedisCommands { jedis =>
         val resultBytes = Option(jedis.get(key.utf8bytes))
@@ -71,7 +71,7 @@ trait RedisCacheBase
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  final override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]) = Future {
+  final override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Array[Byte]]) = Future {
     blocking {
       withJedisCommands { jedis =>
         val keyBytes = key.utf8bytes
