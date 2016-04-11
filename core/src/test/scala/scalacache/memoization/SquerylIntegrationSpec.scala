@@ -2,18 +2,19 @@ package scalacache.memoization
 
 import java.util.Date
 
-import org.scalatest.{ BeforeAndAfterAll, Matchers, FlatSpec }
+import org.scalatest.concurrent.{ Eventually, IntegrationPatience }
+import org.scalatest.{ BeforeAndAfterAll, FlatSpec, Matchers }
 import org.squeryl.adapters.H2Adapter
 import org.squeryl.annotations.Column
 import org.squeryl._
 import org.squeryl.PrimitiveTypeMode._
 
-import scalacache.{ MockCache, LoggingCache, ScalaCache }
+import scalacache.{ LoggingCache, MockCache, ScalaCache }
 
 /**
  * Test for https://github.com/cb372/scalacache/issues/14
  */
-class SquerylIntegrationSpec extends FlatSpec with Matchers with BeforeAndAfterAll {
+class SquerylIntegrationSpec extends FlatSpec with Matchers with BeforeAndAfterAll with Eventually with IntegrationPatience {
   var theUserId: Int = -1
 
   override def beforeAll() = {
@@ -54,8 +55,10 @@ class SquerylIntegrationSpec extends FlatSpec with Matchers with BeforeAndAfterA
     fromDb.get.name should be("chris")
     fromDb.get.status should be(123)
 
-    // Check that the value was inserted into the cache
-    cache.putCalledWithArgs should have size 1
+    // Check that the value was (eventually) asynchronously inserted into the cache
+    eventually {
+      cache.putCalledWithArgs should have size 1
+    }
     val cachedValue = cache.putCalledWithArgs(0)._2.asInstanceOf[Option[User]]
     cachedValue should be('defined)
     cachedValue.get.id should be(theUserId)
