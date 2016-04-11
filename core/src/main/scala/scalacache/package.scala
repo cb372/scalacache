@@ -8,6 +8,9 @@ import scalacache.serialization.{ Codec, JavaSerializationCodec }
 
 package object scalacache extends StrictLogging with JavaSerializationCodec {
 
+  // this alias is just for convenience, so you don't need to import serialization._
+  type NoSerialization = scalacache.serialization.InMemoryRepr
+
   class TypedApi[From, Repr](implicit val scalaCache: ScalaCache[Repr], codec: Codec[From, Repr]) {
 
     def get(keyParts: Any*)(implicit flags: Flags): Future[Option[From]] = getWithKey(toKey(keyParts))

@@ -1,3 +1,51 @@
+0.8.1 (2016/04/11)
+----
+
+New features:
+
+* [#89](https://github.com/cb372/scalacache/pull/89) adds support for compression in Memcached/Redis. Thanks to @lloydmeta. See https://github.com/cb372/scalacache#compression-of-codeca-arraybyte for more details on how to enable compression.
+
+Bug fixes:
+
+* [#92](https://github.com/cb372/scalacache/pull/92) fixes issue [#90](https://github.com/cb372/scalacache/issues/90). This was a regression caused by the introduction of custom serialization in 0.8.0, making it impossible to cache any object that did not extend `java.io.Serializable`.
+
+Breaking changes:
+
+Sorry, this version introduces a small potentially breaking change. Some methods now have an extra type parameter to specify how your data is represented after serialization. If you are using Memcached or Redis, this will be `Array[Byte]`. If you are using an in-memory cache such as Guava, EhCache or Caffeine, then you don't need serialization, so it will be the special type `NoSerialization`.
+
+Depending on how you are using ScalaCache, you may need to manually specify this type parameter in your code, although it should be unnecessary in most cases.
+
+e.g. if your code looks like this:
+
+```scalacache
+import scalacache._
+
+implicit val scalaCache = ...
+
+// Using the untyped API
+val futureOfString = caching[String]("key")(doSomething())
+
+// Using the typed API
+val stringsCache = typed[String]
+val futureOfOptionOfString = stringsCache.get("key")
+```
+
+then it may need to be updated to look like this:
+
+```scalacache
+import scalacache._
+
+implicit val scalaCache = ...
+
+// Using the untyped API
+val futureOfString = caching[String, NoSerialization]("key")(doSomething()) // assuming an in-memory cache
+//val futureOfString = caching[String, Array[Byte]]("key")(doSomething()) // use Array[Byte] if you are using Memcached or Redis
+
+// Using the typed API
+val stringsCache = typed[String, NoSerialization] // assuming an in-memory cache
+val futureOfOptionOfString = stringsCache.get("key")
+```
+
 0.8.0 (2016/04/03)
 ----
 

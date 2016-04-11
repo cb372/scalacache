@@ -52,7 +52,10 @@ put("myKey")("myValue") // returns a Future[Unit]
 put("otherKey")("otherValue", ttl = Some(10.seconds))
 
 // Retrieve the added item
-get[String]("myKey") // returns a Future of an Option
+get[String, NoSerialization]("myKey") // returns a Future of an Option
+
+// If you are using a serializing cache implementation (Memcached or Redis), use Array[Byte]
+get[String, Array[Byte]]("myKey") // returns a Future of an Option
 
 // Remove it from the cache
 remove("myKey") // returns a Future[Unit]
@@ -90,7 +93,7 @@ import scalacache._
 val myValue: Option[String] = sync.get("myKey")
 ```
 
-If you're using an in-memory cache (e.g. Guava) then this is fine. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then `getSync` is not recommended. If the network goes down, your app could hang forever!
+If you're using an in-memory cache (e.g. Guava) then this is fine. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then `sync.get` is not recommended. If the network goes down, your app could hang forever!
 
 There are also synchronous versions of the `caching` and `cachingWithTTL` methods available:
 
@@ -274,7 +277,9 @@ import scalacache._
 
 implicit val scalaCache = ScalaCache(new MyCache())
 
-val cache = typed[User]
+// Use NoSerialization for in-memory caches such as Caffeine, 
+// or Array[Byte] for serializing caches such as Memcached or Redis
+val cache = typed[User, NoSerialization]
 
 cache.put("key", User(123, "Chris")) // OK
 cache.put("key", "wibble") // Compile error!
