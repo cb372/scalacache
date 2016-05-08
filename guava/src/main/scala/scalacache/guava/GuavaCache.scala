@@ -1,13 +1,13 @@
 package scalacache.guava
 
+import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
+
 import scalacache.serialization.{ Codec, InMemoryRepr }
 import scalacache.{ Cache, Entry, LoggingSupport }
 import com.google.common.cache.{ Cache => GCache, CacheBuilder => GCacheBuilder }
 
 import scala.concurrent.duration.Duration
-import org.joda.time.DateTime
-import com.typesafe.scalalogging.StrictLogging
-
 import scala.concurrent.Future
 
 /*
@@ -20,8 +20,9 @@ import scala.concurrent.Future
  */
 class GuavaCache(underlying: GCache[String, Object])
     extends Cache[InMemoryRepr]
-    with LoggingSupport
-    with StrictLogging {
+    with LoggingSupport {
+
+  override protected final val logger = LoggerFactory.getLogger(getClass.getName)
 
   /**
    * Get the value corresponding to the given key from the cache

@@ -1,12 +1,13 @@
 
-import com.typesafe.scalalogging.StrictLogging
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.Try
 import scalacache.serialization.{ Codec, JavaSerializationCodec }
 
-package object scalacache extends StrictLogging with JavaSerializationCodec {
+package object scalacache extends JavaSerializationCodec {
+  private final val logger = LoggerFactory.getLogger(getClass.getName)
 
   // this alias is just for convenience, so you don't need to import serialization._
   type NoSerialization = scalacache.serialization.InMemoryRepr
@@ -42,13 +43,18 @@ package object scalacache extends StrictLogging with JavaSerializationCodec {
       def asynchronouslyCacheResult(result: Future[From]): Unit = result onSuccess {
         case computedValue =>
           Try(putWithKey(key, computedValue, ttl)) recover {
-            case e => logger.warn(s"Failed to write to cache. Key = $key", e)
+            case e =>
+              if (logger.isWarnEnabled) {
+                logger.warn(s"Failed to write to cache. Key = $key", e)
+              }
           }
       }
 
       val fromCache: Future[Option[From]] = getWithKey(key).recover[Option[From]] {
         case e =>
-          logger.warn(s"Failed to read from cache. Key = $key", e)
+          if (logger.isWarnEnabled) {
+            logger.warn(s"Failed to read from cache. Key = $key", e)
+          }
           None
       }
 
@@ -65,7 +71,9 @@ package object scalacache extends StrictLogging with JavaSerializationCodec {
       if (flags.readsEnabled) {
         scalaCache.cache.get[From](key)
       } else {
-        logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
+        if (logger.isDebugEnabled) {
+          logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
+        }
         Future.successful(None)
       }
     }

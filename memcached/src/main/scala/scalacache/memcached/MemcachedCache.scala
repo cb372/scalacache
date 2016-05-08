@@ -1,12 +1,13 @@
 package scalacache.memcached
 
+import org.slf4j.LoggerFactory
 import net.spy.memcached.internal.{ OperationFuture, OperationCompletionListener, GetFuture, GetCompletionListener }
 import net.spy.memcached.{ AddrUtil, BinaryConnectionFactory, MemcachedClient }
-import scala.concurrent.duration.Duration
-import scala.util.Success
 import scalacache.serialization.Codec
 import scalacache.{ LoggingSupport, Cache }
-import com.typesafe.scalalogging.StrictLogging
+
+import scala.concurrent.duration.Duration
+import scala.util.Success
 import scala.concurrent.{ Promise, ExecutionContext }
 
 /**
@@ -20,8 +21,9 @@ class MemcachedCache(client: MemcachedClient,
                      useLegacySerialization: Boolean = false)(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache[Array[Byte]]
     with MemcachedTTLConverter
-    with StrictLogging
     with LoggingSupport {
+
+  override protected final val logger = LoggerFactory.getLogger(getClass.getName)
 
   /**
    * Get the value corresponding to the given key from the cache

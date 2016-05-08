@@ -1,13 +1,14 @@
 package scalacache.lrumap
 
 import com.twitter.util.LruMap
-import com.typesafe.scalalogging.StrictLogging
+import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
+
+import scalacache.serialization.{ Codec, InMemoryRepr }
+import scalacache.{ Cache, LoggingSupport }
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scalacache.serialization.{ Codec, InMemoryRepr }
-import scalacache.{ Cache, LoggingSupport }
-import org.joda.time.DateTime
 
 /**
  * This wrapper around LruMap from twitter utils.
@@ -17,8 +18,9 @@ import org.joda.time.DateTime
  */
 class LruMapCache(underlying: LruMap[String, Object])
     extends Cache[InMemoryRepr]
-    with LoggingSupport
-    with StrictLogging {
+    with LoggingSupport {
+
+  override protected final val logger = LoggerFactory.getLogger(getClass.getName)
 
   /**
    * Get the value corresponding to the given key from the cache

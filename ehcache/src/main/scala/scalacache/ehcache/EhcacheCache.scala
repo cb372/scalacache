@@ -1,6 +1,6 @@
 package scalacache.ehcache
 
-import com.typesafe.scalalogging.StrictLogging
+import org.slf4j.LoggerFactory
 
 import scalacache.serialization.{ Codec, InMemoryRepr }
 import scalacache.{ Cache, LoggingSupport }
@@ -16,8 +16,9 @@ import scala.concurrent.Future
  */
 class EhcacheCache(underlying: Ehcache)
     extends Cache[InMemoryRepr]
-    with LoggingSupport
-    with StrictLogging {
+    with LoggingSupport {
+
+  override protected final val logger = LoggerFactory.getLogger(getClass.getName)
 
   /**
    * Get the value corresponding to the given key from the cache
