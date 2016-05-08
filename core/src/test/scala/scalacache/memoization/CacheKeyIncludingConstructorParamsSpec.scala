@@ -46,12 +46,6 @@ class CacheKeyIncludingConstructorParamsSpec extends FlatSpec with CacheKeySpecC
     }
   }
 
-  it should "include function arguments as <functionN>" in {
-    checkCacheKey("scalacache.memoization.CacheKeySpecCommon.functionArg(<function1>)") {
-      functionArg((s: String) => s.toInt + 1)
-    }
-  }
-
   it should "exclude values of arguments annotated with @cacheKeyExclude" in {
     checkCacheKey("scalacache.memoization.CacheKeySpecCommon.withExcludedParams(1, 3)()") {
       withExcludedParams(1, "2", "3")(4)
