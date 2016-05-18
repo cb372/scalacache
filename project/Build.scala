@@ -8,6 +8,8 @@ import org.scoverage.coveralls.Imports.CoverallsKeys._
 import sbtrelease.ReleasePlugin
 import sbtrelease.ReleasePlugin.autoImport._
 import sbtrelease.ReleaseStateTransformations._
+import pl.project13.scala.sbt.JmhPlugin
+import pl.project13.scala.sbt.JmhPlugin.JmhKeys.Jmh
 
 import scala.language.postfixOps
 
@@ -103,6 +105,15 @@ object ScalaCacheBuild extends Build {
     )
     .dependsOn(core)
     .disablePlugins(CoverallsPlugin)
+
+  lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
+    .enablePlugins(JmhPlugin)
+    .settings(
+      scalaVersion := Versions.scala,
+      publishArtifact := false,
+      javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking")
+    )
+    .dependsOn(caffeine)
 
   lazy val jodaTime = Seq(
     "joda-time" % "joda-time" % "2.5",
