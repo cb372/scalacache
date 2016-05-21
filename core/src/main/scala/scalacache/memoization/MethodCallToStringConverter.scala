@@ -55,5 +55,18 @@ object MethodCallToStringConverter {
       s"${classNameAndParamsPart(fullClassName, constructorParamss)}$methodName${paramssPart(paramss)}"
   }
 
+  /**
+   * A converter that includes only the method arguments in the cache key.
+   * It builds keys of the form: "(arg, ...)(arg, ...)..."
+   * e.g. a call to `com.foo.MyClass(42, wow).doSomething(123, abc)(foo)` would be cached as "(123, abc)(foo)".
+   *
+   * Warning: Do not use this key if you have multiple methods that you want to memoize, because cache keys can collide.
+   * e.g. the results of `Foo.bar(123)` and `Baz.wow(123)` would be cached with the same key `123`.
+   */
+  val onlyMethodParams = new MethodCallToStringConverter {
+    def toString(fullClassName: String, constructorParamss: Seq[Seq[Any]], methodName: String, paramss: Seq[Seq[Any]]): String =
+      paramssPart(paramss)
+  }
+
 }
 
