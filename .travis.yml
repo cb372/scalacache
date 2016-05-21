@@ -7,9 +7,6 @@ jdk:
 services:
   - memcached
   - redis
-script:
-  - sbt coverage test
-after_success: "sbt coverageAggregate coveralls"
 cache:
   directories:
   - $HOME/.sbt

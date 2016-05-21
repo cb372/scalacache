@@ -2,13 +2,14 @@ package scalacache.redis
 
 import java.io.Closeable
 
+import org.slf4j.LoggerFactory
 import redis.clients.jedis._
 import redis.clients.util.Pool
 import scala.concurrent.{ ExecutionContext, Future, blocking }
 import scalacache.serialization.Codec
 import scalacache.{LoggingSupport, Cache}
+
 import scala.concurrent.duration._
-import com.typesafe.scalalogging.StrictLogging
 
 /**
  * Contains implementations of all methods that can be implemented independent of the type of Redis client.
@@ -17,8 +18,9 @@ import com.typesafe.scalalogging.StrictLogging
 trait RedisCacheBase
     extends Cache[Array[Byte]]
     with RedisSerialization
-    with LoggingSupport
-    with StrictLogging {
+    with LoggingSupport {
+
+  override protected final val logger = LoggerFactory.getLogger(getClass.getName)
 
   import StringEnrichment.StringWithUtf8Bytes
 

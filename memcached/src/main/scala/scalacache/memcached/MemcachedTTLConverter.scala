@@ -1,10 +1,12 @@
 package scalacache.memcached
 
-import scala.concurrent.duration._
-import com.typesafe.scalalogging.StrictLogging
+import org.slf4j.LoggerFactory
 import org.joda.time.DateTime
 
-trait MemcachedTTLConverter extends StrictLogging {
+import scala.concurrent.duration._
+
+trait MemcachedTTLConverter {
+  private final val logger = LoggerFactory.getLogger(getClass.getName)
 
   /**
    * Convert an optional `Duration` to an int suitable for passing to Memcached.
@@ -33,7 +35,9 @@ trait MemcachedTTLConverter extends StrictLogging {
     case Duration.Zero => 0
 
     case d if d < 1.second => {
-      logger.warn(s"Because Memcached does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
+      if (logger.isWarnEnabled) {
+        logger.warn(s"Because Memcached does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
+      }
       1
     }
 

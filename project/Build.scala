@@ -1,10 +1,9 @@
 import sbt._
 import Keys._
 import com.typesafe.sbt.SbtScalariform._
+import com.typesafe.sbt.pgp._
 import scalariform.formatter.preferences._
 import xerial.sbt.Sonatype._
-import org.scoverage.coveralls.CoverallsPlugin
-import org.scoverage.coveralls.Imports.CoverallsKeys._
 import sbtrelease.ReleasePlugin
 import sbtrelease.ReleasePlugin.autoImport._
 import sbtrelease.ReleaseStateTransformations._
@@ -15,17 +14,14 @@ import scala.language.postfixOps
 
 object ScalaCacheBuild extends Build {
 
-  object Versions {
-    val scala = "2.11.8"
-  }
+  val ScalaVersion = "2.11.8"
 
   lazy val root = Project(id = "scalacache",base = file("."))
     .enablePlugins(ReleasePlugin)
     .settings(commonSettings: _*)
     .settings(sonatypeSettings: _*)
     .settings(publishArtifact := false)
-    .settings(coverallsTokenFile := Some("coveralls-token.txt"))
-    .aggregate(core, guava, memcached, ehcache, redis, lrumap, caffeine)
+    .aggregate(core, guava, memcached, ehcache, redis, caffeine)
 
   lazy val core = Project(id = "scalacache-core", base = file("core"))
     .settings(commonSettings: _*)
@@ -35,13 +31,12 @@ object ScalaCacheBuild extends Build {
       }
     )
     .settings(
-      libraryDependencies ++= Seq(
-        "org.squeryl" %% "squeryl" % "0.9.5-7" % "test",
-        "com.h2database" % "h2" % "1.4.182" % "test",
-        "org.scalacheck" %% "scalacheck" % "1.12.5" % Test
+      libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.12.5" % Test,
+      scala211OnlyDeps(
+        "org.squeryl" %% "squeryl" % "0.9.5-7" % Test,
+        "com.h2database" % "h2" % "1.4.182" % Test
       )
     )
-    .disablePlugins(CoverallsPlugin)
 
   lazy val guava = Project(id = "scalacache-guava", base = file("guava"))
     .settings(implProjectSettings: _*)
@@ -52,7 +47,6 @@ object ScalaCacheBuild extends Build {
       )
     )
     .dependsOn(core)
-    .disablePlugins(CoverallsPlugin)
 
   lazy val memcached = Project(id = "scalacache-memcached", base = file("memcached"))
     .settings(implProjectSettings: _*)
@@ -62,7 +56,6 @@ object ScalaCacheBuild extends Build {
       )
     )
     .dependsOn(core % "test->test;compile->compile")
-    .disablePlugins(CoverallsPlugin)
 
   lazy val ehcache = Project(id = "scalacache-ehcache", base = file("ehcache"))
     .settings(implProjectSettings: _*)
@@ -73,27 +66,16 @@ object ScalaCacheBuild extends Build {
       )
     )
     .dependsOn(core)
-    .disablePlugins(CoverallsPlugin)
 
   lazy val redis = Project(id = "scalacache-redis", base = file("redis"))
     .settings(implProjectSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
         "redis.clients" % "jedis" % "2.8.0"
-      ) ++ playTesting
-    )
-    .dependsOn(core % "test->test;compile->compile")
-    .disablePlugins(CoverallsPlugin)
-
-  lazy val lrumap = Project(id = "scalacache-lrumap", base = file("lrumap"))
-    .settings(implProjectSettings: _*)
-    .settings(
-      libraryDependencies ++= Seq(
-        "com.twitter" % "util-collection_2.11" % "6.23.0"
       )
     )
-    .dependsOn(core)
-    .disablePlugins(CoverallsPlugin)
+    .settings(playTesting)
+    .dependsOn(core % "test->test;compile->compile")
 
   lazy val caffeine = Project(id = "scalacache-caffeine", base = file("caffeine"))
     .settings(implProjectSettings: _*)
@@ -104,12 +86,11 @@ object ScalaCacheBuild extends Build {
       )
     )
     .dependsOn(core)
-    .disablePlugins(CoverallsPlugin)
 
   lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
     .enablePlugins(JmhPlugin)
     .settings(
-      scalaVersion := Versions.scala,
+      scalaVersion := ScalaVersion,
       publishArtifact := false,
       javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking")
     )
@@ -120,26 +101,23 @@ object ScalaCacheBuild extends Build {
     "org.joda" % "joda-convert" % "1.7"
   )
 
-  lazy val scalaLogging = Seq(
-    "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
+  lazy val slf4j = Seq(
+    "org.slf4j" % "slf4j-api" % "1.7.9"
   )
 
   lazy val scalaTest = Seq(
-    "org.scalatest" %% "scalatest" % "2.2.6" % "test"
-  ) ++ (if (Versions.scala.startsWith("2.11")) {
-    // used in the scalatest reporter
-    Seq("org.scala-lang.modules" %% "scala-xml" % "1.0.1" % "test")
-  } else Nil)
+    "org.scalatest" %% "scalatest" % "2.2.6" % Test
+  )
 
   val playVersion = "2.3.8"
-  lazy val playTesting = Seq(
+  lazy val playTesting = scala211OnlyDeps(
     "com.typesafe.play" %% "play-test" % playVersion % Test,
     "org.scalatestplus" %% "play" % "1.2.0" % Test
   )
 
   // Dependencies common to all projects
   lazy val commonDeps =
-    scalaLogging ++
+    slf4j ++
     scalaTest ++
     jodaTime
 
@@ -150,11 +128,13 @@ object ScalaCacheBuild extends Build {
     formatterPrefs ++
     Seq(
       organization := "com.github.cb372",
-      scalaVersion := Versions.scala,
+      scalaVersion := ScalaVersion,
+      crossScalaVersions := Seq(ScalaVersion, "2.12.0-M4"),
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       resolvers += Resolver.typesafeRepo("releases"),
       libraryDependencies ++= commonDeps,
       parallelExecution in Test := false,
+      releasePublishArtifactsAction := PgpKeys.publishSigned.value,
       releaseProcess := Seq[ReleaseStep](
         checkSnapshotDependencies,
         inquireVersions,
@@ -164,10 +144,10 @@ object ScalaCacheBuild extends Build {
         commitReleaseVersion,
         updateVersionInReadme,
         tagRelease,
-        ReleaseStep(action = Command.process("publishSigned", _)),
+        publishArtifacts,
         setNextVersion,
         commitNextVersion,
-        ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+        releaseStepCommand("sonatypeReleaseAll"),
         pushChanges
       ),
       commands += Command.command("update-version-in-readme")(updateVersionInReadme)
@@ -226,6 +206,12 @@ object ScalaCacheBuild extends Build {
 
     st
   })
+
+  def scala211OnlyDeps(moduleIDs: ModuleID*) = 
+    libraryDependencies ++= (scalaBinaryVersion.value match {
+      case "2.11" => moduleIDs
+      case other => Nil
+    })
 
 }
 

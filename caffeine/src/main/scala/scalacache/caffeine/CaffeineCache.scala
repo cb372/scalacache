@@ -1,13 +1,12 @@
 package scalacache.caffeine
 
+import com.github.benmanes.caffeine.cache.{ Caffeine, Cache => CCache }
+import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
 import scalacache.serialization.{ Codec, InMemoryRepr }
 import scalacache.{ Cache, Entry, LoggingSupport }
-import com.github.benmanes.caffeine.cache.{ Caffeine, Cache => CCache }
 
 import scala.concurrent.duration.Duration
-import org.joda.time.DateTime
-import com.typesafe.scalalogging.StrictLogging
-
 import scala.concurrent.Future
 
 /*
@@ -20,8 +19,9 @@ import scala.concurrent.Future
  */
 class CaffeineCache(underlying: CCache[String, Object])
     extends Cache[InMemoryRepr]
-    with LoggingSupport
-    with StrictLogging {
+    with LoggingSupport {
+
+  override protected final val logger = LoggerFactory.getLogger(getClass.getName)
 
   /**
    * Get the value corresponding to the given key from the cache
