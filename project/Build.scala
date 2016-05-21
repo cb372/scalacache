@@ -119,19 +119,6 @@ object ScalaCacheBuild extends Build {
     "org.scalatest" %% "scalatest" % "2.2.6" % Test
   )
 
-  lazy val scalaXmlForTestReporting = Seq(
-    libraryDependencies ++= (scalaBinaryVersion.value match {
-      // scala-xml is used in the scalatest reporter
-      // TODO check that this is actually needed
-      case "2.11" =>
-        Seq("org.scala-lang.modules" %% "scala-xml" % "1.0.1" % Test)
-      case v if v.startsWith("2.12") =>
-        // TODO check version
-        Nil
-      case other => Nil
-    })
-  )
-
   val playVersion = "2.3.8"
   lazy val playTesting = scala211OnlyDeps(
     "com.typesafe.play" %% "play-test" % playVersion % Test,
@@ -149,7 +136,6 @@ object ScalaCacheBuild extends Build {
     mavenSettings ++
     scalariformSettings ++
     formatterPrefs ++
-    scalaXmlForTestReporting ++
     Seq(
       organization := "com.github.cb372",
       scalaVersion := ScalaVersion,
