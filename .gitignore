@@ -2,6 +2,7 @@
 .idea_modules
 *.iml
 *.ipr
+*.jfr
 target
 coveralls-token.txt
 /*.html

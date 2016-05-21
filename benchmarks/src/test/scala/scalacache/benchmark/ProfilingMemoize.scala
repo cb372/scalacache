@@ -25,9 +25,6 @@ object ProfilingMemoize extends App {
     Future.successful(value)
   }
 
-  // populate the cache
-  put(key)(value)
-
   var result: String = _
   var i = 0L
 
