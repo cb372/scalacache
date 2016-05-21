@@ -12,7 +12,7 @@ package object scalacache extends JavaSerializationCodec {
   // this alias is just for convenience, so you don't need to import serialization._
   type NoSerialization = scalacache.serialization.InMemoryRepr
 
-  class TypedApi[From, Repr](implicit val scalaCache: ScalaCache[Repr], codec: Codec[From, Repr]) {
+  class TypedApi[From, Repr](implicit val scalaCache: ScalaCache[Repr], codec: Codec[From, Repr]) { self =>
 
     def get(keyParts: Any*)(implicit flags: Flags): Future[Option[From]] = getWithKey(toKey(keyParts))
 
@@ -37,8 +37,17 @@ package object scalacache extends JavaSerializationCodec {
       _caching(keyParts: _*)(optionalTtl)(f)
     }
 
+    private[scalacache] def cachingForMemoize(baseKey: String)(ttl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext): Future[From] = {
+      val key = stringToKey(baseKey)
+      _caching(key)(ttl)(f)
+    }
+
     private def _caching(keyParts: Any*)(ttl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext): Future[From] = {
       val key = toKey(keyParts)
+      _caching(key)(ttl)(f)
+    }
+
+    private def _caching(key: String)(ttl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext): Future[From] = {
 
       def asynchronouslyCacheResult(result: Future[From]): Unit = result onSuccess {
         case computedValue =>
@@ -101,6 +110,11 @@ package object scalacache extends JavaSerializationCodec {
 
       def cachingWithTTL(keyParts: Any*)(ttl: Duration)(f: => From)(implicit flags: Flags): From = {
         _cachingSync(keyParts: _*)(Some(ttl))(f)
+      }
+
+      private[scalacache] def cachingForMemoize(baseKey: String)(ttl: Option[Duration])(f: => From)(implicit flags: Flags): From = {
+        val future = self.cachingForMemoize(baseKey)(ttl)(Future.successful(f))(flags, ExecutionContext.global)
+        Await.result(future, Duration.Inf)
       }
 
       /*
@@ -242,8 +256,15 @@ package object scalacache extends JavaSerializationCodec {
   def cachingWithOptionalTTL[V, Repr](keyParts: Any*)(optionalTtl: Option[Duration])(f: => Future[V])(implicit scalaCache: ScalaCache[Repr], flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V, Repr]): Future[V] =
     typed[V, Repr].cachingWithOptionalTTL(keyParts: _*)(optionalTtl)(f)
 
+  // Note: this is public because the macro inserts a call to this method into client code
+  def cachingForMemoize[V, Repr](key: String)(optionalTtl: Option[Duration])(f: => Future[V])(implicit scalaCache: ScalaCache[Repr], flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V, Repr]): Future[V] =
+    typed[V, Repr].cachingForMemoize(key)(optionalTtl)(f)
+
   private def toKey(parts: Seq[Any])(implicit scalaCache: ScalaCache[_]): String =
     scalaCache.keyBuilder.toCacheKey(parts)(scalaCache.cacheConfig)
+
+  private def stringToKey(string: String)(implicit scalaCache: ScalaCache[_]): String =
+    scalaCache.keyBuilder.stringToCacheKey(string)(scalaCache.cacheConfig)
 
   /**
    * Synchronous API, for the case when you don't want to deal with Futures.
@@ -314,6 +335,10 @@ package object scalacache extends JavaSerializationCodec {
         case None => typed[V, Repr].sync.caching(keyParts: _*)(f)
       }
     }
+
+    // Note: this is public because the macro inserts a call to this method into client code
+    def cachingForMemoize[V, Repr](key: String)(optionalTtl: Option[Duration])(f: => V)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): V =
+      typed[V, Repr].sync.cachingForMemoize(key)(optionalTtl)(f)
 
   }
 

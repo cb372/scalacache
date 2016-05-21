@@ -18,4 +18,8 @@ class DefaultCacheKeyBuilderSpec extends FlatSpec with Matchers {
     DefaultCacheKeyBuilder.toCacheKey(Seq("abc", 123))(CacheConfig(keyPrefix = Some("foo"))) should be("foo:abc:123")
   }
 
+  it should "Prepend the key prefix to a single string if one is configured" in {
+    DefaultCacheKeyBuilder.stringToCacheKey("abc")(CacheConfig(keyPrefix = Some("foo"))) should be("foo:abc")
+  }
+
 }

@@ -92,7 +92,9 @@ object ScalaCacheBuild extends Build {
     .settings(
       scalaVersion := ScalaVersion,
       publishArtifact := false,
-      javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking")
+      fork in (Compile, run) := true,
+      javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking"),
+      javaOptions in (Test, run) ++= Seq("-XX:+UnlockCommercialFeatures", "-XX:+FlightRecorder", "-XX:StartFlightRecording=delay=20s,duration=60s,filename=memoize.jfr", "-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking")
     )
     .dependsOn(caffeine)
 
