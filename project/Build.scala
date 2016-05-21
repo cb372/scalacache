@@ -20,7 +20,7 @@ object ScalaCacheBuild extends Build {
     .settings(commonSettings: _*)
     .settings(sonatypeSettings: _*)
     .settings(publishArtifact := false)
-    .aggregate(core, guava, memcached, ehcache, redis, lrumap, caffeine)
+    .aggregate(core, guava, memcached, ehcache, redis, caffeine)
 
   lazy val core = Project(id = "scalacache-core", base = file("core"))
     .settings(commonSettings: _*)
@@ -75,17 +75,6 @@ object ScalaCacheBuild extends Build {
     )
     .settings(playTesting)
     .dependsOn(core % "test->test;compile->compile")
-
-  // TODO use sbt-doge to avoid crossbuilding this project for 2.12
-  lazy val lrumap = Project(id = "scalacache-lrumap", base = file("lrumap"))
-    .settings(implProjectSettings: _*)
-    .settings(
-      crossScalaVersions := Seq("2.11.8"),
-      libraryDependencies ++= Seq(
-        "com.twitter" % "util-collection_2.11" % "6.23.0"
-      )
-    )
-    .dependsOn(core)
 
   lazy val caffeine = Project(id = "scalacache-caffeine", base = file("caffeine"))
     .settings(implProjectSettings: _*)

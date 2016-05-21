@@ -15,7 +15,6 @@ The following cache implementations are supported, and it's easy to plugin your 
 * Memcached
 * Ehcache
 * Redis
-* twitter-util [LruMap](https://github.com/twitter/util/blob/master/util-collection/src/main/scala/com/twitter/util/LruMap.scala)
 * [Caffeine](https://github.com/ben-manes/caffeine)
 
 ## Versioning
@@ -438,24 +437,6 @@ implicit val scalaCache = ScalaCache(RedisCache(jedis))
 ```
 
 ScalaCache also supports [sharded Redis](https://github.com/xetorthio/jedis/wiki/AdvancedUsage#shardedjedis) and [Redis Sentinel](http://redis.io/topics/sentinel). Just create a `ShardedRedisCache` or `SentinelRedisCache` respectively.
-
-### LruMap (twitter-util)
-
-SBT:
-
-```
-libraryDependencies += "com.github.cb372" %% "scalacache-lrumap" % "0.8.1"
-```
-
-Usage:
-
-```scala
-import scalacache._
-import lrumap._
-
-// Just specified a maximum cache size in elements
-implicit val scalaCache = ScalaCache(LruMapCache(1000))
-```
 
 ## Caffeine
 
