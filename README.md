@@ -19,7 +19,7 @@ The following cache implementations are supported, and it's easy to plugin your 
 
 ## Versioning
 
-Because of the use of Scala macros, ScalaCache is only available for Scala 2.11.x.
+ScalaCache is available for Scala 2.11.x and 2.12.0-M4.
 
 ## How to use
 
