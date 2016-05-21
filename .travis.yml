@@ -7,6 +7,8 @@ jdk:
 services:
   - memcached
   - redis
+script:
+  - sbt +test
 cache:
   directories:
   - $HOME/.sbt
