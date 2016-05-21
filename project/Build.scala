@@ -1,6 +1,7 @@
 import sbt._
 import Keys._
 import com.typesafe.sbt.SbtScalariform._
+import com.typesafe.sbt.pgp._
 import scalariform.formatter.preferences._
 import xerial.sbt.Sonatype._
 import sbtrelease.ReleasePlugin
@@ -133,6 +134,7 @@ object ScalaCacheBuild extends Build {
       resolvers += Resolver.typesafeRepo("releases"),
       libraryDependencies ++= commonDeps,
       parallelExecution in Test := false,
+      releasePublishArtifactsAction := PgpKeys.publishSigned.value,
       releaseProcess := Seq[ReleaseStep](
         checkSnapshotDependencies,
         inquireVersions,
@@ -142,11 +144,10 @@ object ScalaCacheBuild extends Build {
         commitReleaseVersion,
         updateVersionInReadme,
         tagRelease,
-        // TODO rewrite this to work properly with cross building
-        ReleaseStep(action = Command.process("publishSigned", _)),
+        publishArtifacts,
         setNextVersion,
         commitNextVersion,
-        ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+        releaseStepCommand("sonatypeReleaseAll"),
         pushChanges
       ),
       commands += Command.command("update-version-in-readme")(updateVersionInReadme)
