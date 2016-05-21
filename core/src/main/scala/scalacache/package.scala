@@ -3,7 +3,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext, Future }
-import scala.util.Try
+import scala.util.{ Failure, Success, Try }
 import scalacache.serialization.{ Codec, JavaSerializationCodec }
 
 package object scalacache extends JavaSerializationCodec {
@@ -59,21 +59,38 @@ package object scalacache extends JavaSerializationCodec {
           }
       }
 
-      val fromCache: Future[Option[From]] = getWithKey(key).recover[Option[From]] {
-        case e =>
-          if (logger.isWarnEnabled) {
-            logger.warn(s"Failed to read from cache. Key = $key", e)
-          }
-          None
+      def calculateAndCacheResult(): Future[From] = {
+        val result: Future[From] = f
+        asynchronouslyCacheResult(result)
+        result
       }
 
-      fromCache flatMap {
-        case Some(value) => Future.successful(value)
-        case None =>
-          val result: Future[From] = f
-          asynchronouslyCacheResult(result)
-          result
+      val fromCache: Future[Option[From]] = getWithKey(key)
+
+      if (fromCache.isCompleted) {
+        // optimisation for in-memory caches that return Future.successful(...)
+        fromCache.value.get match {
+          case Success(Some(value)) => Future.successful(value)
+          case Success(None) => calculateAndCacheResult()
+          case Failure(e) =>
+            if (logger.isWarnEnabled) {
+              logger.warn(s"Failed to read from cache. Key = $key", e)
+            }
+            calculateAndCacheResult()
+        }
+      } else {
+        fromCache.recover[Option[From]] {
+          case e =>
+            if (logger.isWarnEnabled) {
+              logger.warn(s"Failed to read from cache. Key = $key", e)
+            }
+            None
+        }.flatMap {
+          case Some(value) => Future.successful(value)
+          case None => calculateAndCacheResult()
+        }
       }
+
     }
 
     private def getWithKey(key: String)(implicit flags: Flags): Future[Option[From]] = {
