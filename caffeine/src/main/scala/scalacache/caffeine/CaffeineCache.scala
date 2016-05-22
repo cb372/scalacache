@@ -31,16 +31,19 @@ class CaffeineCache(underlying: CCache[String, Object])
    * @return the value, if there is one
    */
   override def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]) = {
-    val entry = Option(underlying.getIfPresent(key).asInstanceOf[Entry[V]])
     /*
-     Note: we could delete the entry from the cache if it has expired,
-     but that would lead to nasty race conditions in case of concurrent access.
-     We might end up deleting an entry that another thread has just inserted.
-     */
-    val result = entry.flatMap { e =>
-      if (e.isExpired) None
-      else Some(e.value)
+    Note: we could delete the entry from the cache if it has expired,
+    but that would lead to nasty race conditions in case of concurrent access.
+    We might end up deleting an entry that another thread has just inserted.
+    */
+    val result = try {
+      val entry = underlying.getIfPresent(key).asInstanceOf[Entry[V]]
+      if (entry.isExpired) None
+      else Some(entry.value)
+    } catch {
+      case _: NullPointerException => None
     }
+
     logCacheHitOrMiss(key, result)
     Future.successful(result)
   }

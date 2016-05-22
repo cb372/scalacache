@@ -57,10 +57,15 @@ trait RedisCacheBase
   final override def get[V](key: String)(implicit codec: Codec[V, Array[Byte]]) = Future {
     blocking {
       withJedisCommands { jedis =>
-        val resultBytes = Option(jedis.get(key.utf8bytes))
-        val result = resultBytes.map(deserialize[V])
-        logCacheHitOrMiss(key, result)
-        result
+        val bytes = jedis.get(key.utf8bytes)
+        if (bytes != null) {
+          val result = Some(deserialize[V](bytes))
+          logCacheHitOrMiss(key, result)
+          result
+        } else {
+          logCacheHitOrMiss(key, None)
+          None
+        }
       }
     }
   }
