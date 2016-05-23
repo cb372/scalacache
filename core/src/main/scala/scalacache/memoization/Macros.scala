@@ -1,6 +1,6 @@
 package scalacache.memoization
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 import scala.concurrent.duration.Duration
@@ -16,37 +16,37 @@ class Macros(val c: blackbox.Context) {
    */
   def memoizeImpl[A: c.WeakTypeTag, Repr: c.WeakTypeTag](f: c.Tree)(scalaCache: c.Expr[ScalaCache[Repr]], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext], codec: c.Expr[Codec[A, Repr]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.caching($keyName)($f)($scalaCache, $flags, $ec, $codec)"""
+      q"""_root_.scalacache.cachingForMemoize($keyName)(_root_.scala.None)($f)($scalaCache, $flags, $ec, $codec)"""
     })
   }
 
   def memoizeImplWithTTL[A: c.WeakTypeTag, Repr: c.WeakTypeTag](ttl: c.Expr[Duration])(f: c.Tree)(scalaCache: c.Expr[ScalaCache[Repr]], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext], codec: c.Expr[Codec[A, Repr]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags, $ec, $codec)"""
+      q"""_root_.scalacache.cachingForMemoize($keyName)(_root_.scala.Some($ttl))($f)($scalaCache, $flags, $ec, $codec)"""
     })
   }
 
   def memoizeImplWithOptionalTTL[A: c.WeakTypeTag, Repr: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(f: c.Tree)(scalaCache: c.Expr[ScalaCache[Repr]], flags: c.Expr[Flags], ec: c.Expr[ExecutionContext], codec: c.Expr[Codec[A, Repr]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.cachingWithOptionalTTL($keyName)($optionalTtl)($f)($scalaCache, $flags, $ec, $codec)"""
+      q"""_root_.scalacache.cachingForMemoize($keyName)($optionalTtl)($f)($scalaCache, $flags, $ec, $codec)"""
     })
   }
 
   def memoizeSyncImpl[A: c.WeakTypeTag, Repr: c.WeakTypeTag](f: c.Expr[A])(scalaCache: c.Expr[ScalaCache[Repr]], flags: c.Expr[Flags], codec: c.Expr[Codec[A, Repr]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.sync.caching($keyName)($f)($scalaCache, $flags, $codec)"""
+      q"""_root_.scalacache.sync.cachingForMemoize($keyName)(_root_.scala.None)($f)($scalaCache, $flags, $codec)"""
     })
   }
 
   def memoizeSyncImplWithTTL[A: c.WeakTypeTag, Repr: c.WeakTypeTag](ttl: c.Expr[Duration])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache[Repr]], flags: c.Expr[Flags], codec: c.Expr[Codec[A, Repr]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.sync.cachingWithTTL($keyName)($ttl)($f)($scalaCache, $flags, $codec)"""
+      q"""_root_.scalacache.sync.cachingForMemoize($keyName)(_root_.scala.Some($ttl))($f)($scalaCache, $flags, $codec)"""
     })
   }
 
   def memoizeSyncImplWithOptionalTTL[A: c.WeakTypeTag, Repr: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(f: c.Expr[A])(scalaCache: c.Expr[ScalaCache[Repr]], flags: c.Expr[Flags], codec: c.Expr[Codec[A, Repr]]): Tree = {
     commonMacroImpl(scalaCache, { keyName =>
-      q"""_root_.scalacache.sync.cachingWithOptionalTTL($keyName)($optionalTtl)($f)($scalaCache, $flags, $codec)"""
+      q"""_root_.scalacache.sync.cachingForMemoize($keyName)($optionalTtl)($f)($scalaCache, $flags, $codec)"""
     })
   }
 
@@ -135,12 +135,12 @@ class Macros(val c: blackbox.Context) {
     if (classSymbol.isClass) {
       val symbolss = classSymbol.asClass.primaryConstructor.asMethod.paramLists
       if (symbolss == List(Nil)) {
-        q"_root_.scala.collection.immutable.Nil"
+        q"_root_.scala.collection.immutable.Vector.empty"
       } else {
         paramListsToTree(symbolss)
       }
     } else {
-      q"_root_.scala.collection.immutable.Nil"
+      q"_root_.scala.collection.immutable.Vector.empty"
     }
   }
 
@@ -156,10 +156,10 @@ class Macros(val c: blackbox.Context) {
   }
 
   /**
-   * Convert a List[Tree] to a Tree by calling scala.collection.immutable.list.apply()
+   * Convert a List[Tree] to a Tree representing `ArrayBuffer`
    */
   private def listToTree(ts: List[c.Tree]): c.Tree = {
-    q"_root_.scala.collection.immutable.List(..$ts)"
+    q"_root_.scala.collection.mutable.ArrayBuffer(..$ts)"
   }
 
   private def createKeyName(): TermName = {

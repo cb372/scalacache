@@ -7,31 +7,65 @@ trait MethodCallToStringConverter {
 
   /**
    * Convert the given method call information to a String for use in a cache key
+   *
    * @param fullClassName the name of the class whose method was called, including fully-qualified package name
    * @param constructorParamss
    *                the values of the constructor parameters of the method's enclosing class, where applicable.
-   *                This is a `[Seq[Seq[Any]]` because there may be multiple parameter lists.
-   *                If the method is inside an `object`, a `trait` or a class with no constructor params, this will be `Nil`.
+   *                This is a `[IndexedSeq[IndexedSeq[Any]]` because there may be multiple parameter lists.
+   *                If the method is inside an `object`, a `trait` or a class with no constructor params, this will be empty.
    * @param methodName the name of the called method
    * @param paramss
    *                the values of the parameters that were passed to the method.
-   *                This is a `[Seq[Seq[Any]]` because there may be multiple parameter lists
+   *                This is a `[IndexedSeq[IndexedSeq[Any]]` because there may be multiple parameter lists
    * @return
    */
-  def toString(fullClassName: String, constructorParamss: Seq[Seq[Any]], methodName: String, paramss: Seq[Seq[Any]]): String
+  def toString(fullClassName: String, constructorParamss: IndexedSeq[IndexedSeq[Any]], methodName: String, paramss: IndexedSeq[IndexedSeq[Any]]): String
 
 }
 
 object MethodCallToStringConverter {
+  import java.lang.{ StringBuilder => JStringBuilder }
 
-  private def classNamePart(className: String) =
-    if (className.isEmpty) "" else className + "."
+  private def appendClassNamePart(sb: JStringBuilder)(className: String): Unit = {
+    if (className.nonEmpty) {
+      sb.append(className)
+      sb.append('.')
+    }
+  }
 
-  private def classNameAndParamsPart(className: String, constructorParamss: Seq[Seq[Any]]) =
-    if (className.isEmpty) "" else className + paramssPart(constructorParamss) + "."
+  private def appendClassNameAndParamsPart(sb: JStringBuilder)(className: String, constructorParamss: IndexedSeq[IndexedSeq[Any]]): Unit = {
+    if (className.nonEmpty) {
+      sb.append(className)
+      appendParamssPart(sb)(constructorParamss)
+      sb.append('.')
+    }
+  }
 
-  private def paramssPart(paramss: Seq[Seq[Any]]) =
-    paramss.map(_.mkString("(", ", ", ")")).mkString("", "", "")
+  private def appendParamssPart(sb: JStringBuilder)(paramss: IndexedSeq[IndexedSeq[Any]]): Unit = {
+    var i = 0
+    while (i < paramss.size) {
+      val params = paramss(i)
+      appendParamsPart(sb)(params)
+      i += 1
+    }
+  }
+
+  private def appendParamsPart(sb: JStringBuilder)(params: IndexedSeq[Any]): Unit = {
+    sb.append('(')
+    var i = 0
+    // Add all params except the last one, with the separator after each one
+    while (i < params.size - 1) {
+      sb.append(params(i))
+      sb.append(", ")
+      i += 1
+    }
+    // Add the final param
+    if (i < params.size) {
+      sb.append(params(i))
+    }
+    sb.append(')')
+    sb.toString
+  }
 
   /**
    * A converter that builds keys of the form: "package.class.method(arg, ...)(arg, ...)..."
@@ -40,8 +74,13 @@ object MethodCallToStringConverter {
    * Note that this converter ignores the class's constructor params and does NOT include them in the cache key.
    */
   val excludeClassConstructorParams: MethodCallToStringConverter = new MethodCallToStringConverter {
-    def toString(fullClassName: String, constructorParamss: Seq[Seq[Any]], methodName: String, paramss: Seq[Seq[Any]]): String =
-      s"${classNamePart(fullClassName)}$methodName${paramssPart(paramss)}"
+    def toString(fullClassName: String, constructorParamss: IndexedSeq[IndexedSeq[Any]], methodName: String, paramss: IndexedSeq[IndexedSeq[Any]]): String = {
+      val sb = new JStringBuilder(128)
+      appendClassNamePart(sb)(fullClassName)
+      sb.append(methodName)
+      appendParamssPart(sb)(paramss)
+      sb.toString
+    }
   }
 
   /**
@@ -51,8 +90,13 @@ object MethodCallToStringConverter {
    * Note that this converter includes the class's constructor params in the cache key, where applicable.
    */
   val includeClassConstructorParams = new MethodCallToStringConverter {
-    def toString(fullClassName: String, constructorParamss: Seq[Seq[Any]], methodName: String, paramss: Seq[Seq[Any]]): String =
-      s"${classNameAndParamsPart(fullClassName, constructorParamss)}$methodName${paramssPart(paramss)}"
+    def toString(fullClassName: String, constructorParamss: IndexedSeq[IndexedSeq[Any]], methodName: String, paramss: IndexedSeq[IndexedSeq[Any]]): String = {
+      val sb = new JStringBuilder(128)
+      appendClassNameAndParamsPart(sb)(fullClassName, constructorParamss)
+      sb.append(methodName)
+      appendParamssPart(sb)(paramss)
+      sb.toString
+    }
   }
 
   /**
@@ -64,8 +108,11 @@ object MethodCallToStringConverter {
    * e.g. the results of `Foo.bar(123)` and `Baz.wow(123)` would be cached with the same key `123`.
    */
   val onlyMethodParams = new MethodCallToStringConverter {
-    def toString(fullClassName: String, constructorParamss: Seq[Seq[Any]], methodName: String, paramss: Seq[Seq[Any]]): String =
-      paramssPart(paramss)
+    def toString(fullClassName: String, constructorParamss: IndexedSeq[IndexedSeq[Any]], methodName: String, paramss: IndexedSeq[IndexedSeq[Any]]): String = {
+      val sb = new JStringBuilder(128)
+      appendParamssPart(sb)(paramss)
+      sb.toString
+    }
   }
 
 }
