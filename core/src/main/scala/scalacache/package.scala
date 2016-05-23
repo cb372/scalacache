@@ -109,7 +109,9 @@ package object scalacache extends JavaSerializationCodec {
         val finiteTtl = ttl.filter(_.isFinite()) // discard Duration.Inf, Duration.Undefined
         scalaCache.cache.put(key, value, finiteTtl)
       } else {
-        logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
+        if (logger.isDebugEnabled) {
+          logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
+        }
         Future.successful(())
       }
     }

@@ -82,7 +82,9 @@ trait RedisCacheBase
           case None => jedis.set(keyBytes, valueBytes)
           case Some(Duration.Zero) => jedis.set(keyBytes, valueBytes)
           case Some(d) if d < 1.second =>
-            logger.warn("Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
+            if (logger.isWarnEnabled) {
+              logger.warn("Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
+            }
             jedis.setex(keyBytes, 1, valueBytes)
           case Some(d) => jedis.setex(keyBytes, d.toSeconds.toInt, valueBytes)
         }
