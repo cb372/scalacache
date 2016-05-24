@@ -36,12 +36,15 @@ class CaffeineCache(underlying: CCache[String, Object])
     but that would lead to nasty race conditions in case of concurrent access.
     We might end up deleting an entry that another thread has just inserted.
     */
-    val result = try {
-      val entry = underlying.getIfPresent(key).asInstanceOf[Entry[V]]
+
+    val baseValue = underlying.getIfPresent(key)
+
+    val result = if (baseValue != null) {
+      val entry = baseValue.asInstanceOf[Entry[V]]
       if (entry.isExpired) None
       else Some(entry.value)
-    } catch {
-      case _: NullPointerException => None
+    } else {
+      None
     }
 
     logCacheHitOrMiss(key, result)
