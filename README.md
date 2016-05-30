@@ -325,7 +325,7 @@ before deploying code that depends on ScalaCache after version `0.7.5`
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.8.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.9.0"
 ```
 
 Usage:
@@ -353,7 +353,7 @@ implicit val scalaCache = ScalaCache(GuavaCache(underlyingGuavaCache))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.8.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.9.0"
 ```
 
 Usage:
@@ -391,7 +391,7 @@ ScalaCache provides two `KeySanitizer` implementations that convert your cache k
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.8.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.9.0"
 ```
 
 Usage:
@@ -413,7 +413,7 @@ implicit val scalaCache = ScalaCache(EhcacheCache(underlying))
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.8.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.9.0"
 ```
 
 Usage:
@@ -445,7 +445,7 @@ Note that Caffeine requires Java 8 or newer.
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.8.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.9.0"
 ```
 
 Usage:
