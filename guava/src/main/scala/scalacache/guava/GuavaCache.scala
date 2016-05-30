@@ -38,15 +38,12 @@ class GuavaCache(underlying: GCache[String, Object])
     We might end up deleting an entry that another thread has just inserted.
     */
     val baseValue = underlying.getIfPresent(key)
-
-    val result = if (baseValue != null) {
-      val entry = baseValue.asInstanceOf[Entry[V]]
-      if (entry.isExpired) None
-      else Some(entry.value)
-    } else {
-      None
+    val result = {
+      if (baseValue != null) {
+        val entry = baseValue.asInstanceOf[Entry[V]]
+        if (entry.isExpired) None else Some(entry.value)
+      } else None
     }
-
     logCacheHitOrMiss(key, result)
     Future.successful(result)
   }

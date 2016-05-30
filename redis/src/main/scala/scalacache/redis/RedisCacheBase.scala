@@ -58,14 +58,13 @@ trait RedisCacheBase
     blocking {
       withJedisCommands { jedis =>
         val bytes = jedis.get(key.utf8bytes)
-        if (bytes != null) {
-          val result = Some(deserialize[V](bytes))
-          logCacheHitOrMiss(key, result)
-          result
-        } else {
-          logCacheHitOrMiss(key, None)
-          None
+        val result = {
+          if (bytes != null) {
+            Some(deserialize[V](bytes))
+          } else None
         }
+        logCacheHitOrMiss(key, result)
+        result
       }
     }
   }

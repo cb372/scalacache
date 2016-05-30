@@ -38,18 +38,16 @@ class MemcachedCache(client: MemcachedClient,
     f.addListener(new GetCompletionListener {
       def onComplete(g: GetFuture[_]): Unit = p.complete {
         val baseResult = f.get
-        if (f.get != null) {
-          val result = if (useLegacySerialization)
-            Some(baseResult.asInstanceOf[V])
-          else
-            Some(codec.deserialize(baseResult.asInstanceOf[Array[Byte]]))
-
-          logCacheHitOrMiss(key, result)
-          Success(result)
-        } else {
-          logCacheHitOrMiss(key, None)
-          Success(None)
+        val result = {
+          if (baseResult != null) {
+            if (useLegacySerialization)
+              Some(baseResult.asInstanceOf[V])
+            else
+              Some(codec.deserialize(baseResult.asInstanceOf[Array[Byte]]))
+          } else None
         }
+        logCacheHitOrMiss(key, result)
+        Success(result)
       }
     })
     p.future
