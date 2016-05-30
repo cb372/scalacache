@@ -1,3 +1,24 @@
+0.9.0 (2016/05/30)
+----
+
+New features:
+
+* ScalaCache is now cross-built for Scala 2.11.x and 2.12.0-M4
+* Add a new `MethodCallToStringConverter` implementation
+
+Improvements:
+
+* Performance improvements [#102](https://github.com/cb372/scalacache/pull/102), [#103](https://github.com/cb372/scalacache/pull/103) 
+
+Breaking changes:
+
+* Removed support for Twitter Util LruMap as part of the preparation for Scala 2.12.x. If this is a problem for you, please open an issue.
+
+Other stuff:
+
+* Added some JMH benchmarks
+* Bumped Caffeine to 2.3.0
+
 0.8.1 (2016/04/11)
 ----
 
