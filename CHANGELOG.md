@@ -1,9 +1,15 @@
+0.9.1 (2016/05/30)
+----
+
+New features:
+
+* ScalaCache is now published for Scala 2.11.x and 2.12.0-M4
+
 0.9.0 (2016/05/30)
 ----
 
 New features:
 
-* ScalaCache is now cross-built for Scala 2.11.x and 2.12.0-M4
 * Add a new `MethodCallToStringConverter` implementation
 
 Improvements:
