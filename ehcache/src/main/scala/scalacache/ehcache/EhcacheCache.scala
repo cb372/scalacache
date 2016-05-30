@@ -28,10 +28,12 @@ class EhcacheCache(underlying: Ehcache)
    * @return the value, if there is one
    */
   override def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]) = {
-    val result = for {
-      e <- Option(underlying.get(key))
-      v <- Option(e.getObjectValue.asInstanceOf[V])
-    } yield v
+    val result = {
+      val elem = underlying.get(key)
+      if (elem == null) None
+      else Option(elem.getObjectValue.asInstanceOf[V])
+    }
+
     logCacheHitOrMiss(key, result)
     Future.successful(result)
   }
