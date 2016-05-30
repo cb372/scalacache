@@ -137,6 +137,7 @@ object ScalaCacheBuild extends Build {
       libraryDependencies ++= commonDeps,
       parallelExecution in Test := false,
       releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+      releaseCrossBuild := true,
       releaseProcess := Seq[ReleaseStep](
         checkSnapshotDependencies,
         inquireVersions,
