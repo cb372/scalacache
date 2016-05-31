@@ -19,10 +19,8 @@ trait LoggingSupport {
    * @tparam A the type of the cache value
    */
   protected def logCacheHitOrMiss[A](key: String, result: Option[A]): Unit = {
-    if (logger.isDebugEnabled) {
-      val hitOrMiss = result.map(_ => "hit") getOrElse "miss"
-      logger.debug(s"Cache $hitOrMiss for key $key")
-    }
+    val hitOrMiss = result.map(_ => "hit") getOrElse "miss"
+    logger.debug(s"Cache $hitOrMiss for key $key")
   }
 
   /**

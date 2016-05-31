@@ -43,7 +43,8 @@ class CaffeineCache(underlying: CCache[String, Object])
         if (entry.isExpired) None else Some(entry.value)
       } else None
     }
-    logCacheHitOrMiss(key, result)
+    if (logger.isDebugEnabled)
+      logCacheHitOrMiss(key, result)
     Future.successful(result)
   }
 
