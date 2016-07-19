@@ -21,7 +21,7 @@ object ScalaCacheBuild extends Build {
     .settings(commonSettings: _*)
     .settings(sonatypeSettings: _*)
     .settings(publishArtifact := false)
-    .aggregate(core, guava, memcached, ehcache, redis, caffeine)
+    .aggregate(core, guava, memcached, ehcache, redis, caffeine, aerospike)
 
   lazy val core = Project(id = "scalacache-core", base = file("core"))
     .settings(commonSettings: _*)
@@ -87,6 +87,15 @@ object ScalaCacheBuild extends Build {
     )
     .dependsOn(core)
 
+  lazy val aerospike = Project(id = "scalacache-aerospike", base = file("aerospike"))
+    .settings(implProjectSettings: _*)
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.github.otrimegistro" %% "aerospikez" % "0.2"
+      )
+    )
+    .dependsOn(core)
+
   lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
     .enablePlugins(JmhPlugin)
     .settings(
@@ -123,6 +132,9 @@ object ScalaCacheBuild extends Build {
     scalaTest ++
     jodaTime
 
+  lazy val resolver = Seq(Resolver.typesafeRepo("releases"),
+    "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases")
+
   lazy val commonSettings =
     Defaults.coreDefaultSettings ++
     mavenSettings ++
@@ -133,7 +145,7 @@ object ScalaCacheBuild extends Build {
       scalaVersion := ScalaVersion,
       crossScalaVersions := Seq(ScalaVersion, "2.12.0-M4"),
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
-      resolvers += Resolver.typesafeRepo("releases"),
+      resolvers ++= resolver,
       libraryDependencies ++= commonDeps,
       parallelExecution in Test := false,
       releasePublishArtifactsAction := PgpKeys.publishSigned.value,
