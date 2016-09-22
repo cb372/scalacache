@@ -33,7 +33,7 @@ lazy val guava = Project(id = "scalacache-guava", base = file("guava"))
   .settings(implProjectSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "com.google.guava" % "guava" % "18.0",
+      "com.google.guava" % "guava" % "19.0",
       "com.google.code.findbugs" % "jsr305" % "1.3.9"
     )
   )
@@ -43,7 +43,7 @@ lazy val memcached = Project(id = "scalacache-memcached", base = file("memcached
   .settings(implProjectSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "net.spy" % "spymemcached" % "2.11.7"
+      "net.spy" % "spymemcached" % "2.12.1"
     )
   )
   .dependsOn(core % "test->test;compile->compile")
@@ -52,7 +52,7 @@ lazy val ehcache = Project(id = "scalacache-ehcache", base = file("ehcache"))
   .settings(implProjectSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "net.sf.ehcache" % "ehcache" % "2.10.0",
+      "net.sf.ehcache" % "ehcache" % "2.10.2.2.21",
       "javax.transaction" % "jta" % "1.1"
     )
   )
@@ -62,7 +62,7 @@ lazy val redis = Project(id = "scalacache-redis", base = file("redis"))
   .settings(implProjectSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "redis.clients" % "jedis" % "2.8.0"
+      "redis.clients" % "jedis" % "2.9.0"
     )
   )
   .settings(playTesting)
@@ -72,7 +72,7 @@ lazy val caffeine = Project(id = "scalacache-caffeine", base = file("caffeine"))
   .settings(implProjectSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.3.0",
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.3.3",
       "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
     )
   )
@@ -90,12 +90,12 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
   .dependsOn(caffeine)
 
 lazy val jodaTime = Seq(
-  "joda-time" % "joda-time" % "2.5",
-  "org.joda" % "joda-convert" % "1.7"
+  "joda-time" % "joda-time" % "2.9.4",
+  "org.joda" % "joda-convert" % "1.8.1"
 )
 
 lazy val slf4j = Seq(
-  "org.slf4j" % "slf4j-api" % "1.7.9"
+  "org.slf4j" % "slf4j-api" % "1.7.21"
 )
 
 lazy val scalaTest = Seq(
