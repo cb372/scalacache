@@ -46,7 +46,8 @@ class MemcachedCache(client: MemcachedClient,
               Some(codec.deserialize(baseResult.asInstanceOf[Array[Byte]]))
           } else None
         }
-        logCacheHitOrMiss(key, result)
+        if (logger.isDebugEnabled)
+          logCacheHitOrMiss(key, result)
         Success(result)
       }
     })
