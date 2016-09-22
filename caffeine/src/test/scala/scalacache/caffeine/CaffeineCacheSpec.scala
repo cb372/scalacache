@@ -1,13 +1,13 @@
 package scalacache.caffeine
 
 import scalacache.Entry
-import org.scalatest.{ BeforeAndAfter, ShouldMatchers, FlatSpec }
+import org.scalatest.{ BeforeAndAfter, Matchers, FlatSpec }
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.joda.time.{ DateTimeUtils, DateTime }
 import scala.concurrent.duration._
 import org.scalatest.concurrent.ScalaFutures
 
-class CaffeineCacheSpec extends FlatSpec with ShouldMatchers with BeforeAndAfter with ScalaFutures {
+class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
   def newCCache = Caffeine.newBuilder.build[String, Object]
 

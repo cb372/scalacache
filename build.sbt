@@ -22,7 +22,7 @@ lazy val core = Project(id = "scalacache-core", base = file("core"))
     }
   )
   .settings(
-    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.12.5" % Test,
+    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.2" % Test,
     scala211OnlyDeps(
       "org.squeryl" %% "squeryl" % "0.9.5-7" % Test,
       "com.h2database" % "h2" % "1.4.182" % Test
@@ -65,7 +65,6 @@ lazy val redis = Project(id = "scalacache-redis", base = file("redis"))
       "redis.clients" % "jedis" % "2.9.0"
     )
   )
-  .settings(playTesting)
   .dependsOn(core % "test->test;compile->compile")
 
 lazy val caffeine = Project(id = "scalacache-caffeine", base = file("caffeine"))
@@ -99,13 +98,7 @@ lazy val slf4j = Seq(
 )
 
 lazy val scalaTest = Seq(
-  "org.scalatest" %% "scalatest" % "2.2.6" % Test
-)
-
-val playVersion = "2.3.8"
-lazy val playTesting = scala211OnlyDeps(
-  "com.typesafe.play" %% "play-test" % playVersion % Test,
-  "org.scalatestplus" %% "play" % "1.2.0" % Test
+  "org.scalatest" %% "scalatest" % "3.0.0" % Test
 )
 
 // Dependencies common to all projects
@@ -122,7 +115,7 @@ lazy val commonSettings =
   Seq(
     organization := "com.github.cb372",
     scalaVersion := ScalaVersion,
-    crossScalaVersions := Seq(ScalaVersion, "2.12.0-M4"),
+    crossScalaVersions := Seq(ScalaVersion, "2.12.0-RC1"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     resolvers += Resolver.typesafeRepo("releases"),
     libraryDependencies ++= commonDeps,
