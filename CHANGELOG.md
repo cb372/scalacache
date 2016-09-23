@@ -1,3 +1,15 @@
+0.9.2 (2016/09/23)
+----
+
+New features:
+
+* ScalaCache is now published for Scala 2.11.x and 2.12.0-RC1
+
+Other stuff:
+
+* Bump sbt 0.13.12 and move from `Build.scala` to `build.sbt`
+* Minor version bumps: Guava, Spymemcached, Ehcache, Jedis, Caffeine, joda-time, slf4j
+
 0.9.1 (2016/05/30)
 ----
 
