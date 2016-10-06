@@ -17,9 +17,10 @@ lazy val root = Project(id = "scalacache",base = file("."))
 lazy val core = Project(id = "scalacache-core", base = file("core"))
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies <+= scalaVersion { s =>
-      "org.scala-lang" % "scala-reflect" % s
-    }
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      "org.typelevel" %% "cats-core" % "0.7.2"
+    )
   )
   .settings(
     libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.2" % Test,

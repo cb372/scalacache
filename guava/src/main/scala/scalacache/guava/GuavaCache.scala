@@ -1,5 +1,6 @@
 package scalacache.guava
 
+import cats.Id
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 
@@ -19,7 +20,7 @@ import scala.concurrent.Future
  * because Any does not extend java.lang.Object.
  */
 class GuavaCache(underlying: GCache[String, Object])
-    extends Cache[InMemoryRepr]
+    extends Cache[InMemoryRepr, Id]
     with LoggingSupport {
 
   override protected final val logger = LoggerFactory.getLogger(getClass.getName)
@@ -46,7 +47,7 @@ class GuavaCache(underlying: GCache[String, Object])
     }
     if (logger.isDebugEnabled)
       logCacheHitOrMiss(key, result)
-    Future.successful(result)
+    result
   }
 
   /**
@@ -61,7 +62,6 @@ class GuavaCache(underlying: GCache[String, Object])
     val entry = Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
     logCachePut(key, ttl)
-    Future.successful(())
   }
 
   /**
@@ -70,9 +70,9 @@ class GuavaCache(underlying: GCache[String, Object])
    *
    * @param key cache key
    */
-  override def remove(key: String) = Future.successful(underlying.invalidate(key))
+  override def remove(key: String) = underlying.invalidate(key)
 
-  override def removeAll() = Future.successful(underlying.invalidateAll())
+  override def removeAll() = underlying.invalidateAll()
 
   override def close(): Unit = {
     // Nothing to do

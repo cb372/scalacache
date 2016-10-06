@@ -1,5 +1,6 @@
 package scalacache.ehcache
 
+import cats.Id
 import org.slf4j.LoggerFactory
 
 import scalacache.serialization.{ Codec, InMemoryRepr }
@@ -7,15 +8,13 @@ import scalacache.{ Cache, LoggingSupport }
 import scala.concurrent.duration.Duration
 import net.sf.ehcache.{ Element, Cache => Ehcache }
 
-import scala.concurrent.Future
-
 /**
  * Thin wrapper around Ehcache.
  * Since Ehcache is in-memory and non-blocking,
  * all operations are performed synchronously, i.e. ExecutionContext is not needed.
  */
 class EhcacheCache(underlying: Ehcache)
-    extends Cache[InMemoryRepr]
+    extends Cache[InMemoryRepr, Id]
     with LoggingSupport {
 
   override protected final val logger = LoggerFactory.getLogger(getClass.getName)
@@ -35,7 +34,7 @@ class EhcacheCache(underlying: Ehcache)
     }
     if (logger.isDebugEnabled)
       logCacheHitOrMiss(key, result)
-    Future.successful(result)
+    result
   }
 
   /**
@@ -51,7 +50,6 @@ class EhcacheCache(underlying: Ehcache)
     ttl.foreach(t => element.setTimeToLive(t.toSeconds.toInt))
     underlying.put(element)
     logCachePut(key, ttl)
-    Future.successful(())
   }
 
   /**
@@ -60,9 +58,9 @@ class EhcacheCache(underlying: Ehcache)
    *
    * @param key cache key
    */
-  override def remove(key: String) = Future.successful(underlying.remove(key))
+  override def remove(key: String) = underlying.remove(key)
 
-  override def removeAll() = Future.successful(underlying.removeAll())
+  override def removeAll() = underlying.removeAll()
 
   override def close(): Unit = {
     // Nothing to do

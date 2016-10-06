@@ -1,5 +1,9 @@
 package scalacache
 
+import cats.Monad
+
+import scala.language.higherKinds
+
 import scalacache.memoization.MemoizationConfig
 
 /**
@@ -7,8 +11,8 @@ import scalacache.memoization.MemoizationConfig
  * @param cache The cache itself
  * @param memoization Configuration related to method memoization
  */
-case class ScalaCache[Repr](
-  cache: Cache[Repr],
+case class ScalaCache[Repr, F[_]: Monad](
+  cache: Cache[Repr, F],
   cacheConfig: CacheConfig = CacheConfig(),
   keyBuilder: CacheKeyBuilder = DefaultCacheKeyBuilder,
   memoization: MemoizationConfig = MemoizationConfig())

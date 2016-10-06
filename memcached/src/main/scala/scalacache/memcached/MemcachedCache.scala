@@ -1,14 +1,17 @@
 package scalacache.memcached
 
 import org.slf4j.LoggerFactory
-import net.spy.memcached.internal.{ OperationFuture, OperationCompletionListener, GetFuture, GetCompletionListener }
+import net.spy.memcached.internal.{ GetCompletionListener, GetFuture, OperationCompletionListener, OperationFuture }
 import net.spy.memcached.{ AddrUtil, BinaryConnectionFactory, MemcachedClient }
-import scalacache.serialization.Codec
-import scalacache.{ LoggingSupport, Cache }
 
+import scalacache.serialization.Codec
+import scalacache.{ Cache, LoggingSupport }
 import scala.concurrent.duration.Duration
 import scala.util.Success
-import scala.concurrent.{ Promise, ExecutionContext }
+import scala.concurrent.{ ExecutionContext, Future, Promise }
+
+import cats.instances.future._
+import scala.concurrent.ExecutionContext.Implicits.global // TODO check this is ok
 
 /**
  * Wrapper around spymemcached
@@ -19,7 +22,7 @@ import scala.concurrent.{ Promise, ExecutionContext }
 class MemcachedCache(client: MemcachedClient,
                      keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer(),
                      useLegacySerialization: Boolean = false)(implicit execContext: ExecutionContext = ExecutionContext.global)
-    extends Cache[Array[Byte]]
+    extends Cache[Array[Byte], Future]
     with MemcachedTTLConverter
     with LoggingSupport {
 

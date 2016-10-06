@@ -11,12 +11,15 @@ import scalacache.{LoggingSupport, Cache}
 
 import scala.concurrent.duration._
 
+import scala.concurrent.ExecutionContext.Implicits.global // TODO check this is ok
+import cats.instances.future._
+
 /**
  * Contains implementations of all methods that can be implemented independent of the type of Redis client.
  * This is everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.
  */
 trait RedisCacheBase
-    extends Cache[Array[Byte]]
+    extends Cache[Array[Byte], Future]
     with RedisSerialization
     with LoggingSupport {
 
@@ -116,3 +119,4 @@ trait RedisCacheBase
   }
 
 }
+

@@ -1,10 +1,13 @@
 package scalacache
 
-import scala.concurrent.Future
+import cats.Monad
+
 import scala.concurrent.duration.Duration
+import scala.language.higherKinds
+
 import scalacache.serialization.Codec
 
-trait Cache[Repr] {
+abstract class Cache[Repr, F[_]: Monad] {
 
   /**
    * Get the value corresponding to the given key from the cache
@@ -13,7 +16,7 @@ trait Cache[Repr] {
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V](key: String)(implicit codec: Codec[V, Repr]): Future[Option[V]]
+  def get[V](key: String)(implicit codec: Codec[V, Repr]): F[Option[V]]
 
   /**
    * Insert the given key-value pair into the cache, with an optional Time To Live.
@@ -23,7 +26,7 @@ trait Cache[Repr] {
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Repr]): Future[Unit]
+  def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Repr]): F[Unit]
 
   /**
    * Remove the given key and its associated value from the cache, if it exists.
@@ -31,12 +34,12 @@ trait Cache[Repr] {
    *
    * @param key cache key
    */
-  def remove(key: String): Future[Unit]
+  def remove(key: String): F[Unit]
 
   /**
    * Delete the entire contents of the cache. Use wisely!
    */
-  def removeAll(): Future[Unit]
+  def removeAll(): F[Unit]
 
   /**
    * You should call this when you have finished using this Cache.

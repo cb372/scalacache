@@ -1,11 +1,12 @@
 package scalacache.caffeine
 
+import cats.Id
 import com.github.benmanes.caffeine.cache.{ Caffeine, Cache => CCache }
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
+
 import scalacache.serialization.{ Codec, InMemoryRepr }
 import scalacache.{ Cache, Entry, LoggingSupport }
-
 import scala.concurrent.duration.Duration
 import scala.concurrent.Future
 
@@ -18,7 +19,7 @@ import scala.concurrent.Future
  * because Any does not extend java.lang.Object.
  */
 class CaffeineCache(underlying: CCache[String, Object])
-    extends Cache[InMemoryRepr]
+    extends Cache[InMemoryRepr, Id]
     with LoggingSupport {
 
   override protected final val logger = LoggerFactory.getLogger(getClass.getName)
@@ -45,7 +46,7 @@ class CaffeineCache(underlying: CCache[String, Object])
     }
     if (logger.isDebugEnabled)
       logCacheHitOrMiss(key, result)
-    Future.successful(result)
+    result
   }
 
   /**
@@ -60,7 +61,6 @@ class CaffeineCache(underlying: CCache[String, Object])
     val entry = Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
     logCachePut(key, ttl)
-    Future.successful(())
   }
 
   /**
@@ -69,9 +69,9 @@ class CaffeineCache(underlying: CCache[String, Object])
    *
    * @param key cache key
    */
-  override def remove(key: String) = Future.successful(underlying.invalidate(key))
+  override def remove(key: String) = underlying.invalidate(key)
 
-  override def removeAll() = Future.successful(underlying.invalidateAll())
+  override def removeAll() = underlying.invalidateAll()
 
   override def close(): Unit = {
     // Nothing to do
