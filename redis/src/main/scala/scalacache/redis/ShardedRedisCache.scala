@@ -1,7 +1,6 @@
 package scalacache.redis
 
 import redis.clients.jedis._
-import scala.concurrent.{ Future, ExecutionContext, blocking }
 import scala.collection.JavaConverters._
 
 /**
@@ -14,19 +13,17 @@ import scala.collection.JavaConverters._
  */
 class ShardedRedisCache(val jedisPool: ShardedJedisPool,
                         override val customClassloader: Option[ClassLoader] = None,
-                        override val useLegacySerialization: Boolean = false)(implicit val execContext: ExecutionContext = ExecutionContext.global)
+                        override val useLegacySerialization: Boolean = false)
     extends RedisCacheBase {
 
   type JClient = ShardedJedis
 
-  override def removeAll() = Future {
-    blocking {
-      val jedis = jedisPool.getResource()
-      try {
-        jedis.getAllShards.asScala.foreach(_.flushDB())
-      } finally {
-        jedis.close()
-      }
+  override def removeAll() = {
+    val jedis = jedisPool.getResource()
+    try {
+      jedis.getAllShards.asScala.foreach(_.flushDB())
+    } finally {
+      jedis.close()
     }
   }
 

@@ -5,7 +5,6 @@ import java.io.Closeable
 import org.slf4j.LoggerFactory
 import redis.clients.jedis._
 import redis.clients.util.Pool
-import scala.concurrent.{ ExecutionContext, Future, blocking }
 import scalacache.serialization.Codec
 import scalacache.{LoggingSupport, Cache}
 
@@ -24,15 +23,13 @@ trait RedisCacheBase
 
   import StringEnrichment.StringWithUtf8Bytes
 
-  implicit def execContext: ExecutionContext
-
   protected type JClient <: BinaryJedisCommands with Closeable
 
   protected def jedisPool: Pool[JClient]
 
   /**
    * Borrow a Jedis client from the pool, perform some operation and then return the client to the pool.
- *
+   *
    * @param f block that uses the Jedis client
    * @tparam T return type of the block
    * @return the result of executing the block
@@ -46,72 +43,41 @@ trait RedisCacheBase
     }
   }
 
+  final override def get[V](key: String)(implicit codec: Codec[V, Array[Byte]]) =
+    withJedisCommands { jedis =>
+      val bytes = jedis.get(key.utf8bytes)
+      val result = {
+        if (bytes != null) {
+          Some(deserialize[V](bytes))
+        } else None
+      }
+      if (logger.isDebugEnabled)
+        logCacheHitOrMiss(key, result)
+      result
+    }
 
-  /**
-   * Get the value corresponding to the given key from the cache
- *
-   * @param key cache key
-   * @tparam V the type of the corresponding value
-   * @return the value, if there is one
-   */
-  final override def get[V](key: String)(implicit codec: Codec[V, Array[Byte]]) = Future {
-    blocking {
-      withJedisCommands { jedis =>
-        val bytes = jedis.get(key.utf8bytes)
-        val result = {
-          if (bytes != null) {
-            Some(deserialize[V](bytes))
-          } else None
-        }
-        if (logger.isDebugEnabled)
-          logCacheHitOrMiss(key, result)
-        result
+  final override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Array[Byte]]) =
+    withJedisCommands { jedis =>
+      val keyBytes = key.utf8bytes
+      val valueBytes = serialize(value)
+      ttl match {
+        case None => jedis.set(keyBytes, valueBytes)
+        case Some(Duration.Zero) => jedis.set(keyBytes, valueBytes)
+        case Some(d) if d < 1.second =>
+          if (logger.isWarnEnabled) {
+            logger.warn("Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
+          }
+          jedis.setex(keyBytes, 1, valueBytes)
+        case Some(d) => jedis.setex(keyBytes, d.toSeconds.toInt, valueBytes)
       }
     }
-  }
 
-  /**
-   * Insert the given key-value pair into the cache, with an optional Time To Live.
- *
-   * @param key cache key
-   * @param value corresponding value
-   * @param ttl Time To Live
-   * @tparam V the type of the corresponding value
-   */
-  final override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Array[Byte]]) = Future {
-    blocking {
-      withJedisCommands { jedis =>
-        val keyBytes = key.utf8bytes
-        val valueBytes = serialize(value)
-        ttl match {
-          case None => jedis.set(keyBytes, valueBytes)
-          case Some(Duration.Zero) => jedis.set(keyBytes, valueBytes)
-          case Some(d) if d < 1.second =>
-            if (logger.isWarnEnabled) {
-              logger.warn("Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
-            }
-            jedis.setex(keyBytes, 1, valueBytes)
-          case Some(d) => jedis.setex(keyBytes, d.toSeconds.toInt, valueBytes)
-        }
-      }
+  final override def remove(key: String) =
+    withJedisCommands { jedis =>
+      jedis.del(key.utf8bytes)
     }
-  }
 
-  /**
-   * Remove the given key and its associated value from the cache, if it exists.
-   * If the key is not in the cache, do nothing.
- *
-   * @param key cache key
-   */
-  final override def remove(key: String) = Future {
-    blocking {
-      withJedisCommands { jedis =>
-        jedis.del(key.utf8bytes)
-      }
-    }
-  }
-
-  final override def close(): Unit = {
+  final override def close() = {
     jedisPool.close()
   }
 

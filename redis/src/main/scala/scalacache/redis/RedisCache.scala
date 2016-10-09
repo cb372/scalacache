@@ -1,7 +1,6 @@
 package scalacache.redis
 
 import redis.clients.jedis._
-import scala.concurrent.{ Future, ExecutionContext, blocking }
 
 /**
  * Thin wrapper around Jedis
@@ -12,19 +11,17 @@ import scala.concurrent.{ Future, ExecutionContext, blocking }
  */
 class RedisCache(val jedisPool: JedisPool,
                  override val customClassloader: Option[ClassLoader] = None,
-                 override val useLegacySerialization: Boolean = false)(implicit val execContext: ExecutionContext = ExecutionContext.global)
+                 override val useLegacySerialization: Boolean = false)
     extends RedisCacheBase {
 
   type JClient = Jedis
 
-  override def removeAll() = Future {
-    blocking {
-      val jedis = jedisPool.getResource()
-      try {
-        jedis.flushDB()
-      } finally {
-        jedis.close()
-      }
+  override def removeAll() = {
+    val jedis = jedisPool.getResource()
+    try {
+      jedis.flushDB()
+    } finally {
+      jedis.close()
     }
   }
 

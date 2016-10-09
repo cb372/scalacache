@@ -4,7 +4,6 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import redis.clients.jedis._
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ ExecutionContext, Future, blocking }
 
 /**
  * Thin wrapper around Jedis that works with Redis Sentinel.
@@ -16,19 +15,17 @@ import scala.concurrent.{ ExecutionContext, Future, blocking }
  */
 class SentinelRedisCache(val jedisPool: JedisSentinelPool,
                          override val customClassloader: Option[ClassLoader] = None,
-                         override val useLegacySerialization: Boolean = false)(implicit val execContext: ExecutionContext = ExecutionContext.global)
+                         override val useLegacySerialization: Boolean = false)
     extends RedisCacheBase {
 
   type JClient = Jedis
 
-  override def removeAll() = Future {
-    blocking {
-      val jedis = jedisPool.getResource()
-      try {
-        jedis.flushDB()
-      } finally {
-        jedis.close()
-      }
+  override def removeAll() = {
+    val jedis = jedisPool.getResource()
+    try {
+      jedis.flushDB()
+    } finally {
+      jedis.close()
     }
   }
 

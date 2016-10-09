@@ -1,14 +1,12 @@
 package scalacache.memcached
 
 import org.slf4j.LoggerFactory
-import net.spy.memcached.internal.{ OperationFuture, OperationCompletionListener, GetFuture, GetCompletionListener }
+import net.spy.memcached.internal.{ OperationFuture, OperationCompletionListener }
 import net.spy.memcached.{ AddrUtil, BinaryConnectionFactory, MemcachedClient }
 import scalacache.serialization.Codec
 import scalacache.{ LoggingSupport, Cache }
 
 import scala.concurrent.duration.Duration
-import scala.util.Success
-import scala.concurrent.{ Promise, ExecutionContext }
 
 /**
  * Wrapper around spymemcached
@@ -18,89 +16,42 @@ import scala.concurrent.{ Promise, ExecutionContext }
  */
 class MemcachedCache(client: MemcachedClient,
                      keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer(),
-                     useLegacySerialization: Boolean = false)(implicit execContext: ExecutionContext = ExecutionContext.global)
+                     useLegacySerialization: Boolean = false)
     extends Cache[Array[Byte]]
     with MemcachedTTLConverter
     with LoggingSupport {
 
   override protected final val logger = LoggerFactory.getLogger(getClass.getName)
 
-  /**
-   * Get the value corresponding to the given key from the cache
-   *
-   * @param key cache key
-   * @tparam V the type of the corresponding value
-   * @return the value, if there is one
-   */
   override def get[V](key: String)(implicit codec: Codec[V, Array[Byte]]) = {
-    val p = Promise[Option[V]]()
-    val f = client.asyncGet(keySanitizer.toValidMemcachedKey(key))
-    f.addListener(new GetCompletionListener {
-      def onComplete(g: GetFuture[_]): Unit = p.complete {
-        val baseResult = f.get
-        val result = {
-          if (baseResult != null) {
-            if (useLegacySerialization)
-              Some(baseResult.asInstanceOf[V])
-            else
-              Some(codec.deserialize(baseResult.asInstanceOf[Array[Byte]]))
-          } else None
-        }
-        if (logger.isDebugEnabled)
-          logCacheHitOrMiss(key, result)
-        Success(result)
-      }
-    })
-    p.future
+    val baseResult = client.get(keySanitizer.toValidMemcachedKey(key))
+    val result = {
+      if (baseResult != null) {
+        if (useLegacySerialization)
+          Some(baseResult.asInstanceOf[V])
+        else
+          Some(codec.deserialize(baseResult.asInstanceOf[Array[Byte]]))
+      } else None
+    }
+    if (logger.isDebugEnabled)
+      logCacheHitOrMiss(key, result)
+    result
   }
 
-  /**
-   * Insert the given key-value pair into the cache, with an optional Time To Live.
-   *
-   * @param key cache key
-   * @param value corresponding value
-   * @param ttl Time To Live
-   * @tparam V the type of the corresponding value
-   */
   override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Array[Byte]]) = {
-    val p = Promise[Unit]()
     val valueToSend = if (useLegacySerialization) value else codec.serialize(value)
     val f = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)
     f.addListener(new OperationCompletionListener {
-      def onComplete(g: OperationFuture[_]): Unit = p.complete {
-        logCachePut(key, ttl)
-        Success(())
-      }
+      def onComplete(g: OperationFuture[_]): Unit = logCachePut(key, ttl)
     })
-    p.future
   }
 
-  /**
-   * Remove the given key and its associated value from the cache, if it exists.
-   * If the key is not in the cache, do nothing.
-   *
-   * @param key cache key
-   */
   override def remove(key: String) = {
-    val p = Promise[Unit]()
-    val f = client.delete(key)
-    f.addListener(new OperationCompletionListener {
-      def onComplete(g: OperationFuture[_]): Unit = p.complete {
-        Success(())
-      }
-    })
-    p.future
+    client.delete(key)
   }
 
   override def removeAll() = {
-    val p = Promise[Unit]()
-    val f = client.flush()
-    f.addListener(new OperationCompletionListener {
-      def onComplete(g: OperationFuture[_]): Unit = p.complete {
-        Success(())
-      }
-    })
-    p.future
+    client.flush()
   }
 
   override def close(): Unit = {

@@ -1,11 +1,12 @@
 
+import cats.{ Id, Monad }
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, ExecutionContext, Future }
-import scala.util.control.NonFatal
-import scala.util.{ Failure, Success, Try }
+import scala.language.{ higherKinds, implicitConversions }
 import scalacache.serialization.{ Codec, JavaSerializationCodec }
+
+// TODO review all Scaladocs and rewrite as necessary. A lot of them mention Future.
 
 package object scalacache extends JavaSerializationCodec {
   private final val logger = LoggerFactory.getLogger(getClass.getName)
@@ -13,161 +14,80 @@ package object scalacache extends JavaSerializationCodec {
   // this alias is just for convenience, so you don't need to import serialization._
   type NoSerialization = scalacache.serialization.InMemoryRepr
 
+  // This is so that Id doesn't leak unnecessarily into client code
+  implicit def id2value[T](id: Id[T]): T = id
+
+  // TODO move codec out of constructor and into each method? Repr would become a type member of ScalaCache instead of a type param.
+  // This would mean users can write `typed[String]` instead of `typed[String, NoSerialization]`.
+
   class TypedApi[From, Repr](implicit val scalaCache: ScalaCache[Repr], codec: Codec[From, Repr]) { self =>
 
-    def get(keyParts: Any*)(implicit flags: Flags): Future[Option[From]] = getWithKey(toKey(keyParts))
+    def get[F[_]](keyParts: Any*)(implicit flags: Flags, mode: Mode[F]): F[Option[From]] =
+      getWithKey[F](toKey(keyParts))(mode.fm, flags, mode)
 
-    def put(keyParts: Any*)(value: From, ttl: Option[Duration] = None)(implicit flags: Flags): Future[Unit] =
-      putWithKey(toKey(keyParts), value, ttl)
+    def put[F[_]](keyParts: Any*)(value: From, ttl: Option[Duration] = None)(implicit flags: Flags, mode: Mode[F]): F[Unit] =
+      putWithKey[F](toKey(keyParts), value, ttl)(mode.fm, flags, mode)
 
-    def remove(keyParts: Any*): Future[Unit] =
-      scalacache.remove(keyParts: _*)
+    def remove[F[_]](keyParts: Any*)(implicit mode: Mode[F]): F[Unit] =
+      scalacache.remove[F](keyParts: _*)
 
-    def removeAll(): Future[Unit] =
-      scalacache.removeAll()
+    def removeAll[F[_]](implicit mode: Mode[F]): F[Unit] =
+      scalacache.removeAll[F]()
 
-    def caching(keyParts: Any*)(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[From] = {
-      _caching(keyParts: _*)(None)(f)
+    def caching[F[_]](keyParts: Any*)(ttl: Option[Duration])(f: => F[From])(implicit flags: Flags, mode: Mode[F]): F[From] = {
+      _caching[F](keyParts: _*)(ttl)(f)
     }
 
-    def cachingWithTTL(keyParts: Any*)(ttl: Duration)(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[From] = {
-      _caching(keyParts: _*)(Some(ttl))(f)
-    }
+    // TODO
+    //    private[scalacache] def cachingForMemoize(baseKey: String)(ttl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext): Future[From] = {
+    //      val key = stringToKey(baseKey)
+    //      _caching(key)(ttl)(f)
+    //    }
 
-    def cachingWithOptionalTTL(keyParts: Any*)(optionalTtl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[From] = {
-      _caching(keyParts: _*)(optionalTtl)(f)
-    }
-
-    private[scalacache] def cachingForMemoize(baseKey: String)(ttl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext): Future[From] = {
-      val key = stringToKey(baseKey)
-      _caching(key)(ttl)(f)
-    }
-
-    private def _caching(keyParts: Any*)(ttl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext): Future[From] = {
+    private def _caching[F[_]](keyParts: Any*)(ttl: Option[Duration])(f: => F[From])(implicit flags: Flags, mode: Mode[F]): F[From] = {
       val key = toKey(keyParts)
-      _caching(key)(ttl)(f)
+      _caching[F](key)(ttl)(f)(mode.fm, flags, mode)
     }
 
-    private def _caching(key: String)(ttl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext): Future[From] = {
+    private def _caching[F[_]: Monad](key: String)(ttl: Option[Duration])(f: => F[From])(implicit flags: Flags, mode: Mode[F]): F[From] = {
+      import cats.syntax.functor._
+      import cats.syntax.flatMap._
 
-      def asynchronouslyCacheResult(result: Future[From]): Future[From] = {
-        result onSuccess {
-          case computedValue =>
-            putWithKey(key, computedValue, ttl) recover {
-              case e =>
-                if (logger.isWarnEnabled) {
-                  logger.warn(s"Failed to write to cache. Key = $key", e)
-                }
-            }
-        }
-        result
-      }
-
-      def synchronouslyCacheResult(result: Future[From]): Future[From] = {
+      def cacheAndReturn(): F[From] =
         for {
-          computedValue <- result
-          _ <- putWithKey(key, computedValue, ttl) recover {
-            case NonFatal(e) =>
-              if (logger.isWarnEnabled) {
-                logger.warn(s"Failed to write to cache. Key = $key", e)
-              }
-              result
-          }
-        } yield computedValue
+          value <- f
+          _ <- putWithKey[F](key, value, ttl)
+        } yield value
+
+      getWithKey[F](key) flatMap {
+        case Some(value) => Monad[F].pure(value)
+        case None => cacheAndReturn()
       }
-
-      def calculateAndCacheResult(): Future[From] = {
-        if (scalaCache.cacheConfig.waitForWriteToComplete)
-          synchronouslyCacheResult(f)
-        else
-          asynchronouslyCacheResult(f)
-      }
-
-      val fromCache: Future[Option[From]] = getWithKey(key)
-
-      if (fromCache.isCompleted) {
-        // optimisation for in-memory caches that return Future.successful(...)
-        fromCache.value.get match {
-          case Success(Some(value)) => Future.successful(value)
-          case Success(None) => calculateAndCacheResult()
-          case Failure(e) =>
-            if (logger.isWarnEnabled) {
-              logger.warn(s"Failed to read from cache. Key = $key", e)
-            }
-            calculateAndCacheResult()
-        }
-      } else {
-        fromCache.recover[Option[From]] {
-          case e =>
-            if (logger.isWarnEnabled) {
-              logger.warn(s"Failed to read from cache. Key = $key", e)
-            }
-            None
-        }.flatMap {
-          case Some(value) => Future.successful(value)
-          case None => calculateAndCacheResult()
-        }
-      }
-
     }
 
-    private def getWithKey(key: String)(implicit flags: Flags): Future[Option[From]] = {
+    private def getWithKey[F[_]: Monad](key: String)(implicit flags: Flags, mode: Mode[F]): F[Option[From]] = {
       if (flags.readsEnabled) {
-        scalaCache.cache.get[From](key)
+        mode.wrap(scalaCache.cache.get[From](key))
       } else {
         if (logger.isDebugEnabled) {
           logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
         }
-        Future.successful(None)
+        Monad[F].pure(None)
       }
     }
 
-    private def putWithKey(key: String, value: From, ttl: Option[Duration] = None)(implicit flags: Flags): Future[Unit] = {
+    private def putWithKey[F[_]: Monad](key: String, value: From, ttl: Option[Duration] = None)(implicit flags: Flags, mode: Mode[F]): F[Unit] = {
       if (flags.writesEnabled) {
         val finiteTtl = ttl.filter(_.isFinite()) // discard Duration.Inf, Duration.Undefined
-        scalaCache.cache.put(key, value, finiteTtl)
+        mode.wrap(scalaCache.cache.put(key, value, finiteTtl))
       } else {
         if (logger.isDebugEnabled) {
           logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
         }
-        Future.successful(())
+        Monad[F].pure(())
       }
     }
 
-    /**
-     * Synchronous API, for the case when you don't want to deal with Futures.
-     */
-    object sync {
-
-      def get(keyParts: Any*)(implicit flags: Flags): Option[From] = getSyncWithKey(toKey(keyParts))
-
-      def caching(keyParts: Any*)(f: => From)(implicit flags: Flags): From = {
-        _cachingSync(keyParts: _*)(None)(f)
-      }
-
-      def cachingWithTTL(keyParts: Any*)(ttl: Duration)(f: => From)(implicit flags: Flags): From = {
-        _cachingSync(keyParts: _*)(Some(ttl))(f)
-      }
-
-      private[scalacache] def cachingForMemoize(baseKey: String)(ttl: Option[Duration])(f: => From)(implicit flags: Flags): From = {
-        val future = self.cachingForMemoize(baseKey)(ttl)(Future.successful(f))(flags, ExecutionContext.global)
-        Await.result(future, Duration.Inf)
-      }
-
-      /*
-      Note: we could put our clever trousers on and abstract over synchronicity by saying
-      `f` has to return an F[From] (where F is either a Future or an Id), but this would leak into the public API
-      and probably confuse a lot of users.
-       */
-      private def _cachingSync(keyParts: Any*)(ttl: Option[Duration])(f: => From)(implicit flags: Flags): From = {
-        val future = _caching(keyParts: _*)(ttl)(Future.successful(f))(flags, ExecutionContext.global)
-        Await.result(future, Duration.Inf)
-      }
-
-      private def getSyncWithKey(key: String)(implicit flags: Flags): Option[From] =
-        Await.result(getWithKey(key), Duration.Inf)
-
-    }
   }
 
   /**
@@ -192,6 +112,8 @@ package object scalacache extends JavaSerializationCodec {
    */
   def typed[V, Repr](implicit scalaCache: ScalaCache[Repr], codec: Codec[V, Repr]) = new TypedApi[V, Repr]()(scalaCache, codec)
 
+  // TODO get rid of these and just use the typed API? They're not very convenient because type inference doesn't work well enough
+
   /**
    * Get the value corresponding to the given key from the cache.
    *
@@ -201,21 +123,8 @@ package object scalacache extends JavaSerializationCodec {
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V, Repr](keyParts: Any*)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): Future[Option[V]] =
-    typed[V, Repr].get(keyParts: _*)
-
-  /**
-   * Convenience method to get a value from the cache synchronously.
-   *
-   * Warning: may block indefinitely!
-   *
-   * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-   * @tparam V the type of the corresponding value
-   * @return the value, if there is one
-   */
-  @deprecated("This method has moved. Please use scalacache.sync.get", "0.7.0")
-  def getSync[V, Repr](keyParts: Any*)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): Option[V] =
-    sync.get[V, Repr](keyParts: _*)
+  def get[V, Repr, F[_]](keyParts: Any*)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr], mode: Mode[F]): F[Option[V]] =
+    typed[V, Repr].get[F](keyParts: _*)
 
   /**
    * Insert the given key-value pair into the cache, with an optional Time To Live.
@@ -227,8 +136,8 @@ package object scalacache extends JavaSerializationCodec {
    * @param ttl Time To Live (optional, if not specified then the entry will be cached indefinitely)
    * @tparam V the type of the corresponding value
    */
-  def put[V, Repr](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): Future[Unit] =
-    typed[V, Repr].put(keyParts: _*)(value, ttl)
+  def put[V, Repr, F[_]](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr], mode: Mode[F]): F[Unit] =
+    typed[V, Repr].put[F](keyParts: _*)(value, ttl)
 
   /**
    * Remove the given key and its associated value from the cache, if it exists.
@@ -238,16 +147,19 @@ package object scalacache extends JavaSerializationCodec {
    *
    * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
    */
-  def remove(keyParts: Any*)(implicit scalaCache: ScalaCache[_]): Future[Unit] =
-    scalaCache.cache.remove(toKey(keyParts))
+  def remove[F[_]](keyParts: Any*)(implicit scalaCache: ScalaCache[_], mode: Mode[F]): F[Unit] =
+    mode.wrap(scalaCache.cache.remove(toKey(keyParts)))
 
   /**
    * Delete the entire contents of the cache. Use wisely!
    */
-  def removeAll()(implicit scalaCache: ScalaCache[_]): Future[Unit] =
-    scalaCache.cache.removeAll()
+  def removeAll[F[_]]()(implicit scalaCache: ScalaCache[_], mode: Mode[F]): F[Unit] =
+    mode.wrap(scalaCache.cache.removeAll())
 
   /**
+   *
+   * // TODO rewrite this comment
+   *
    * Wrap the given block with a caching decorator.
    * First look in the cache. If the value is found, then return it immediately.
    * Otherwise run the block and save the result in the cache before returning it.
@@ -265,118 +177,18 @@ package object scalacache extends JavaSerializationCodec {
    * @tparam V the type of the block's result
    * @return the result, either retrived from the cache or returned by the block
    */
-  def caching[V, Repr](keyParts: Any*)(f: => Future[V])(implicit scalaCache: ScalaCache[Repr], flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V, Repr]): Future[V] =
-    typed[V, Repr].caching(keyParts: _*)(f)
+  def caching[V, Repr, F[_]](keyParts: Any*)(ttl: Option[Duration])(f: => F[V])(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr], mode: Mode[F]): F[V] =
+    typed[V, Repr].caching(keyParts: _*)(ttl)(f)
 
-  /**
-   * Wrap the given block with a caching decorator.
-   * First look in the cache. If the value is found, then return it immediately.
-   * Otherwise run the block and save the result in the cache before returning it.
-   *
-   * All of the above happens asynchronously, so a `Future` is returned immediately.
-   * Specifically:
-   * - when the cache lookup completes, if it is a miss, the block execution is started.
-   * - at some point after the block execution completes, the result is written asynchronously to the cache.
-   * - the Future returned from this method does not wait for the cache write before completing.
-   *
-   * The result will be stored in the cache until the given TTL expires.
-   *
-   * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-   * @param ttl Time To Live
-   * @param f the block to run
-   * @tparam V the type of the block's result
-   * @return the result, either retrived from the cache or returned by the block
-   */
-  def cachingWithTTL[V, Repr](keyParts: Any*)(ttl: Duration)(f: => Future[V])(implicit scalaCache: ScalaCache[Repr], flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V, Repr]): Future[V] =
-    typed[V, Repr].cachingWithTTL(keyParts: _*)(ttl)(f)
-
-  def cachingWithOptionalTTL[V, Repr](keyParts: Any*)(optionalTtl: Option[Duration])(f: => Future[V])(implicit scalaCache: ScalaCache[Repr], flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V, Repr]): Future[V] =
-    typed[V, Repr].cachingWithOptionalTTL(keyParts: _*)(optionalTtl)(f)
-
-  // Note: this is public because the macro inserts a call to this method into client code
-  def cachingForMemoize[V, Repr](key: String)(optionalTtl: Option[Duration])(f: => Future[V])(implicit scalaCache: ScalaCache[Repr], flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V, Repr]): Future[V] =
-    typed[V, Repr].cachingForMemoize(key)(optionalTtl)(f)
+  // TODO
+  //  // Note: this is public because the macro inserts a call to this method into client code
+  //  def cachingForMemoize[V, Repr](key: String)(optionalTtl: Option[Duration])(f: => Future[V])(implicit scalaCache: ScalaCache[Repr], flags: Flags, execContext: ExecutionContext = ExecutionContext.global, codec: Codec[V, Repr]): Future[V] =
+  //    typed[V, Repr].cachingForMemoize(key)(optionalTtl)(f)
 
   private def toKey(parts: Seq[Any])(implicit scalaCache: ScalaCache[_]): String =
     scalaCache.keyBuilder.toCacheKey(parts)(scalaCache.cacheConfig)
 
   private def stringToKey(string: String)(implicit scalaCache: ScalaCache[_]): String =
     scalaCache.keyBuilder.stringToCacheKey(string)(scalaCache.cacheConfig)
-
-  /**
-   * Synchronous API, for the case when you don't want to deal with Futures.
-   */
-  object sync {
-
-    /**
-     * Convenience method to get a value from the cache synchronously.
-     *
-     * Warning: may block indefinitely!
-     *
-     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-     * @tparam V the type of the corresponding value
-     * @return the value, if there is one
-     */
-    def get[V, Repr](keyParts: Any*)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): Option[V] =
-      typed[V, Repr].sync.get(keyParts: _*)
-
-    /**
-     * Wrap the given block with a caching decorator.
-     * First look in the cache. If the value is found, then return it immediately.
-     * Otherwise run the block and save the result in the cache before returning it.
-     *
-     * Note: Because no TTL is specified, the result will be stored in the cache indefinitely.
-     *
-     * Warning: may block indefinitely!
-     *
-     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-     * @param f the block to run
-     * @tparam V the type of the block's result
-     * @return the result, either retrived from the cache or returned by the block
-     */
-    def caching[V, Repr](keyParts: Any*)(f: => V)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): V =
-      typed[V, Repr].sync.caching(keyParts: _*)(f)
-
-    /**
-     * Wrap the given block with a caching decorator.
-     * First look in the cache. If the value is found, then return it immediately.
-     * Otherwise run the block and save the result in the cache before returning it.
-     *
-     * The result will be stored in the cache until the given TTL expires.
-     *
-     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-     * @param ttl Time To Live
-     * @param f the block to run
-     * @tparam V the type of the block's result
-     * @return the result, either retrived from the cache or returned by the block
-     */
-    def cachingWithTTL[V, Repr](keyParts: Any*)(ttl: Duration)(f: => V)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): V =
-      typed[V, Repr].sync.cachingWithTTL(keyParts: _*)(ttl)(f)
-
-    /**
-     * Wrap the given block with a caching decorator.
-     * First look in the cache. If the value is found, then return it immediately.
-     * Otherwise run the block and save the result in the cache before returning it.
-     *
-     * The result will be stored in the cache until the given TTL expires.
-     *
-     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-     * @param optionalTtl Optional Time To Live
-     * @param f the block to run
-     * @tparam V the type of the block's result
-     * @return the result, either retrived from the cache or returned by the block
-     */
-    def cachingWithOptionalTTL[V, Repr](keyParts: Any*)(optionalTtl: Option[Duration])(f: => V)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): V = {
-      optionalTtl match {
-        case Some(ttl) => typed[V, Repr].sync.cachingWithTTL(keyParts: _*)(ttl)(f)
-        case None => typed[V, Repr].sync.caching(keyParts: _*)(f)
-      }
-    }
-
-    // Note: this is public because the macro inserts a call to this method into client code
-    def cachingForMemoize[V, Repr](key: String)(optionalTtl: Option[Duration])(f: => V)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): V =
-      typed[V, Repr].sync.cachingForMemoize(key)(optionalTtl)(f)
-
-  }
 
 }
