@@ -27,11 +27,11 @@ class AerospikeCacheSpecs extends FlatSpec with Matchers with BeforeAndAfter wit
       val bin = new Bin("cache", "value for key 1".getBytes)
       client.put(writePolicy, key, bin)
 
-      whenReady(cache.get[String]("key1")) {_ should be(Some("value for key 1"))}
+      whenReady(cache.get[String]("key1")) { _ should be(Some("value for key 1")) }
     }
 
     it should "return None if the key doesn't exists" in {
-      whenReady(cache.get[String]("NotExists")) {_ should be(None)}
+      whenReady(cache.get[String]("NotExists")) { _ should be(None) }
     }
 
     behavior of "put"
