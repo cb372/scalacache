@@ -1,8 +1,8 @@
-import scalariform.formatter.preferences._
-import xerial.sbt.Sonatype.sonatypeSettings
 import sbtrelease.ReleaseStateTransformations._
+import xerial.sbt.Sonatype.sonatypeSettings
 
 import scala.language.postfixOps
+import scalariform.formatter.preferences._
 
 
 val ScalaVersion = "2.11.8"
@@ -12,7 +12,7 @@ lazy val root = Project(id = "scalacache",base = file("."))
   .settings(commonSettings: _*)
   .settings(sonatypeSettings: _*)
   .settings(publishArtifact := false)
-  .aggregate(core, guava, memcached, ehcache, redis, caffeine)
+  .aggregate(core, guava, memcached, ehcache, redis, caffeine, aerospike)
 
 lazy val core = Project(id = "scalacache-core", base = file("core"))
   .settings(commonSettings: _*)
@@ -73,6 +73,15 @@ lazy val caffeine = Project(id = "scalacache-caffeine", base = file("caffeine"))
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine" % "2.3.3",
       "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
+    )
+  )
+  .dependsOn(core)
+
+lazy val aerospike = Project(id = "scalacache-aerospike", base = file("aerospike"))
+  .settings(implProjectSettings: _*)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.aerospike" % "aerospike-client" % "3.3.0"
     )
   )
   .dependsOn(core)
