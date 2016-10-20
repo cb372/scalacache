@@ -20,7 +20,7 @@ class AerospikeCache(hostList: Array[Host],
 
   private val policy = new AsyncClientPolicy()
   policy.threadPool = ExecutionContextExecutorServiceBridge(executionContext)
-  implicit val client = new AsyncClient(policy, hostList :_*)
+  implicit val client = new AsyncClient(policy, hostList: _*)
 
   logger.info(s"Connection status to Aerospike : ${client.isConnected}")
   logger.info(s"Current Nodes in cluster : ${client.getNodes}")
@@ -51,7 +51,7 @@ class AerospikeCache(hostList: Array[Host],
     val p = Promise[Unit]()
     val aerospikeKey = new Key(namespace, cacheName, key)
     val bin = new Bin("cache", codec.serialize(value))
-    ttl foreach {d => writePolicy.expiration = d.toSeconds.toInt}
+    ttl foreach { d => writePolicy.expiration = d.toSeconds.toInt }
     client.put(writePolicy, new WriteHandler(p), aerospikeKey, bin)
     p.future
   }
@@ -90,7 +90,7 @@ class AerospikeCache(hostList: Array[Host],
 }
 
 object AerospikeCache {
-  def apply(hostList: Array[String], namespace: String, cacheName: String) : AerospikeCache =
+  def apply(hostList: Array[String], namespace: String, cacheName: String): AerospikeCache =
     apply(hostList, namespace, cacheName, new WritePolicy(), new BatchPolicy())
 
   def apply(hostList: Array[String], namespace: String, cacheName: String,
@@ -101,7 +101,6 @@ object AerospikeCache {
     }
     new AerospikeCache(hosts, namespace, cacheName, writePolicy, batchPolicy)
   }
-
 
 }
 
