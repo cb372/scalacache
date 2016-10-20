@@ -1,18 +1,20 @@
-import java.util.Base64
+import java.util.concurrent.TimeUnit
 
-import aerospikez.{AerospikeClient, Namespace, WriteConfig}
+import com.aerospike.client.policy.{BatchPolicy, WritePolicy}
+import com.aerospike.client.{AerospikeClient, Bin, Key}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
+import scala.concurrent.duration.Duration
 import scalacache.aerospike.AerospikeCache
 
-/**
-  * Created by Richard Grossman on 2016/7/18.
-  */
 class AerospikeCacheSpecs extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
-  val client = AerospikeClient()
+  val client = new AerospikeClient("127.0.0.1", 3000)
   val cacheName = "unittest"
-  val set = client.setOf[String](Namespace(), name = cacheName)
+  val namespace = "test"
+  val writePolicy = new WritePolicy()
+  val readPolicy = new BatchPolicy()
+  val cache = AerospikeCache(Array("127.0.0.1:3000"), namespace, cacheName)
 
   def aerospikeIsRunning = client.isConnected
 
@@ -21,42 +23,45 @@ class AerospikeCacheSpecs extends FlatSpec with Matchers with BeforeAndAfter wit
   } else {
     behavior of "get"
     it should "retrieve a value stored in Aerospike" in {
-      val base64String = Base64.getEncoder.encodeToString("value for key 1".getBytes)
-      set.put("key1", base64String).run
-      val cache = AerospikeCache(cacheName)
+      val key = new Key(namespace, cacheName, "key1")
+      val bin = new Bin("cache", "value for key 1".getBytes)
+      client.put(writePolicy, key, bin)
+
       whenReady(cache.get[String]("key1")) {_ should be(Some("value for key 1"))}
     }
 
     it should "return None if the key doesn't exists" in {
-      val cache = AerospikeCache(cacheName)
       whenReady(cache.get[String]("NotExists")) {_ should be(None)}
     }
 
     behavior of "put"
-    it should "Add a new key,value to aerospike the string is base64 encoded" in {
-      val cache = AerospikeCache(cacheName)
-      whenReady(cache.put("key1", "Value to cache", None)) { _ =>
-        set.get("key1").run should be(Some("VmFsdWUgdG8gY2FjaGU="))
+    it should "Add a new key,value to aerospike as string" in {
+      whenReady(cache.put[String]("key2", "Value to cache", None)) { _ =>
+        val key = new Key(namespace, cacheName, "key2")
+        val record = client.get(readPolicy, key)
+        new String(record.bins.get("cache").asInstanceOf[Array[Byte]]) should be("Value to cache")
       }
     }
 
     it should "add a value and check is TTL is set" in {
-      val namespace = Namespace("test", writeConfig = WriteConfig(expiration = 10))
-      val setWithTTL = client.setOf[String](namespace, cacheName)
-      val cache = AerospikeCache(namespace, cacheName)
+      whenReady(cache.put("key3", "Value to cache", Some(Duration(2, TimeUnit.SECONDS)))) { _ =>
+        Thread.sleep(5000) // sleep 5 second ttl have occured
+        val key = new Key(namespace, cacheName, "key3")
 
-      whenReady(cache.put("key1", "Value to cache", None)) { _ =>
-        Thread.sleep(20000) // sleep 40 second ttl have occured
-        setWithTTL.get("key1").run should be(None)
+        val record = client.get(readPolicy, key)
+        Option(record) should be(None)
       }
     }
 
     behavior of "remove"
     it should "remove a value from the cache given a key" in {
-      set.put("key1", "this value must be removed").run
-      val cache = AerospikeCache(cacheName)
-      whenReady(cache.remove("key1")) { _ =>
-        set.get("key1").run should be(None)
+      val key = new Key(namespace, cacheName, "key4")
+      val bin = new Bin("cache", "value to be removed")
+      client.put(writePolicy, key, bin)
+
+      whenReady(cache.remove("key4")) { _ =>
+        val record = client.get(readPolicy, key)
+        Option(record) should be(None)
       }
     }
   }

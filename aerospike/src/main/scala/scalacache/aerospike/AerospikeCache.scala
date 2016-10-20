@@ -1,27 +1,26 @@
 package scalacache.aerospike
 
-import java.util.Base64
-
-import aerospikez.{ AerospikeClient, Hosts, Namespace }
+import com.aerospike.client.async.{AsyncClient, AsyncClientPolicy}
+import com.aerospike.client.policy.{BatchPolicy, WritePolicy}
+import com.aerospike.client.{Bin, Host, Key}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scalacache.serialization.Codec
-import scalacache.{ Cache, LoggingSupport }
-import scalaz.NonEmptyList
+import scalacache.{Cache, LoggingSupport}
 
-/**
- * Created by Richard Grossman on 2016/7/18.
- */
-class AerospikeCache(hostList: NonEmptyList[String],
-                     namespace: Namespace = Namespace(),
-                     setNameCache: String)(implicit executionContext: ExecutionContext = ExecutionContext.global)
+class AerospikeCache(hostList: Array[Host],
+                     namespace: String = "",
+                     cacheName: String,
+                     writePolicy: WritePolicy,
+                     readPolicy: BatchPolicy)(implicit executionContext: ExecutionContext = ExecutionContext.global)
     extends Cache[Array[Byte]] with LoggingSupport {
-  override protected final val logger = LoggerFactory.getLogger(getClass.getName)
+  override protected implicit val logger = LoggerFactory.getLogger(getClass.getName)
 
-  val client = AerospikeClient(hostList)
-  val set = client.setOf[String](namespace, name = setNameCache)
+  private val policy = new AsyncClientPolicy()
+  policy.threadPool = ExecutionContextExecutorServiceBridge(executionContext)
+  implicit val client = new AsyncClient(policy, hostList :_*)
 
   logger.info(s"Connection status to Aerospike : ${client.isConnected}")
   logger.info(s"Current Nodes in cluster : ${client.getNodes}")
@@ -33,9 +32,11 @@ class AerospikeCache(hostList: NonEmptyList[String],
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  override def get[V](key: String)(implicit codec: Codec[V, Array[Byte]]): Future[Option[V]] = Future {
-    val bin = set.get(key).run
-    bin map { b => Some(codec.deserialize(Base64.getDecoder.decode(b))) } getOrElse None
+  override def get[V](key: String)(implicit codec: Codec[V, Array[Byte]]): Future[Option[V]] = {
+    val p = Promise[Option[Array[Byte]]]
+    val aerospikeKey = new Key(namespace, cacheName, key)
+    client.get(readPolicy, new ReadHandler(p), aerospikeKey)
+    p.future map (f => f map codec.deserialize)
   }
 
   /**
@@ -46,9 +47,13 @@ class AerospikeCache(hostList: NonEmptyList[String],
    * @param ttl   Time To Live
    * @tparam V the type of the corresponding value
    */
-  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Array[Byte]]): Future[Unit] = Future {
-    val base64String = Base64.getEncoder.encodeToString(codec.serialize(value))
-    set.put(key, base64String).run
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Array[Byte]]): Future[Unit] = {
+    val p = Promise[Unit]()
+    val aerospikeKey = new Key(namespace, cacheName, key)
+    val bin = new Bin("cache", codec.serialize(value))
+    ttl foreach {d => writePolicy.expiration = d.toSeconds.toInt}
+    client.put(writePolicy, new WriteHandler(p), aerospikeKey, bin)
+    p.future
   }
 
   /**
@@ -58,7 +63,10 @@ class AerospikeCache(hostList: NonEmptyList[String],
    * @param key cache key
    */
   override def remove(key: String): Future[Unit] = {
-    Future(if (set.exists(key).run) set.delete(key).run)
+    val p = Promise[Unit]()
+    val aerospikeKey = new Key(namespace, cacheName, key)
+    client.delete(writePolicy, new DeleteHandler(p), aerospikeKey)
+    p.future
   }
 
   /**
@@ -82,13 +90,18 @@ class AerospikeCache(hostList: NonEmptyList[String],
 }
 
 object AerospikeCache {
-  def apply(hostList: Array[String], namespace: Namespace, cacheName: String) =
-    new AerospikeCache(Hosts(hostList.head, hostList.tail: _*), namespace, cacheName)
+  def apply(hostList: Array[String], namespace: String, cacheName: String) : AerospikeCache =
+    apply(hostList, namespace, cacheName, new WritePolicy(), new BatchPolicy())
 
-  def apply(namespace: Namespace, cacheName: String): AerospikeCache =
-    apply(Array("localhost:3000"), namespace, cacheName)
+  def apply(hostList: Array[String], namespace: String, cacheName: String,
+            writePolicy: WritePolicy, batchPolicy: BatchPolicy): AerospikeCache = {
+    val hosts = hostList map { h =>
+      val t = h.split(":")
+      new Host(t(0), t(1).toInt)
+    }
+    new AerospikeCache(hosts, namespace, cacheName, writePolicy, batchPolicy)
+  }
 
-  def apply(cacheName: String): AerospikeCache =
-    apply(Array("localhost:3000"), Namespace(), cacheName = cacheName)
 
 }
+
