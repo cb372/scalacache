@@ -17,9 +17,7 @@ lazy val root = Project(id = "scalacache",base = file("."))
 lazy val core = Project(id = "scalacache-core", base = file("core"))
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies <+= scalaVersion { s =>
-      "org.scala-lang" % "scala-reflect" % s
-    }
+    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
   )
   .settings(
     libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.2" % Test,
@@ -163,9 +161,9 @@ lazy val mavenSettings = Seq(
         <url>https://github.com/cb372</url>
       </developer>
     </developers>,
-  publishTo <<= version { v =>
+  publishTo := {
     val nexus = "https://oss.sonatype.org/"
-    if (v.trim.endsWith("SNAPSHOT"))
+    if (version.value.trim.endsWith("SNAPSHOT"))
       Some("snapshots" at nexus + "content/repositories/snapshots")
     else
       Some("releases"  at nexus + "service/local/staging/deploy/maven2")
