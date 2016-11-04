@@ -115,7 +115,7 @@ lazy val commonSettings =
   Seq(
     organization := "com.github.cb372",
     scalaVersion := ScalaVersion,
-    crossScalaVersions := Seq(ScalaVersion, "2.12.0-RC1"),
+    crossScalaVersions := Seq(ScalaVersion, "2.12.0"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     resolvers += Resolver.typesafeRepo("releases"),
     libraryDependencies ++= commonDeps,
