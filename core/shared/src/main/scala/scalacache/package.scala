@@ -3,6 +3,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 import scalacache.serialization.{ Codec, JavaSerializationCodec }
 
@@ -49,20 +50,37 @@ package object scalacache extends JavaSerializationCodec {
 
     private def _caching(key: String)(ttl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext): Future[From] = {
 
-      def asynchronouslyCacheResult(result: Future[From]): Unit = result onSuccess {
-        case computedValue =>
-          Try(putWithKey(key, computedValue, ttl)) recover {
-            case e =>
+      def asynchronouslyCacheResult(result: Future[From]): Future[From] = {
+        result onSuccess {
+          case computedValue =>
+            putWithKey(key, computedValue, ttl) recover {
+              case e =>
+                if (logger.isWarnEnabled) {
+                  logger.warn(s"Failed to write to cache. Key = $key", e)
+                }
+            }
+        }
+        result
+      }
+
+      def synchronouslyCacheResult(result: Future[From]): Future[From] = {
+        for {
+          computedValue <- result
+          _ <- putWithKey(key, computedValue, ttl) recover {
+            case NonFatal(e) =>
               if (logger.isWarnEnabled) {
                 logger.warn(s"Failed to write to cache. Key = $key", e)
               }
+              result
           }
+        } yield computedValue
       }
 
       def calculateAndCacheResult(): Future[From] = {
-        val result: Future[From] = f
-        asynchronouslyCacheResult(result)
-        result
+        if (scalaCache.cacheConfig.waitForWriteToComplete)
+          synchronouslyCacheResult(f)
+        else
+          asynchronouslyCacheResult(f)
       }
 
       val fromCache: Future[Option[From]] = getWithKey(key)
