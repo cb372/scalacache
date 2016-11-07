@@ -14,12 +14,7 @@ lazy val root = Project(id = "scalacache",base = file("."))
   .settings(commonSettings: _*)
   .settings(sonatypeSettings: _*)
   .settings(publishArtifact := false)
-  .aggregate(coreRoot, guava, memcached, ehcache, redis, caffeine)
-
-lazy val coreRoot = Project(id = "scalacache-core", base = file("."))
-  .settings(commonSettings: _*)
-  .aggregate(coreJS,coreJVM)
-  .settings(publishArtifact := false)
+  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine)
 
 lazy val core = CrossProject(id = "scalacache-core", file("core"), CrossType.Full)
   .settings(commonSettings: _*)
