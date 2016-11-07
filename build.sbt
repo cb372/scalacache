@@ -1,3 +1,5 @@
+import org.scalajs.sbtplugin.cross.CrossProject
+
 import scalariform.formatter.preferences._
 import xerial.sbt.Sonatype.sonatypeSettings
 import sbtrelease.ReleaseStateTransformations._
@@ -200,6 +202,3 @@ def scala211OnlyDeps(moduleIDs: ModuleID*) =
     case "2.11" => moduleIDs
     case other => Nil
   })
-
-
-
