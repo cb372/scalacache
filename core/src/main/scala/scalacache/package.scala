@@ -49,14 +49,13 @@ package object scalacache extends JavaSerializationCodec {
 
     private def _caching(key: String)(ttl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext): Future[From] = {
 
-      def asynchronouslyCacheResult(result: Future[From]): Unit = result onSuccess {
-        case computedValue =>
-          Try(putWithKey(key, computedValue, ttl)) recover {
-            case e =>
-              if (logger.isWarnEnabled) {
-                logger.warn(s"Failed to write to cache. Key = $key", e)
-              }
-          }
+      def asynchronouslyCacheResult(result: Future[From]): Future[Unit] = result map { computedValue =>
+        putWithKey(key, computedValue, ttl) recover {
+          case e =>
+            if (logger.isWarnEnabled) {
+              logger.warn(s"Failed to write to cache. Key = $key", e)
+            }
+        }
       }
 
       def calculateAndCacheResult(): Future[From] = {
