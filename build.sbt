@@ -1,5 +1,3 @@
-import org.scalajs.sbtplugin.cross.CrossProject
-
 import scalariform.formatter.preferences._
 import xerial.sbt.Sonatype.sonatypeSettings
 import sbtrelease.ReleaseStateTransformations._
@@ -19,18 +17,15 @@ lazy val root = Project(id = "scalacache",base = file("."))
 lazy val core = CrossProject(id = "scalacache-core", file("core"), CrossType.Full)
   .settings(commonSettings: _*)
   .settings(
-    name := "scalacache-core",
-    libraryDependencies <+= scalaVersion { s =>
-      "org.scala-lang" % "scala-reflect" % s
-    }
+    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
   )
   .settings(
-    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.2" % Test
-  ).jvmSettings(
-  scala211OnlyDeps(
-    "org.squeryl" %% "squeryl" % "0.9.5-7" % Test,
-    "com.h2database" % "h2" % "1.4.182" % Test)
-)
+    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
+    scala211OnlyDeps(
+      "org.squeryl" %% "squeryl" % "0.9.5-7" % Test,
+      "com.h2database" % "h2" % "1.4.182" % Test
+    )
+  )
 
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
@@ -115,63 +110,63 @@ slf4j ++
 
 lazy val commonSettings =
   Defaults.coreDefaultSettings ++
-    mavenSettings ++
-    scalariformSettings ++
-    formatterPrefs ++
-    Seq(
-      organization := "com.github.cb372",
-      scalaVersion := ScalaVersion,
-      crossScalaVersions := Seq(ScalaVersion, "2.12.0-RC1"),
-      scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
-      resolvers += Resolver.typesafeRepo("releases"),
-      libraryDependencies ++= commonDeps,
-      parallelExecution in Test := false,
-      releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-      releaseCrossBuild := true,
-      releaseProcess := Seq[ReleaseStep](
-        checkSnapshotDependencies,
-        inquireVersions,
-        runClean,
-        runTest,
-        setReleaseVersion,
-        commitReleaseVersion,
-        updateVersionInReadme,
-        tagRelease,
-        publishArtifacts,
-        setNextVersion,
-        commitNextVersion,
-        releaseStepCommand("sonatypeReleaseAll"),
-        pushChanges
-      ),
-      commands += Command.command("update-version-in-readme")(updateVersionInReadme)
-    )
+  mavenSettings ++
+  scalariformSettings ++
+  formatterPrefs ++
+  Seq(
+    organization := "com.github.cb372",
+    scalaVersion := ScalaVersion,
+    crossScalaVersions := Seq(ScalaVersion, "2.12.0"),
+    scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
+    resolvers += Resolver.typesafeRepo("releases"),
+    libraryDependencies ++= commonDeps,
+    parallelExecution in Test := false,
+    releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+    releaseCrossBuild := true,
+    releaseProcess := Seq[ReleaseStep](
+      checkSnapshotDependencies,
+      inquireVersions,
+      runClean,
+      runTest,
+      setReleaseVersion,
+      commitReleaseVersion,
+      updateVersionInReadme,
+      tagRelease,
+      publishArtifacts,
+      setNextVersion,
+      commitNextVersion,
+      releaseStepCommand("sonatypeReleaseAll"),
+      pushChanges
+    ),
+    commands += Command.command("update-version-in-readme")(updateVersionInReadme)
+  )
 
 lazy val implProjectSettings = commonSettings
 
 lazy val mavenSettings = Seq(
   pomExtra :=
     <url>https://github.com/cb372/scalacache</url>
-      <licenses>
-        <license>
-          <name>Apache License, Version 2.0</name>
-          <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-          <distribution>repo</distribution>
-        </license>
-      </licenses>
-      <scm>
-        <url>git@github.com:cb372/scalacache.git</url>
-        <connection>scm:git:git@github.com:cb372/scalacache.git</connection>
-      </scm>
-      <developers>
-        <developer>
-          <id>cb372</id>
-          <name>Chris Birchall</name>
-          <url>https://github.com/cb372</url>
-        </developer>
-      </developers>,
-  publishTo <<= version { v =>
+    <licenses>
+      <license>
+        <name>Apache License, Version 2.0</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        <distribution>repo</distribution>
+      </license>
+    </licenses>
+    <scm>
+      <url>git@github.com:cb372/scalacache.git</url>
+      <connection>scm:git:git@github.com:cb372/scalacache.git</connection>
+    </scm>
+    <developers>
+      <developer>
+        <id>cb372</id>
+        <name>Chris Birchall</name>
+        <url>https://github.com/cb372</url>
+      </developer>
+    </developers>,
+  publishTo := {
     val nexus = "https://oss.sonatype.org/"
-    if (v.trim.endsWith("SNAPSHOT"))
+    if (version.value.trim.endsWith("SNAPSHOT"))
       Some("snapshots" at nexus + "content/repositories/snapshots")
     else
       Some("releases"  at nexus + "service/local/staging/deploy/maven2")
@@ -205,4 +200,6 @@ def scala211OnlyDeps(moduleIDs: ModuleID*) =
     case "2.11" => moduleIDs
     case other => Nil
   })
+
+
 
