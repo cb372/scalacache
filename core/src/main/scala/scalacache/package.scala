@@ -49,20 +49,23 @@ package object scalacache extends JavaSerializationCodec {
 
     private def _caching(key: String)(ttl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext): Future[From] = {
 
-      def asynchronouslyCacheResult(result: Future[From]): Unit = result onSuccess {
-        case computedValue =>
-          Try(putWithKey(key, computedValue, ttl)) recover {
-            case e =>
-              if (logger.isWarnEnabled) {
-                logger.warn(s"Failed to write to cache. Key = $key", e)
-              }
-          }
+      def asynchronouslyCacheResult(result: Future[From]): Future[Unit] = result map { computedValue =>
+        putWithKey(key, computedValue, ttl) recover {
+          case e =>
+            if (logger.isWarnEnabled) {
+              logger.warn(s"Failed to write to cache. Key = $key", e)
+            }
+        }
       }
 
       def calculateAndCacheResult(): Future[From] = {
         val result: Future[From] = f
-        asynchronouslyCacheResult(result)
-        result
+        val cacheResult: Future[Unit] = asynchronouslyCacheResult(result)
+        if (flags.invalidateEnabled) {
+          result flatMap (v => cacheResult.map(_ => v))
+        } else {
+          result
+        }
       }
 
       val fromCache: Future[Option[From]] = getWithKey(key)
@@ -94,7 +97,7 @@ package object scalacache extends JavaSerializationCodec {
     }
 
     private def getWithKey(key: String)(implicit flags: Flags): Future[Option[From]] = {
-      if (flags.readsEnabled) {
+      if (flags.readsEnabled && !flags.invalidateEnabled) {
         scalaCache.cache.get[From](key)
       } else {
         if (logger.isDebugEnabled) {
@@ -105,7 +108,7 @@ package object scalacache extends JavaSerializationCodec {
     }
 
     private def putWithKey(key: String, value: From, ttl: Option[Duration] = None)(implicit flags: Flags): Future[Unit] = {
-      if (flags.writesEnabled) {
+      if (flags.writesEnabled || flags.invalidateEnabled) {
         val finiteTtl = ttl.filter(_.isFinite()) // discard Duration.Inf, Duration.Undefined
         scalaCache.cache.put(key, value, finiteTtl)
       } else {
