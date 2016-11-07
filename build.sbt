@@ -17,12 +17,10 @@ lazy val root = Project(id = "scalacache",base = file("."))
 lazy val core = Project(id = "scalacache-core", base = file("core"))
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies <+= scalaVersion { s =>
-      "org.scala-lang" % "scala-reflect" % s
-    }
+    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
   )
   .settings(
-    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.2" % Test,
+    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
     scala211OnlyDeps(
       "org.squeryl" %% "squeryl" % "0.9.5-7" % Test,
       "com.h2database" % "h2" % "1.4.182" % Test
@@ -115,7 +113,7 @@ lazy val commonSettings =
   Seq(
     organization := "com.github.cb372",
     scalaVersion := ScalaVersion,
-    crossScalaVersions := Seq(ScalaVersion, "2.12.0-RC1"),
+    crossScalaVersions := Seq(ScalaVersion, "2.12.0"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     resolvers += Resolver.typesafeRepo("releases"),
     libraryDependencies ++= commonDeps,
@@ -163,9 +161,9 @@ lazy val mavenSettings = Seq(
         <url>https://github.com/cb372</url>
       </developer>
     </developers>,
-  publishTo <<= version { v =>
+  publishTo := {
     val nexus = "https://oss.sonatype.org/"
-    if (v.trim.endsWith("SNAPSHOT"))
+    if (version.value.trim.endsWith("SNAPSHOT"))
       Some("snapshots" at nexus + "content/repositories/snapshots")
     else
       Some("releases"  at nexus + "service/local/staging/deploy/maven2")
