@@ -22,9 +22,9 @@ lazy val core = Project(id = "scalacache-core", base = file("core"))
     }
   )
   .settings(
-    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.2" % Test,
+    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
     scala211OnlyDeps(
-      "org.squeryl" %% "squeryl" % "0.9.5-7" % Test,
+      "org.squeryl" %% "squeryl" % "0.9.7" % Test,
       "com.h2database" % "h2" % "1.4.182" % Test
     )
   )
@@ -115,7 +115,7 @@ lazy val commonSettings =
   Seq(
     organization := "com.github.cb372",
     scalaVersion := ScalaVersion,
-    crossScalaVersions := Seq(ScalaVersion, "2.12.0-RC1"),
+    crossScalaVersions := Seq(ScalaVersion, "2.12.0"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     resolvers += Resolver.typesafeRepo("releases"),
     libraryDependencies ++= commonDeps,
