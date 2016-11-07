@@ -20,7 +20,7 @@ lazy val core = Project(id = "scalacache-core", base = file("core"))
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
   )
   .settings(
-    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.2" % Test,
+    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
     scala211OnlyDeps(
       "org.squeryl" %% "squeryl" % "0.9.5-7" % Test,
       "com.h2database" % "h2" % "1.4.182" % Test
