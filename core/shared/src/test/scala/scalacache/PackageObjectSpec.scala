@@ -1,15 +1,15 @@
 package scalacache
 
-import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.concurrent.{ Eventually, IntegrationPatience, ScalaFutures }
 import org.scalatest.{ BeforeAndAfter, FlatSpec, Matchers }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scalacache.serialization.InMemoryRepr
+import scalacache.serialization.{ Codec, InMemoryRepr }
 
-class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures with Eventually {
+class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures with Eventually with IntegrationPatience {
 
   val cache = new LoggingMockCache
   implicit val scalaCache = ScalaCache(cache)
@@ -87,7 +87,7 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
   behavior of "#caching"
 
-  it should "run the block and cache its result asynchronously with no TTL if the value is not found in the cache" in {
+  it should "run the block and cache its result with no TTL if the value is not found in the cache" in {
     var called = false
     val fResult = scalacache.caching("myKey") {
       Future {
@@ -98,6 +98,32 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
     whenReady(fResult) { result =>
       cache.getCalledWithArgs(0) should be("myKey")
+      cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
+      called should be(true)
+      result should be("result of block")
+    }
+  }
+
+  it should "perform the cache write asynchronously if ScalaCache is thus configured" in {
+    val cache = new LoggingMockCache {
+      override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, NoSerialization]): Future[Unit] = {
+        Thread.sleep(2000L)
+        super.put(key, value, ttl)
+      }
+    }
+    implicit val scalaCache = ScalaCache(cache, CacheConfig(waitForWriteToComplete = false))
+
+    var called = false
+    val fResult = scalacache.caching("myKey") {
+      Future {
+        called = true
+        "result of block"
+      }
+    }
+
+    whenReady(fResult) { result =>
+      cache.getCalledWithArgs(0) should be("myKey")
+      cache.putCalledWithArgs shouldBe empty
       called should be(true)
       result should be("result of block")
 
