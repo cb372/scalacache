@@ -1,3 +1,24 @@
+0.9.3 (2016/11/08)
+----
+
+New features:
+
+* ScalaCache is now published for Scala 2.11.x and 2.12.0
+* scalacache-core is also published for Scala.js (thanks to @mdedetrich). On its own, this is not very useful, but it paves the way for proper Scala.js support in the future.
+
+Change in behaviour:
+
+The write semantics of the `caching` method (and, by extension, memoization) is now configurable. By default, in the case of a cache miss, the `Future` returned from the method will not complete until the cache write has completed.
+
+This makes the behaviour deterministic, as you have a guarantee that the value is present in the cache once the Future completes. 
+
+If you want to maintain ScalaCache's old behaviour (i.e. complete the `Future` as soon as the value is computed, then perform the cache write in an asynchronous callback), you can toggle the new `waitForWriteToComplete` flag in `CacheConfig`.
+
+Other stuff:
+
+* Bump sbt 0.13.13
+* Documentation fixes
+
 0.9.2 (2016/09/23)
 ----
 
