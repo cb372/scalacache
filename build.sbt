@@ -19,10 +19,11 @@ lazy val root = Project(id = "scalacache",base = file("."))
 lazy val core = CrossProject(id = "scalacache-core", file("core"), CrossType.Full)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
-  )
-  .settings(
-    libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.4" % Test,
+    moduleName := "scalacache-core",
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      "org.scalacheck" %% "scalacheck" % "1.13.4" % Test
+    ),
     scala211OnlyDeps(
       "org.squeryl" %% "squeryl" % "0.9.5-7" % Test,
       "com.h2database" % "h2" % "1.4.182" % Test
