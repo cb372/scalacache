@@ -1,3 +1,5 @@
+import org.scalajs.sbtplugin.cross.CrossProject
+
 import scalariform.formatter.preferences._
 import xerial.sbt.Sonatype.sonatypeSettings
 import sbtrelease.ReleaseStateTransformations._
@@ -12,9 +14,9 @@ lazy val root = Project(id = "scalacache",base = file("."))
   .settings(commonSettings: _*)
   .settings(sonatypeSettings: _*)
   .settings(publishArtifact := false)
-  .aggregate(core, guava, memcached, ehcache, redis, caffeine)
+  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine)
 
-lazy val core = Project(id = "scalacache-core", base = file("core"))
+lazy val core = CrossProject(id = "scalacache-core", file("core"), CrossType.Full)
   .settings(commonSettings: _*)
   .settings(
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
@@ -27,6 +29,9 @@ lazy val core = Project(id = "scalacache-core", base = file("core"))
     )
   )
 
+lazy val coreJVM = core.jvm
+lazy val coreJS = core.js
+
 lazy val guava = Project(id = "scalacache-guava", base = file("guava"))
   .settings(implProjectSettings: _*)
   .settings(
@@ -35,7 +40,7 @@ lazy val guava = Project(id = "scalacache-guava", base = file("guava"))
       "com.google.code.findbugs" % "jsr305" % "1.3.9"
     )
   )
-  .dependsOn(core)
+  .dependsOn(coreJVM)
 
 lazy val memcached = Project(id = "scalacache-memcached", base = file("memcached"))
   .settings(implProjectSettings: _*)
@@ -44,7 +49,7 @@ lazy val memcached = Project(id = "scalacache-memcached", base = file("memcached
       "net.spy" % "spymemcached" % "2.12.1"
     )
   )
-  .dependsOn(core % "test->test;compile->compile")
+  .dependsOn(coreJVM % "test->test;compile->compile")
 
 lazy val ehcache = Project(id = "scalacache-ehcache", base = file("ehcache"))
   .settings(implProjectSettings: _*)
@@ -54,7 +59,7 @@ lazy val ehcache = Project(id = "scalacache-ehcache", base = file("ehcache"))
       "javax.transaction" % "jta" % "1.1"
     )
   )
-  .dependsOn(core)
+  .dependsOn(coreJVM)
 
 lazy val redis = Project(id = "scalacache-redis", base = file("redis"))
   .settings(implProjectSettings: _*)
@@ -63,7 +68,7 @@ lazy val redis = Project(id = "scalacache-redis", base = file("redis"))
       "redis.clients" % "jedis" % "2.9.0"
     )
   )
-  .dependsOn(core % "test->test;compile->compile")
+  .dependsOn(coreJVM % "test->test;compile->compile")
 
 lazy val caffeine = Project(id = "scalacache-caffeine", base = file("caffeine"))
   .settings(implProjectSettings: _*)
@@ -73,7 +78,7 @@ lazy val caffeine = Project(id = "scalacache-caffeine", base = file("caffeine"))
       "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
     )
   )
-  .dependsOn(core)
+  .dependsOn(coreJVM)
 
 lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
   .enablePlugins(JmhPlugin)
@@ -101,7 +106,7 @@ lazy val scalaTest = Seq(
 
 // Dependencies common to all projects
 lazy val commonDeps =
-  slf4j ++
+slf4j ++
   scalaTest ++
   jodaTime
 
@@ -192,11 +197,8 @@ lazy val updateVersionInReadme = ReleaseStep(action = st => {
   st
 })
 
-def scala211OnlyDeps(moduleIDs: ModuleID*) = 
+def scala211OnlyDeps(moduleIDs: ModuleID*) =
   libraryDependencies ++= (scalaBinaryVersion.value match {
     case "2.11" => moduleIDs
     case other => Nil
   })
-
-
-
