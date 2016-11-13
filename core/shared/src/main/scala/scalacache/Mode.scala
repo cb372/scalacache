@@ -12,7 +12,7 @@ import scala.util.{Success, Try}
 //"""
 //)
 abstract class Mode {
-  type F[Res]
+  type F[+Res]
   def pure[T](x: T): F[T]
   def wrap[T](x: => T): F[T]
   def map[A, B](fa: F[A])(f: A => B): F[B]
@@ -29,8 +29,9 @@ object modes {
   implicit val wrapWithTry = TryMode
   implicit def runAsFuture(implicit ec: ExecutionContext) = FutureMode()(ec)
 
+
   case object IdMode extends Mode {
-    type F[Res] = Res
+    type F[+Res] = Res
     def pure[T](x: T): T = x
     def wrap[T](x: => T): T = x
     def map[A, B](x: A)(f: A => B): B = f(x)
@@ -38,7 +39,7 @@ object modes {
   }
 
   case object TryMode extends Mode {
-    type F[Res] = Try[Res]
+    type F[+Res] = Try[Res]
     def pure[T](x: T): Try[T] = Success(x)
     def wrap[T](x: => T): Try[T] = Try(x)
     def map[A, B](fa: Try[A])(f: A => B): Try[B] = fa.map(f)
@@ -46,7 +47,7 @@ object modes {
   }
 
   case class FutureMode(implicit ec: ExecutionContext) extends Mode {
-    type F[Res] = Future[Res]
+    type F[+Res] = Future[Res]
     def pure[T](x: T): Future[T] = Future.successful(x)
     def wrap[T](x: => T): Future[T] = Future(x)
     def map[A, B](fa: Future[A])(f: A => B): Future[B] = fa.map(f)
