@@ -1,9 +1,8 @@
 
-import cats.{ Id, Monad }
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.Duration
-import scala.language.{ higherKinds, implicitConversions }
+import scala.language.higherKinds
 import scalacache.serialization.{ Codec, JavaSerializationCodec }
 
 // TODO review all Scaladocs and rewrite as necessary. A lot of them mention Future.
@@ -14,28 +13,25 @@ package object scalacache extends JavaSerializationCodec {
   // this alias is just for convenience, so you don't need to import serialization._
   type NoSerialization = scalacache.serialization.InMemoryRepr
 
-  // This is so that Id doesn't leak unnecessarily into client code
-  implicit def id2value[T](id: Id[T]): T = id
-
   // TODO move codec out of constructor and into each method? Repr would become a type member of ScalaCache instead of a type param.
   // This would mean users can write `typed[String]` instead of `typed[String, NoSerialization]`.
 
   class TypedApi[From, Repr](implicit val scalaCache: ScalaCache[Repr], codec: Codec[From, Repr]) { self =>
 
-    def get[F[_]](keyParts: Any*)(implicit flags: Flags, mode: Mode[F]): F[Option[From]] =
-      getWithKey[F](toKey(keyParts))(mode.fm, flags, mode)
+    def get(keyParts: Any*)(implicit flags: Flags, mode: Mode): mode.F[Option[From]] =
+      getWithKey(toKey(keyParts))(flags, mode)
 
-    def put[F[_]](keyParts: Any*)(value: From, ttl: Option[Duration] = None)(implicit flags: Flags, mode: Mode[F]): F[Unit] =
-      putWithKey[F](toKey(keyParts), value, ttl)(mode.fm, flags, mode)
+    def put(keyParts: Any*)(value: From, ttl: Option[Duration] = None)(implicit flags: Flags, mode: Mode): mode.F[Unit] =
+      putWithKey(toKey(keyParts), value, ttl)(flags, mode)
 
-    def remove[F[_]](keyParts: Any*)(implicit mode: Mode[F]): F[Unit] =
-      scalacache.remove[F](keyParts: _*)
+    def remove(keyParts: Any*)(implicit mode: Mode): mode.F[Unit] =
+      scalacache.remove(keyParts: _*)
 
-    def removeAll[F[_]](implicit mode: Mode[F]): F[Unit] =
-      scalacache.removeAll[F]()
+    def removeAll(implicit mode: Mode): mode.F[Unit] =
+      scalacache.removeAll()
 
-    def caching[F[_]](keyParts: Any*)(ttl: Option[Duration])(f: => F[From])(implicit flags: Flags, mode: Mode[F]): F[From] = {
-      _caching[F](keyParts: _*)(ttl)(f)
+    def caching[M[_]](keyParts: Any*)(ttl: Option[Duration])(f: => M[From])(implicit flags: Flags, mode: Mode.Aux[M]): M[From] = {
+      _caching[M](keyParts: _*)(ttl)(f)
     }
 
     // TODO
@@ -44,39 +40,43 @@ package object scalacache extends JavaSerializationCodec {
     //      _caching(key)(ttl)(f)
     //    }
 
-    private def _caching[F[_]](keyParts: Any*)(ttl: Option[Duration])(f: => F[From])(implicit flags: Flags, mode: Mode[F]): F[From] = {
+    private def _caching[M[_]](keyParts: Any*)(ttl: Option[Duration])(f: => M[From])(implicit flags: Flags, mode: Mode.Aux[M]): M[From] = {
       val key = toKey(keyParts)
-      _caching[F](key)(ttl)(f)(mode.fm, flags, mode)
+      _caching[M](key)(ttl)(f)(flags, mode)
     }
 
-    private def _caching[F[_]: Monad](key: String)(ttl: Option[Duration])(f: => F[From])(implicit flags: Flags, mode: Mode[F]): F[From] = {
-      import cats.syntax.functor._
-      import cats.syntax.flatMap._
+    private def _caching[M[_]](key: String)(ttl: Option[Duration])(f: => M[From])(implicit flags: Flags, mode: Mode.Aux[M]): M[From] = {
 
-      def cacheAndReturn(): F[From] =
-        for {
-          value <- f
-          _ <- putWithKey[F](key, value, ttl)
-        } yield value
+      def cacheAndReturn(): M[From] = {
+        val m: M[From] = f
+        mode.flatMap(m) { (value: From) =>
+          val put: M[Unit] = putWithKey(key, value, ttl)
+          mode.map(put) { _ =>
+            value
+          }
+        }
+      }
 
-      getWithKey[F](key) flatMap {
-        case Some(value) => Monad[F].pure(value)
-        case None => cacheAndReturn()
+      mode.flatMap(getWithKey(key)) { (option: Option[From]) =>
+        option match {
+          case Some(value) => mode.wrap[From](value)
+          case None => cacheAndReturn()
+        }
       }
     }
 
-    private def getWithKey[F[_]: Monad](key: String)(implicit flags: Flags, mode: Mode[F]): F[Option[From]] = {
+    private def getWithKey(key: String)(implicit flags: Flags, mode: Mode): mode.F[Option[From]] = {
       if (flags.readsEnabled) {
         mode.wrap(scalaCache.cache.get[From](key))
       } else {
         if (logger.isDebugEnabled) {
           logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
         }
-        Monad[F].pure(None)
+        mode.wrap(None)
       }
     }
 
-    private def putWithKey[F[_]: Monad](key: String, value: From, ttl: Option[Duration] = None)(implicit flags: Flags, mode: Mode[F]): F[Unit] = {
+    private def putWithKey(key: String, value: From, ttl: Option[Duration] = None)(implicit flags: Flags, mode: Mode): mode.F[Unit] = {
       if (flags.writesEnabled) {
         val finiteTtl = ttl.filter(_.isFinite()) // discard Duration.Inf, Duration.Undefined
         mode.wrap(scalaCache.cache.put(key, value, finiteTtl))
@@ -84,7 +84,7 @@ package object scalacache extends JavaSerializationCodec {
         if (logger.isDebugEnabled) {
           logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
         }
-        Monad[F].pure(())
+        mode.wrap(())
       }
     }
 
@@ -123,8 +123,8 @@ package object scalacache extends JavaSerializationCodec {
    * @tparam V the type of the corresponding value
    * @return the value, if there is one
    */
-  def get[V, Repr, F[_]](keyParts: Any*)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr], mode: Mode[F]): F[Option[V]] =
-    typed[V, Repr].get[F](keyParts: _*)
+  def get[V, Repr](keyParts: Any*)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr], mode: Mode): mode.F[Option[V]] =
+    typed[V, Repr].get(keyParts: _*)
 
   /**
    * Insert the given key-value pair into the cache, with an optional Time To Live.
@@ -136,8 +136,8 @@ package object scalacache extends JavaSerializationCodec {
    * @param ttl Time To Live (optional, if not specified then the entry will be cached indefinitely)
    * @tparam V the type of the corresponding value
    */
-  def put[V, Repr, F[_]](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr], mode: Mode[F]): F[Unit] =
-    typed[V, Repr].put[F](keyParts: _*)(value, ttl)
+  def put[V, Repr](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr], mode: Mode): mode.F[Unit] =
+    typed[V, Repr].put(keyParts: _*)(value, ttl)
 
   /**
    * Remove the given key and its associated value from the cache, if it exists.
@@ -147,13 +147,13 @@ package object scalacache extends JavaSerializationCodec {
    *
    * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
    */
-  def remove[F[_]](keyParts: Any*)(implicit scalaCache: ScalaCache[_], mode: Mode[F]): F[Unit] =
+  def remove(keyParts: Any*)(implicit scalaCache: ScalaCache[_], mode: Mode): mode.F[Unit] =
     mode.wrap(scalaCache.cache.remove(toKey(keyParts)))
 
   /**
    * Delete the entire contents of the cache. Use wisely!
    */
-  def removeAll[F[_]]()(implicit scalaCache: ScalaCache[_], mode: Mode[F]): F[Unit] =
+  def removeAll()(implicit scalaCache: ScalaCache[_], mode: Mode): mode.F[Unit] =
     mode.wrap(scalaCache.cache.removeAll())
 
   /**
@@ -177,7 +177,7 @@ package object scalacache extends JavaSerializationCodec {
    * @tparam V the type of the block's result
    * @return the result, either retrived from the cache or returned by the block
    */
-  def caching[V, Repr, F[_]](keyParts: Any*)(ttl: Option[Duration])(f: => F[V])(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr], mode: Mode[F]): F[V] =
+  def caching[V, Repr, M[_]](keyParts: Any*)(ttl: Option[Duration])(f: => M[V])(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr], mode: Mode.Aux[M]): M[V] =
     typed[V, Repr].caching(keyParts: _*)(ttl)(f)
 
   // TODO

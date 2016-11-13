@@ -1,9 +1,5 @@
 package sample
 
-//import cats.Id
-
-import cats.Id
-
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
@@ -15,7 +11,6 @@ object Sample extends App {
 
   implicit val sc = ScalaCache(CaffeineCache())
 
-  // TODO use natural transforms to support passing plain values, Try and Future to `caching`?
   {
     import scalacache.modes.throwExceptions
     put("throwExceptions")("hello")
@@ -36,8 +31,8 @@ object Sample extends App {
   {
     import scala.concurrent.ExecutionContext.Implicits.global
     import scalacache.modes.runAsFuture
-    val f: Future[Unit] = put("foo", "bar")("hello")
-    val f2 = f.flatMap(_ => get("foo", "bar"))
+    val f: Future[Unit] = put[String, NoSerialization]("foo", "bar")("hello")
+    val f2 = f.flatMap(_ => get[String, NoSerialization]("foo", "bar"))
     println(Await.result(f2, Duration.Inf))
     val f3: Future[String] = caching("key")(None) {
       println("Sleeping for 5 seconds")
