@@ -114,7 +114,7 @@ val result = sync.cachingWithTTL("myKey")(10.seconds) {
 
 ```scala 
 import scalacache._
-import memoization._
+import scalacache.memoization._
 
 implicit val scalaCache = ScalaCache(new MyCache())
 
