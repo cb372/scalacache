@@ -44,8 +44,7 @@ class GuavaCache(underlying: GCache[String, Object])
         if (entry.isExpired) None else Some(entry.value)
       } else None
     }
-    if (logger.isDebugEnabled)
-      logCacheHitOrMiss(key, result)
+    logCacheHitOrMiss(key, result)
     Future.successful(result)
   }
 

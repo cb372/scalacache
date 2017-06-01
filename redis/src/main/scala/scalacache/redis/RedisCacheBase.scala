@@ -63,8 +63,7 @@ trait RedisCacheBase
             Some(deserialize[V](bytes))
           } else None
         }
-        if (logger.isDebugEnabled)
-          logCacheHitOrMiss(key, result)
+        logCacheHitOrMiss(key, result)
         result
       }
     }

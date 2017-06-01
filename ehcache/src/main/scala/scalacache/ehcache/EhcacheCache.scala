@@ -33,8 +33,7 @@ class EhcacheCache(underlying: Ehcache)
       if (elem == null) None
       else Option(elem.getObjectValue.asInstanceOf[V])
     }
-    if (logger.isDebugEnabled)
-      logCacheHitOrMiss(key, result)
+    logCacheHitOrMiss(key, result)
     Future.successful(result)
   }
 
