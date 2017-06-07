@@ -192,7 +192,7 @@ val result = Bar.baz(1, "hello")("world")
 
 would be cached with the key: `foo.bar.Baz(1, hello)(world)`.
 
-Note that the cache key generation logic is customizable. Just provide your own implementation of [MethodCallToStringConverter](core/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala)
+Note that the cache key generation logic is customizable. Just provide your own implementation of [MethodCallToStringConverter](core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala)
 
 #### Enclosing class's constructor arguments
 
@@ -212,7 +212,7 @@ class Bar(a: Int) {
 }
 ```
 
-then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](core/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
+then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
 
 ```scala 
 implicit val scalaCache = ScalaCache(
