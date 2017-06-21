@@ -7,7 +7,7 @@ import sbtrelease.ReleaseStateTransformations._
 import scala.language.postfixOps
 
 
-val ScalaVersion = "2.11.8"
+val ScalaVersion = "2.11.11"
 
 lazy val root = Project(id = "scalacache",base = file("."))
   .enablePlugins(ReleasePlugin)
@@ -75,7 +75,7 @@ lazy val caffeine = Project(id = "scalacache-caffeine", base = file("caffeine"))
   .settings(implProjectSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.3.3",
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.2",
       "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
     )
   )
@@ -93,12 +93,12 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
   .dependsOn(caffeine)
 
 lazy val jodaTime = Seq(
-  "joda-time" % "joda-time" % "2.9.4",
+  "joda-time" % "joda-time" % "2.9.9",
   "org.joda" % "joda-convert" % "1.8.1"
 )
 
 lazy val slf4j = Seq(
-  "org.slf4j" % "slf4j-api" % "1.7.21"
+  "org.slf4j" % "slf4j-api" % "1.7.25"
 )
 
 lazy val scalaTest = Seq(
@@ -119,7 +119,7 @@ lazy val commonSettings =
   Seq(
     organization := "com.github.cb372",
     scalaVersion := ScalaVersion,
-    crossScalaVersions := Seq(ScalaVersion, "2.12.0"),
+    crossScalaVersions := Seq(ScalaVersion, "2.12.2"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
     resolvers += Resolver.typesafeRepo("releases"),
     libraryDependencies ++= commonDeps,
