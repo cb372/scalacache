@@ -192,7 +192,7 @@ val result = Bar.baz(1, "hello")("world")
 
 would be cached with the key: `foo.bar.Baz(1, hello)(world)`.
 
-Note that the cache key generation logic is customizable. Just provide your own implementation of [MethodCallToStringConverter](core/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala)
+Note that the cache key generation logic is customizable. Just provide your own implementation of [MethodCallToStringConverter](core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala)
 
 #### Enclosing class's constructor arguments
 
@@ -212,7 +212,7 @@ class Bar(a: Int) {
 }
 ```
 
-then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](core/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
+then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
 
 ```scala 
 implicit val scalaCache = ScalaCache(
@@ -246,7 +246,7 @@ will only include the `userId` argument's value in its cache keys.
 
 Cache GETs and/or PUTs can be temporarily disabled using flags. This can be useful if for example you want to skip the cache and read a value from the DB under certain conditions.
 
-You can set flags by defining a [scalacache.Flags](core/src/main/scala/scalacache/Flags.scala) instance in implicit scope.
+You can set flags by defining a [scalacache.Flags](core/shared/src/main/scala/scalacache/Flags.scala) instance in implicit scope.
 
 The detailed behaviour of the flags is as follows:
 
@@ -298,7 +298,7 @@ cache.get("key") // returns Future[Option[User]]
 
 ## Serialization / Deserialization
 
-For cache implementations that do not store their data locally (like [Memcached](#Memcached) and [Redis](#Redis)), serialization and
+For cache implementations that do not store their data locally (like [Memcached](#memcached) and [Redis](#redis)), serialization and
 deserialization of data to and from `Array[Byte]` is handled by a `Codec` type class. We provide efficient `Codec` instances for all primitive
 types, and provide an implementation for objects based on Java serialisation. 
 
