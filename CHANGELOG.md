@@ -1,3 +1,20 @@
+0.9.4 (2017/06/22)
+----
+
+Improvements:
+
+* Tweaked the logging behaviour [#127](https://github.com/cb372/scalacache/pull/127)
+* Readme fixes [#128](https://github.com/cb372/scalacache/pull/127)
+
+Other stuff:
+
+* Bump Scala compiler 2.12.0 -> 2.12.2, 2.11.8 -> 2.11.11
+* Bump scalajs 0.6.13 -> 0.6.17
+* Bump sbt 0.13.13 -> 0.13.15
+* Bump caffeine 2.3.3 -> 2.5.2
+* Bump joda-time 2.9.4 -> 2.9.9
+* Bump slf4j-api 1.7.21 -> 1.7.25
+
 0.9.3 (2016/11/08)
 ----
 
