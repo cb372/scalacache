@@ -47,7 +47,7 @@ lazy val memcached = Project(id = "scalacache-memcached", base = file("memcached
   .settings(implProjectSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "net.spy" % "spymemcached" % "2.12.1"
+      "net.spy" % "spymemcached" % "2.12.3"
     )
   )
   .dependsOn(coreJVM % "test->test;compile->compile")
@@ -75,7 +75,7 @@ lazy val caffeine = Project(id = "scalacache-caffeine", base = file("caffeine"))
   .settings(implProjectSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.2",
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.3",
       "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
     )
   )
@@ -94,7 +94,7 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
 
 lazy val jodaTime = Seq(
   "joda-time" % "joda-time" % "2.9.9",
-  "org.joda" % "joda-convert" % "1.8.1"
+  "org.joda" % "joda-convert" % "1.8.2"
 )
 
 lazy val slf4j = Seq(
@@ -102,7 +102,7 @@ lazy val slf4j = Seq(
 )
 
 lazy val scalaTest = Seq(
-  "org.scalatest" %% "scalatest" % "3.0.0" % Test
+  "org.scalatest" %% "scalatest" % "3.0.3" % Test
 )
 
 // Dependencies common to all projects
