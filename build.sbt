@@ -1,15 +1,15 @@
 import org.scalajs.sbtplugin.cross.CrossProject
 
-import scalariform.formatter.preferences._
 import xerial.sbt.Sonatype.sonatypeSettings
 import sbtrelease.ReleaseStateTransformations._
 
 import scala.language.postfixOps
 
+scalafmtOnCompile in ThisBuild := true
 
 val ScalaVersion = "2.11.11"
 
-lazy val root = Project(id = "scalacache",base = file("."))
+lazy val root = Project(id = "scalacache", base = file("."))
   .enablePlugins(ReleasePlugin)
   .settings(commonSettings: _*)
   .settings(sonatypeSettings: _*)
@@ -88,7 +88,16 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
     publishArtifact := false,
     fork in (Compile, run) := true,
     javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking"),
-    javaOptions in (Test, run) ++= Seq("-XX:+UnlockCommercialFeatures", "-XX:+FlightRecorder", "-XX:StartFlightRecording=delay=20s,duration=60s,filename=memoize.jfr", "-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking")
+    javaOptions in (Test, run) ++= Seq(
+      "-XX:+UnlockCommercialFeatures",
+      "-XX:+FlightRecorder",
+      "-XX:StartFlightRecording=delay=20s,duration=60s,filename=memoize.jfr",
+      "-server",
+      "-Xms2G",
+      "-Xmx2G",
+      "-XX:+UseG1GC",
+      "-XX:-UseBiasedLocking"
+    )
   )
   .dependsOn(caffeine)
 
@@ -108,41 +117,39 @@ lazy val scalaTest = Seq(
 // Dependencies common to all projects
 lazy val commonDeps =
   slf4j ++
-  scalaTest ++
-  jodaTime
+    scalaTest ++
+    jodaTime
 
 lazy val commonSettings =
   Defaults.coreDefaultSettings ++
-  mavenSettings ++
-  scalariformSettings ++
-  formatterPrefs ++
-  Seq(
-    organization := "com.github.cb372",
-    scalaVersion := ScalaVersion,
-    crossScalaVersions := Seq(ScalaVersion, "2.12.2"),
-    scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
-    resolvers += Resolver.typesafeRepo("releases"),
-    libraryDependencies ++= commonDeps,
-    parallelExecution in Test := false,
-    releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-    releaseCrossBuild := true,
-    releaseProcess := Seq[ReleaseStep](
-      checkSnapshotDependencies,
-      inquireVersions,
-      runClean,
-      runTest,
-      setReleaseVersion,
-      commitReleaseVersion,
-      updateVersionInReadme,
-      tagRelease,
-      publishArtifacts,
-      setNextVersion,
-      commitNextVersion,
-      releaseStepCommand("sonatypeReleaseAll"),
-      pushChanges
-    ),
-    commands += Command.command("update-version-in-readme")(updateVersionInReadme)
-  )
+    mavenSettings ++
+    Seq(
+      organization := "com.github.cb372",
+      scalaVersion := ScalaVersion,
+      crossScalaVersions := Seq(ScalaVersion, "2.12.2"),
+      scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
+      resolvers += Resolver.typesafeRepo("releases"),
+      libraryDependencies ++= commonDeps,
+      parallelExecution in Test := false,
+      releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+      releaseCrossBuild := true,
+      releaseProcess := Seq[ReleaseStep](
+        checkSnapshotDependencies,
+        inquireVersions,
+        runClean,
+        runTest,
+        setReleaseVersion,
+        commitReleaseVersion,
+        updateVersionInReadme,
+        tagRelease,
+        publishArtifacts,
+        setNextVersion,
+        commitNextVersion,
+        releaseStepCommand("sonatypeReleaseAll"),
+        pushChanges
+      ),
+      commands += Command.command("update-version-in-readme")(updateVersionInReadme)
+    )
 
 lazy val implProjectSettings = commonSettings
 
@@ -172,18 +179,13 @@ lazy val mavenSettings = Seq(
     if (version.value.trim.endsWith("SNAPSHOT"))
       Some("snapshots" at nexus + "content/repositories/snapshots")
     else
-      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+      Some("releases" at nexus + "service/local/staging/deploy/maven2")
   },
   publishMavenStyle := true,
   publishArtifact in Test := false,
-  pomIncludeRepository := { _ => false }
-)
-
-// Scalariform preferences
-lazy val formatterPrefs = Seq(
-  ScalariformKeys.preferences := ScalariformKeys.preferences.value
-    .setPreference(AlignParameters, true)
-    .setPreference(DoubleIndentClassDeclaration, true)
+  pomIncludeRepository := { _ =>
+    false
+  }
 )
 
 lazy val updateVersionInReadme = ReleaseStep(action = st => {
@@ -191,7 +193,14 @@ lazy val updateVersionInReadme = ReleaseStep(action = st => {
   val projectVersion = extracted.get(Keys.version)
 
   println(s"Updating project version to $projectVersion in the README")
-  Process(Seq("sed", "-i", "", "-E", "-e", s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""", "README.md")).!
+  Process(
+    Seq("sed",
+        "-i",
+        "",
+        "-E",
+        "-e",
+        s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""",
+        "README.md")).!
   println("Committing README.md")
   Process(Seq("git", "commit", "README.md", "-m", s"Update project version in README to $projectVersion")).!
 

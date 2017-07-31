@@ -1,9 +1,9 @@
 package scalacache.memcached
 
-import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.{FlatSpec, Matchers}
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scalacache._
 
 class ReplaceAndTruncateSanitizerSpec extends FlatSpec with Matchers {
@@ -28,12 +28,17 @@ class ReplaceAndTruncateSanitizerSpec extends FlatSpec with Matchers {
 
 }
 
-class HashingMemcachedKeySanitizerSpec extends FlatSpec with Matchers with ScalaFutures with IntegrationPatience {
+class HashingMemcachedKeySanitizerSpec
+    extends FlatSpec
+    with Matchers
+    with ScalaFutures
+    with IntegrationPatience {
   behavior of "HashingMemcachedKeySanitizer"
 
   val longString = "lolol&%'(%$)$ほげほげ野郎123**+" * 500
 
-  def hexToBytes(s: String): Array[Byte] = s.sliding(2, 2).map(Integer.parseInt(_, 16).toByte).toArray
+  def hexToBytes(s: String): Array[Byte] =
+    s.sliding(2, 2).map(Integer.parseInt(_, 16).toByte).toArray
 
   it should "return a hexadecimal hashed representation of the argument string" in {
     val hashedValues = for {
@@ -63,7 +68,8 @@ class HashingMemcachedKeySanitizerSpec extends FlatSpec with Matchers with Scala
       algo <- Seq(MD5, SHA1, SHA256, SHA512)
       hashingSanitizer = HashingMemcachedKeySanitizer(algo)
     } yield {
-      Future.sequence((1 to 300).map(_ => Future { hashingSanitizer.toValidMemcachedKey(longString) }))
+      Future.sequence((1 to 300).map(_ =>
+        Future { hashingSanitizer.toValidMemcachedKey(longString) }))
     }
     val fSeqHashes = Future.sequence(seqFHashes)
     whenReady(fSeqHashes) { hashess =>

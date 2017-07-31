@@ -1,13 +1,18 @@
 package scalacache.ehcache
 
-import org.scalatest.{ BeforeAndAfter, FlatSpec, Matchers }
-import net.sf.ehcache.{ Cache => Ehcache, CacheManager, Element }
+import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import net.sf.ehcache.{Cache => Ehcache, CacheManager, Element}
 import scala.concurrent.duration._
 import language.postfixOps
-import org.scalatest.time.{ Seconds, Span }
-import org.scalatest.concurrent.{ ScalaFutures, Eventually }
+import org.scalatest.time.{Seconds, Span}
+import org.scalatest.concurrent.{ScalaFutures, Eventually}
 
-class EhcacheCacheSpec extends FlatSpec with Matchers with Eventually with BeforeAndAfter with ScalaFutures {
+class EhcacheCacheSpec
+    extends FlatSpec
+    with Matchers
+    with Eventually
+    with BeforeAndAfter
+    with ScalaFutures {
 
   val underlying = {
     val cacheManager = new CacheManager
@@ -30,8 +35,9 @@ class EhcacheCacheSpec extends FlatSpec with Matchers with Eventually with Befor
   }
 
   it should "return None if the given key does not exist in the underlying cache" in {
-    whenReady(EhcacheCache(underlying).get[String]("non-existent-key")) { result =>
-      result should be(None)
+    whenReady(EhcacheCache(underlying).get[String]("non-existent-key")) {
+      result =>
+        result should be(None)
     }
   }
 

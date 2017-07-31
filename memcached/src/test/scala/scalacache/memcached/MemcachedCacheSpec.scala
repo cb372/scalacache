@@ -1,11 +1,11 @@
 package scalacache.memcached
 
 import common.LegacyCodecCheckSupport
-import org.scalatest.{ BeforeAndAfter, Matchers, FlatSpec }
+import org.scalatest.{BeforeAndAfter, Matchers, FlatSpec}
 import net.spy.memcached._
 import scala.concurrent.duration._
-import org.scalatest.concurrent.{ ScalaFutures, Eventually, IntegrationPatience }
-import org.scalatest.time.{ Span, Seconds }
+import org.scalatest.concurrent.{ScalaFutures, Eventually, IntegrationPatience}
+import org.scalatest.time.{Span, Seconds}
 
 import scala.language.postfixOps
 import scalacache.serialization.Codec
@@ -28,10 +28,12 @@ class MemcachedCacheSpec
     } catch { case _: Exception => false }
   }
 
-  def serialise[A](v: A)(implicit codec: Codec[A, Array[Byte]]): Array[Byte] = codec.serialize(v)
+  def serialise[A](v: A)(implicit codec: Codec[A, Array[Byte]]): Array[Byte] =
+    codec.serialize(v)
 
   if (!memcachedIsRunning) {
-    alert("Skipping tests because Memcached does not appear to be running on localhost.")
+    alert(
+      "Skipping tests because Memcached does not appear to be running on localhost.")
   } else {
 
     before {
@@ -42,11 +44,15 @@ class MemcachedCacheSpec
 
     it should "return the value stored in Memcached" in {
       client.set("key1", 0, serialise(123))
-      whenReady(MemcachedCache(client).get[Int]("key1")) { _ should be(Some(123)) }
+      whenReady(MemcachedCache(client).get[Int]("key1")) {
+        _ should be(Some(123))
+      }
     }
 
     it should "return None if the given key does not exist in the underlying cache" in {
-      whenReady(MemcachedCache(client).get[Int]("non-existent-key")) { _ should be(None) }
+      whenReady(MemcachedCache(client).get[Int]("non-existent-key")) {
+        _ should be(None)
+      }
     }
 
     behavior of "put"
@@ -60,13 +66,14 @@ class MemcachedCacheSpec
     behavior of "put with TTL"
 
     it should "store the given key-value pair in the underlying cache" in {
-      whenReady(MemcachedCache(client).put("key3", 123, Some(3 seconds))) { _ =>
-        client.get("key3") should be(serialise(123))
+      whenReady(MemcachedCache(client).put("key3", 123, Some(3 seconds))) {
+        _ =>
+          client.get("key3") should be(serialise(123))
 
-        // Should expire after 3 seconds
-        eventually(timeout(Span(4, Seconds))) {
-          client.get("key3") should be(null)
-        }
+          // Should expire after 3 seconds
+          eventually(timeout(Span(4, Seconds))) {
+            client.get("key3") should be(null)
+          }
       }
     }
 
@@ -82,9 +89,9 @@ class MemcachedCacheSpec
     }
 
     legacySupportCheck { legacySerialization =>
-      new MemcachedCache(client = client, useLegacySerialization = legacySerialization)
+      new MemcachedCache(client = client,
+                         useLegacySerialization = legacySerialization)
     }
   }
 
 }
-

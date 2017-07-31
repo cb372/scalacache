@@ -1,15 +1,19 @@
 package scalacache.serialization
 
 import org.scalacheck._
-import org.scalatest.{ Matchers, FlatSpec }
+import org.scalatest.{Matchers, FlatSpec}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
 /**
- * Inspired by Shade @ https://github.com/alexandru/shade/blob/master/src/test/scala/shade/tests/CodecsSuite.scala
- */
-class BasicCodecsSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks {
+  * Inspired by Shade @ https://github.com/alexandru/shade/blob/master/src/test/scala/shade/tests/CodecsSuite.scala
+  */
+class BasicCodecsSpec
+    extends FlatSpec
+    with Matchers
+    with GeneratorDrivenPropertyChecks {
 
-  private def serdesCheck[A: Arbitrary](implicit codec: Codec[A, Array[Byte]]): Unit = {
+  private def serdesCheck[A: Arbitrary](
+      implicit codec: Codec[A, Array[Byte]]): Unit = {
     forAll { n: A =>
       val serialised = codec.serialize(n)
       val deserialised = codec.deserialize(serialised)
