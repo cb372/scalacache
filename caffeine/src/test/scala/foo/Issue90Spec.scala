@@ -3,8 +3,8 @@ package foo
 import org.scalatest._
 
 /**
- * Replicating the issue reported in https://github.com/cb372/scalacache/issues/90
- */
+  * Replicating the issue reported in https://github.com/cb372/scalacache/issues/90
+  */
 class Issue90Spec extends FlatSpec with Matchers {
 
   "Issue 90" should "be fixed" in {

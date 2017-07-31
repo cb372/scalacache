@@ -1,13 +1,17 @@
 package scalacache.caffeine
 
 import scalacache.Entry
-import org.scalatest.{ BeforeAndAfter, Matchers, FlatSpec }
+import org.scalatest.{BeforeAndAfter, Matchers, FlatSpec}
 import com.github.benmanes.caffeine.cache.Caffeine
-import org.joda.time.{ DateTimeUtils, DateTime }
+import org.joda.time.{DateTimeUtils, DateTime}
 import scala.concurrent.duration._
 import org.scalatest.concurrent.ScalaFutures
 
-class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
+class CaffeineCacheSpec
+    extends FlatSpec
+    with Matchers
+    with BeforeAndAfter
+    with ScalaFutures {
 
   def newCCache = Caffeine.newBuilder.build[String, Object]
 
@@ -24,17 +28,20 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
   it should "return None if the given key does not exist in the underlying cache" in {
     val underlying = newCCache
-    whenReady(CaffeineCache(underlying).get[String]("non-existent key")) { result =>
-      result should be(None)
+    whenReady(CaffeineCache(underlying).get[String]("non-existent key")) {
+      result =>
+        result should be(None)
     }
   }
 
   it should "return None if the given key exists but the value has expired" in {
     val underlying = newCCache
-    val expiredEntry = Entry("hello", expiresAt = Some(DateTime.now.minusSeconds(1)))
+    val expiredEntry =
+      Entry("hello", expiresAt = Some(DateTime.now.minusSeconds(1)))
     underlying.put("key1", expiredEntry)
-    whenReady(CaffeineCache(underlying).get[String]("non-existent key")) { result =>
-      result should be(None)
+    whenReady(CaffeineCache(underlying).get[String]("non-existent key")) {
+      result =>
+        result should be(None)
     }
   }
 
@@ -54,7 +61,8 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
     val underlying = newCCache
     CaffeineCache(underlying).put("key1", "hello", Some(10.seconds))
-    underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(now.plusSeconds(10))))
+    underlying.getIfPresent("key1") should be(
+      Entry("hello", expiresAt = Some(now.plusSeconds(10))))
   }
 
   it should "support a TTL greater than Int.MaxValue millis" in {
@@ -63,7 +71,8 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
     val underlying = newCCache
     CaffeineCache(underlying).put("key1", "hello", Some(30.days))
-    underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(new DateTime("2015-10-31T00:00:00Z"))))
+    underlying.getIfPresent("key1") should be(
+      Entry("hello", expiresAt = Some(new DateTime("2015-10-31T00:00:00Z"))))
   }
 
   behavior of "remove"

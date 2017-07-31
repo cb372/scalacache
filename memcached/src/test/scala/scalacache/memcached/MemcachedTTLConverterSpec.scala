@@ -1,10 +1,14 @@
 package scalacache.memcached
 
-import org.scalatest.{ BeforeAndAfter, Matchers, FlatSpec }
+import org.scalatest.{BeforeAndAfter, Matchers, FlatSpec}
 import scala.concurrent.duration._
-import org.joda.time.{ DateTimeZone, DateTime, DateTimeUtils }
+import org.joda.time.{DateTimeZone, DateTime, DateTimeUtils}
 
-class MemcachedTTLConverterSpec extends FlatSpec with Matchers with BeforeAndAfter with MemcachedTTLConverter {
+class MemcachedTTLConverterSpec
+    extends FlatSpec
+    with Matchers
+    with BeforeAndAfter
+    with MemcachedTTLConverter {
   behavior of "MemcachedTTLConverter"
 
   it should "convert None to 0" in {
@@ -34,7 +38,8 @@ class MemcachedTTLConverterSpec extends FlatSpec with Matchers with BeforeAndAft
   it should "convert a duration longer than 30 days to the expiry time expressed as UNIX epoch seconds" in {
     val now = DateTime.now(DateTimeZone.UTC)
     DateTimeUtils.setCurrentMillisFixed(now.getMillis)
-    toMemcachedExpiry(Some(31.days)) should be(now.plusDays(31).getMillis / 1000)
+    toMemcachedExpiry(Some(31.days)) should be(
+      now.plusDays(31).getMillis / 1000)
   }
 
   after {
