@@ -16,19 +16,20 @@ lazy val root = Project(id = "scalacache", base = file("."))
   .settings(publishArtifact := false)
   .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine)
 
-lazy val core = CrossProject(id = "scalacache-core", file("core"), CrossType.Full)
-  .settings(commonSettings: _*)
-  .settings(
-    moduleName := "scalacache-core",
-    libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      "org.scalacheck" %% "scalacheck" % "1.13.4" % Test
-    ),
-    scala211OnlyDeps(
-      "org.squeryl" %% "squeryl" % "0.9.5-7" % Test,
-      "com.h2database" % "h2" % "1.4.182" % Test
+lazy val core =
+  CrossProject(id = "scalacache-core", file("core"), CrossType.Full)
+    .settings(commonSettings: _*)
+    .settings(
+      moduleName := "scalacache-core",
+      libraryDependencies ++= Seq(
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+        "org.scalacheck" %% "scalacheck" % "1.13.4" % Test
+      ),
+      scala211OnlyDeps(
+        "org.squeryl" %% "squeryl" % "0.9.5-7" % Test,
+        "com.h2database" % "h2" % "1.4.182" % Test
+      )
     )
-  )
 
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
@@ -43,14 +44,15 @@ lazy val guava = Project(id = "scalacache-guava", base = file("guava"))
   )
   .dependsOn(coreJVM)
 
-lazy val memcached = Project(id = "scalacache-memcached", base = file("memcached"))
-  .settings(implProjectSettings: _*)
-  .settings(
-    libraryDependencies ++= Seq(
-      "net.spy" % "spymemcached" % "2.12.3"
+lazy val memcached =
+  Project(id = "scalacache-memcached", base = file("memcached"))
+    .settings(implProjectSettings: _*)
+    .settings(
+      libraryDependencies ++= Seq(
+        "net.spy" % "spymemcached" % "2.12.3"
+      )
     )
-  )
-  .dependsOn(coreJVM % "test->test;compile->compile")
+    .dependsOn(coreJVM % "test->test;compile->compile")
 
 lazy val ehcache = Project(id = "scalacache-ehcache", base = file("ehcache"))
   .settings(implProjectSettings: _*)
@@ -71,15 +73,16 @@ lazy val redis = Project(id = "scalacache-redis", base = file("redis"))
   )
   .dependsOn(coreJVM % "test->test;compile->compile")
 
-lazy val caffeine = Project(id = "scalacache-caffeine", base = file("caffeine"))
-  .settings(implProjectSettings: _*)
-  .settings(
-    libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.3",
-      "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
+lazy val caffeine =
+  Project(id = "scalacache-caffeine", base = file("caffeine"))
+    .settings(implProjectSettings: _*)
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.github.ben-manes.caffeine" % "caffeine" % "2.5.3",
+        "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
+      )
     )
-  )
-  .dependsOn(coreJVM)
+    .dependsOn(coreJVM)
 
 lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
   .enablePlugins(JmhPlugin)
@@ -87,7 +90,11 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
     scalaVersion := ScalaVersion,
     publishArtifact := false,
     fork in (Compile, run) := true,
-    javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking"),
+    javaOptions in Jmh ++= Seq("-server",
+                               "-Xms2G",
+                               "-Xmx2G",
+                               "-XX:+UseG1GC",
+                               "-XX:-UseBiasedLocking"),
     javaOptions in (Test, run) ++= Seq(
       "-XX:+UnlockCommercialFeatures",
       "-XX:+FlightRecorder",
@@ -101,11 +108,6 @@ lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
   )
   .dependsOn(caffeine)
 
-lazy val jodaTime = Seq(
-  "joda-time" % "joda-time" % "2.9.9",
-  "org.joda" % "joda-convert" % "1.8.2"
-)
-
 lazy val slf4j = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25"
 )
@@ -115,10 +117,7 @@ lazy val scalaTest = Seq(
 )
 
 // Dependencies common to all projects
-lazy val commonDeps =
-  slf4j ++
-    scalaTest ++
-    jodaTime
+lazy val commonDeps = slf4j ++ scalaTest
 
 lazy val commonSettings =
   Defaults.coreDefaultSettings ++
@@ -148,7 +147,8 @@ lazy val commonSettings =
         releaseStepCommand("sonatypeReleaseAll"),
         pushChanges
       ),
-      commands += Command.command("update-version-in-readme")(updateVersionInReadme)
+      commands += Command.command("update-version-in-readme")(
+        updateVersionInReadme)
     )
 
 lazy val implProjectSettings = commonSettings
@@ -194,15 +194,21 @@ lazy val updateVersionInReadme = ReleaseStep(action = st => {
 
   println(s"Updating project version to $projectVersion in the README")
   Process(
-    Seq("sed",
-        "-i",
-        "",
-        "-E",
-        "-e",
-        s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""",
-        "README.md")).!
+    Seq(
+      "sed",
+      "-i",
+      "",
+      "-E",
+      "-e",
+      s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""",
+      "README.md")).!
   println("Committing README.md")
-  Process(Seq("git", "commit", "README.md", "-m", s"Update project version in README to $projectVersion")).!
+  Process(
+    Seq("git",
+        "commit",
+        "README.md",
+        "-m",
+        s"Update project version in README to $projectVersion")).!
 
   st
 })

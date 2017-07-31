@@ -1,6 +1,8 @@
 package scalacache.guava
 
-import org.joda.time.DateTime
+import java.time.temporal.ChronoUnit
+import java.time.{Clock, Instant}
+
 import org.slf4j.LoggerFactory
 
 import scalacache.serialization.{Codec, InMemoryRepr}
@@ -18,7 +20,8 @@ import scala.concurrent.Future
  * Note: Would be nice to use Any here, but that doesn't conform to GCache's type bounds,
  * because Any does not extend java.lang.Object.
  */
-class GuavaCache(underlying: GCache[String, Object])
+class GuavaCache(underlying: GCache[String, Object])(implicit clock: Clock =
+                                                       Clock.systemUTC())
     extends Cache[InMemoryRepr]
     with LoggingSupport {
 
@@ -80,8 +83,8 @@ class GuavaCache(underlying: GCache[String, Object])
     // Nothing to do
   }
 
-  private def toExpiryTime(ttl: Duration): DateTime =
-    DateTime.now.plus(ttl.toMillis)
+  private def toExpiryTime(ttl: Duration): Instant =
+    Instant.now(clock).plus(ttl.toMillis, ChronoUnit.MILLIS)
 
 }
 

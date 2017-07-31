@@ -1,11 +1,13 @@
 package scalacache.caffeine
 
+import java.time.{Clock, Instant}
+import java.time.temporal.ChronoUnit
+
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
-import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
+
 import scalacache.serialization.{Codec, InMemoryRepr}
 import scalacache.{Cache, Entry, LoggingSupport}
-
 import scala.concurrent.duration.Duration
 import scala.concurrent.Future
 
@@ -17,7 +19,8 @@ import scala.concurrent.Future
  * Note: Would be nice to use Any here, but that doesn't conform to CCache's type bounds,
  * because Any does not extend java.lang.Object.
  */
-class CaffeineCache(underlying: CCache[String, Object])
+class CaffeineCache(underlying: CCache[String, Object])(implicit clock: Clock =
+                                                          Clock.systemUTC())
     extends Cache[InMemoryRepr]
     with LoggingSupport {
 
@@ -79,8 +82,8 @@ class CaffeineCache(underlying: CCache[String, Object])
     // Nothing to do
   }
 
-  private def toExpiryTime(ttl: Duration): DateTime =
-    DateTime.now.plus(ttl.toMillis)
+  private def toExpiryTime(ttl: Duration): Instant =
+    Instant.now(clock).plus(ttl.toMillis, ChronoUnit.MILLIS)
 
 }
 
