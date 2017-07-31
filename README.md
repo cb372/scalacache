@@ -21,6 +21,8 @@ The following cache implementations are supported, and it's easy to plugin your 
 
 ScalaCache is available for Scala 2.11.x and 2.12.x.
 
+The JVM must be Java 8 or newer.
+
 ## How to use
 
 ### ScalaCache instance
@@ -447,8 +449,6 @@ implicit val scalaCache = ScalaCache(RedisCache(jedis))
 ScalaCache also supports [sharded Redis](https://github.com/xetorthio/jedis/wiki/AdvancedUsage#shardedjedis) and [Redis Sentinel](http://redis.io/topics/sentinel). Just create a `ShardedRedisCache` or `SentinelRedisCache` respectively.
 
 ## Caffeine
-
-Note that Caffeine requires Java 8 or newer.
 
 SBT:
 
