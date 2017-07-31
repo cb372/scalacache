@@ -11,14 +11,16 @@ val ScalaVersion = "2.11.11"
 
 lazy val root = Project(id = "scalacache", base = file("."))
   .enablePlugins(ReleasePlugin)
-  .settings(commonSettings: _*)
-  .settings(sonatypeSettings: _*)
-  .settings(publishArtifact := false)
+  .settings(
+    commonSettings,
+    sonatypeSettings,
+    publishArtifact := false
+  )
   .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine)
 
 lazy val core =
-  CrossProject(id = "scalacache-core", file("core"), CrossType.Full)
-    .settings(commonSettings: _*)
+  CrossProject(id = "core", file("modules/core"), CrossType.Full)
+    .settings(commonSettings)
     .settings(
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
@@ -34,57 +36,51 @@ lazy val core =
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
-lazy val guava = Project(id = "scalacache-guava", base = file("guava"))
-  .settings(implProjectSettings: _*)
+def module(name: String) =
+  Project(id = name, base = file(s"modules/$name"))
+    .settings(commonSettings)
+    .settings(moduleName := s"scalacache-$name")
+    .dependsOn(coreJVM % "test->test;compile->compile")
+
+lazy val guava = module("guava")
   .settings(
     libraryDependencies ++= Seq(
       "com.google.guava" % "guava" % "19.0",
       "com.google.code.findbugs" % "jsr305" % "1.3.9"
     )
   )
-  .dependsOn(coreJVM)
 
-lazy val memcached =
-  Project(id = "scalacache-memcached", base = file("memcached"))
-    .settings(implProjectSettings: _*)
-    .settings(
-      libraryDependencies ++= Seq(
-        "net.spy" % "spymemcached" % "2.12.3"
-      )
+lazy val memcached = module("memcached")
+  .settings(
+    libraryDependencies ++= Seq(
+      "net.spy" % "spymemcached" % "2.12.3"
     )
-    .dependsOn(coreJVM % "test->test;compile->compile")
+  )
 
-lazy val ehcache = Project(id = "scalacache-ehcache", base = file("ehcache"))
-  .settings(implProjectSettings: _*)
+lazy val ehcache = module("ehcache")
   .settings(
     libraryDependencies ++= Seq(
       "net.sf.ehcache" % "ehcache" % "2.10.2.2.21",
       "javax.transaction" % "jta" % "1.1"
     )
   )
-  .dependsOn(coreJVM)
 
-lazy val redis = Project(id = "scalacache-redis", base = file("redis"))
-  .settings(implProjectSettings: _*)
+lazy val redis = module("redis")
   .settings(
     libraryDependencies ++= Seq(
       "redis.clients" % "jedis" % "2.9.0"
     )
   )
-  .dependsOn(coreJVM % "test->test;compile->compile")
 
-lazy val caffeine =
-  Project(id = "scalacache-caffeine", base = file("caffeine"))
-    .settings(implProjectSettings: _*)
-    .settings(
-      libraryDependencies ++= Seq(
-        "com.github.ben-manes.caffeine" % "caffeine" % "2.5.3",
-        "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
-      )
+lazy val caffeine = module("caffeine")
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.3",
+      "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
     )
-    .dependsOn(coreJVM)
+  )
 
-lazy val benchmarks = Project(id = "benchmarks", base = file("benchmarks"))
+lazy val benchmarks = module("benchmarks")
   .enablePlugins(JmhPlugin)
   .settings(
     scalaVersion := ScalaVersion,
@@ -120,8 +116,7 @@ lazy val scalaTest = Seq(
 lazy val commonDeps = slf4j ++ scalaTest
 
 lazy val commonSettings =
-  Defaults.coreDefaultSettings ++
-    mavenSettings ++
+  mavenSettings ++
     Seq(
       organization := "com.github.cb372",
       scalaVersion := ScalaVersion,
@@ -150,8 +145,6 @@ lazy val commonSettings =
       commands += Command.command("update-version-in-readme")(
         updateVersionInReadme)
     )
-
-lazy val implProjectSettings = commonSettings
 
 lazy val mavenSettings = Seq(
   pomExtra :=
