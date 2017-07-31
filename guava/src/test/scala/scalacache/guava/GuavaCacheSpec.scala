@@ -1,17 +1,15 @@
 package scalacache.guava
 
+import java.time.{Clock, Instant, ZoneOffset}
+
 import scalacache.Entry
-import org.scalatest.{BeforeAndAfter, Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
 import com.google.common.cache.CacheBuilder
-import org.joda.time.{DateTimeUtils, DateTime}
+
 import scala.concurrent.duration._
 import org.scalatest.concurrent.ScalaFutures
 
-class GuavaCacheSpec
-    extends FlatSpec
-    with Matchers
-    with BeforeAndAfter
-    with ScalaFutures {
+class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
 
   def newGCache = CacheBuilder.newBuilder.build[String, Object]
 
@@ -37,7 +35,7 @@ class GuavaCacheSpec
   it should "return None if the given key exists but the value has expired" in {
     val underlying = newGCache
     val expiredEntry =
-      Entry("hello", expiresAt = Some(DateTime.now.minusSeconds(1)))
+      Entry("hello", expiresAt = Some(Instant.now.minusSeconds(1)))
     underlying.put("key1", expiredEntry)
     whenReady(GuavaCache(underlying).get[String]("non-existent key")) {
       result =>
@@ -56,23 +54,23 @@ class GuavaCacheSpec
   behavior of "put with TTL"
 
   it should "store the given key-value pair in the underlying cache with the given TTL" in {
-    val now = DateTime.now
-    DateTimeUtils.setCurrentMillisFixed(now.getMillis)
+    val now = Instant.now()
+    val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newGCache
-    GuavaCache(underlying).put("key1", "hello", Some(10.seconds))
+    new GuavaCache(underlying)(clock).put("key1", "hello", Some(10.seconds))
     underlying.getIfPresent("key1") should be(
-      Entry("hello", expiresAt = Some(now.plusSeconds(10))))
+      Entry("hello", expiresAt = Some(Instant.from(now.plusSeconds(10)))))
   }
 
   it should "support a TTL greater than Int.MaxValue millis" in {
-    val now = new DateTime("2015-10-01T00:00:00Z")
-    DateTimeUtils.setCurrentMillisFixed(now.getMillis)
+    val now = Instant.parse("2015-10-01T00:00:00Z")
+    val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newGCache
-    GuavaCache(underlying).put("key1", "hello", Some(30.days))
+    new GuavaCache(underlying)(clock).put("key1", "hello", Some(30.days))
     underlying.getIfPresent("key1") should be(
-      Entry("hello", expiresAt = Some(new DateTime("2015-10-31T00:00:00Z"))))
+      Entry("hello", expiresAt = Some(Instant.parse("2015-10-31T00:00:00Z"))))
   }
 
   behavior of "remove"
@@ -85,10 +83,6 @@ class GuavaCacheSpec
 
     GuavaCache(underlying).remove("key1")
     underlying.getIfPresent("key1") should be(null)
-  }
-
-  after {
-    DateTimeUtils.setCurrentMillisSystem()
   }
 
 }

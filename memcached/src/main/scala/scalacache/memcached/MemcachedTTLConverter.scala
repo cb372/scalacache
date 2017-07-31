@@ -1,7 +1,8 @@
 package scalacache.memcached
 
+import java.time.{Clock, Instant}
+
 import org.slf4j.LoggerFactory
-import org.joda.time.DateTime
 
 import scala.concurrent.duration._
 
@@ -27,11 +28,13 @@ trait MemcachedTTLConverter {
     * @param ttl optional TTL
     * @return corresponding Memcached expiry
     */
-  def toMemcachedExpiry(ttl: Option[Duration]): Int = {
+  def toMemcachedExpiry(ttl: Option[Duration])(implicit clock: Clock =
+                                                 Clock.systemUTC()): Int = {
     ttl.map(durationToExpiry).getOrElse(0)
   }
 
-  private def durationToExpiry(duration: Duration): Int = duration match {
+  private def durationToExpiry(duration: Duration)(
+      implicit clock: Clock): Int = duration match {
     case Duration.Zero => 0
 
     case d if d < 1.second => {
@@ -45,8 +48,8 @@ trait MemcachedTTLConverter {
     case d if d <= 30.days => d.toSeconds.toInt
 
     case d => {
-      val expiryTime = DateTime.now.plusSeconds(d.toSeconds.toInt)
-      (expiryTime.getMillis / 1000).toInt
+      val expiryTime = Instant.now(clock).plusSeconds(d.toSeconds.toInt)
+      (expiryTime.toEpochMilli / 1000).toInt
     }
   }
 
