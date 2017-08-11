@@ -75,7 +75,7 @@ lazy val redis = module("redis")
 lazy val caffeine = module("caffeine")
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.3",
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.4",
       "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
     )
   )
@@ -120,7 +120,7 @@ lazy val commonSettings =
     Seq(
       organization := "com.github.cb372",
       scalaVersion := ScalaVersion,
-      crossScalaVersions := Seq(ScalaVersion, "2.12.2"),
+      crossScalaVersions := Seq(ScalaVersion, "2.12.3"),
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       resolvers += Resolver.typesafeRepo("releases"),
       libraryDependencies ++= commonDeps,
