@@ -15,8 +15,7 @@ import scala.concurrent.{ExecutionContext, Future, blocking}
   *                               to maintain compatibility with ScalaCache 0.7.x or earlier.
   */
 class SentinelRedisCache(val jedisPool: JedisSentinelPool,
-                         override val customClassloader: Option[ClassLoader] =
-                           None,
+                         override val customClassloader: Option[ClassLoader] = None,
                          override val useLegacySerialization: Boolean = false)(
     implicit val execContext: ExecutionContext = ExecutionContext.global)
     extends RedisCacheBase {
@@ -45,14 +44,8 @@ object SentinelRedisCache {
     * @param sentinels set of sentinels in format [host1:port, host2:port]
     * @param password password of the cluster
     */
-  def apply(clusterName: String,
-            sentinels: Set[String],
-            password: String): SentinelRedisCache =
-    apply(
-      new JedisSentinelPool(clusterName,
-                            sentinels.asJava,
-                            new GenericObjectPoolConfig,
-                            password))
+  def apply(clusterName: String, sentinels: Set[String], password: String): SentinelRedisCache =
+    apply(new JedisSentinelPool(clusterName, sentinels.asJava, new GenericObjectPoolConfig, password))
 
   /**
     * Create a `SentinelRedisCache` that uses a `JedisSentinelPool` with a custom pool config.
@@ -66,11 +59,7 @@ object SentinelRedisCache {
             sentinels: Set[String],
             poolConfig: GenericObjectPoolConfig,
             password: String): SentinelRedisCache =
-    apply(
-      new JedisSentinelPool(clusterName,
-                            sentinels.asJava,
-                            poolConfig,
-                            password))
+    apply(new JedisSentinelPool(clusterName, sentinels.asJava, poolConfig, password))
 
   /**
     * Create a `SentinelRedisCache` that uses the given JedisSentinelPool
@@ -79,9 +68,7 @@ object SentinelRedisCache {
     * @param customClassloader a classloader to use when deserializing objects from the cache.
     *                          If you are using Play, you should pass in `app.classloader`.
     */
-  def apply(
-      jedisSentinelPool: JedisSentinelPool,
-      customClassloader: Option[ClassLoader] = None): SentinelRedisCache =
+  def apply(jedisSentinelPool: JedisSentinelPool, customClassloader: Option[ClassLoader] = None): SentinelRedisCache =
     new SentinelRedisCache(jedisSentinelPool, customClassloader)
 
 }

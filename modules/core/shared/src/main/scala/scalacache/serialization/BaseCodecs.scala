@@ -1,18 +1,20 @@
 package scalacache.serialization
 
 /**
- * Primitive type Codec instances
- *
- * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
- */
+  * Primitive type Codec instances
+  *
+  * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
+  */
 trait BaseCodecs {
 
   /**
-   * Noop Codec that does nothing when you just want to put stuff into in-memory cache representations
-   */
+    * Noop Codec that does nothing when you just want to put stuff into in-memory cache representations
+    */
   implicit def anyToNoSerialization[A] = new Codec[A, InMemoryRepr] {
-    def serialize(value: A): InMemoryRepr = throw new RuntimeException("Cache using InMemoryRepr trying to serialize data")
-    def deserialize(data: InMemoryRepr): A = throw new RuntimeException("Cache using InMemoryRepr trying to deserialize data")
+    def serialize(value: A): InMemoryRepr =
+      throw new RuntimeException("Cache using InMemoryRepr trying to serialize data")
+    def deserialize(data: InMemoryRepr): A =
+      throw new RuntimeException("Cache using InMemoryRepr trying to deserialize data")
   }
 
   implicit object IntBinaryCodec extends Codec[Int, Array[Byte]] {
@@ -32,7 +34,7 @@ trait BaseCodecs {
   }
 
   implicit object DoubleBinaryCodec extends Codec[Double, Array[Byte]] {
-    import java.lang.{ Double => JvmDouble }
+    import java.lang.{Double => JvmDouble}
     def serialize(value: Double): Array[Byte] = {
       val l = JvmDouble.doubleToLongBits(value)
       LongBinaryCodec.serialize(l)
@@ -45,7 +47,7 @@ trait BaseCodecs {
   }
 
   implicit object FloatBinaryCodec extends Codec[Float, Array[Byte]] {
-    import java.lang.{ Float => JvmFloat }
+    import java.lang.{Float => JvmFloat}
     def serialize(value: Float): Array[Byte] = {
       val i = JvmFloat.floatToIntBits(value)
       IntBinaryCodec.serialize(i)

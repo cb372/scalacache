@@ -19,8 +19,7 @@ import scala.concurrent.Future
  * Note: Would be nice to use Any here, but that doesn't conform to CCache's type bounds,
  * because Any does not extend java.lang.Object.
  */
-class CaffeineCache(underlying: CCache[String, Object])(implicit clock: Clock =
-                                                          Clock.systemUTC())
+class CaffeineCache(underlying: CCache[String, Object])(implicit clock: Clock = Clock.systemUTC())
     extends Cache[InMemoryRepr]
     with LoggingSupport {
 
@@ -59,8 +58,7 @@ class CaffeineCache(underlying: CCache[String, Object])(implicit clock: Clock =
     * @param ttl Time To Live
     * @tparam V the type of the corresponding value
     */
-  override def put[V](key: String, value: V, ttl: Option[Duration] = None)(
-      implicit codec: Codec[V, InMemoryRepr]) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration] = None)(implicit codec: Codec[V, InMemoryRepr]) = {
     val entry = Entry(value, ttl.map(toExpiryTime))
     underlying.put(key, entry.asInstanceOf[Object])
     logCachePut(key, ttl)

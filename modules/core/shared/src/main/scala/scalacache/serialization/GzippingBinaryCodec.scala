@@ -1,18 +1,18 @@
 package scalacache.serialization
 
-import java.io.{ ByteArrayInputStream, ByteArrayOutputStream }
-import java.util.zip.{ GZIPInputStream, GZIPOutputStream }
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
 object CompressingCodec {
 
   /**
-   * Default threshold for compression is is 16k
-   */
+    * Default threshold for compression is is 16k
+    */
   val DefaultSizeThreshold: Int = 16384
 
   /**
-   * Headers aka magic numbers to let us know if something has been compressed or not
-   */
+    * Headers aka magic numbers to let us know if something has been compressed or not
+    */
   object Headers {
     val Uncompressed: Byte = 0
     val Gzipped: Byte = 1
@@ -21,16 +21,16 @@ object CompressingCodec {
 }
 
 /**
- * Mixing this into any Codec will automatically GZip the resulting Byte Array when serialising and handle un-Gzipping when
- * deserialising
- */
+  * Mixing this into any Codec will automatically GZip the resulting Byte Array when serialising and handle un-Gzipping when
+  * deserialising
+  */
 trait GZippingBinaryCodec[A] extends Codec[A, Array[Byte]] {
 
   import CompressingCodec._
 
   /**
-   * Size above which data will get compressed
-   */
+    * Size above which data will get compressed
+    */
   protected def sizeThreshold: Int = CompressingCodec.DefaultSizeThreshold
 
   abstract override def serialize(value: A): Array[Byte] = {
@@ -47,7 +47,9 @@ trait GZippingBinaryCodec[A] extends Codec[A, Array[Byte]] {
     firstByte match {
       case Some(Headers.Uncompressed) => super.deserialize(data.tail)
       case Some(Headers.Gzipped) => super.deserialize(decompress(data.tail))
-      case unexpected => throw new RuntimeException(s"Expected either ${Headers.Uncompressed} or ${Headers.Gzipped} but got $unexpected")
+      case unexpected =>
+        throw new RuntimeException(
+          s"Expected either ${Headers.Uncompressed} or ${Headers.Gzipped} but got $unexpected")
     }
   }
 

@@ -14,9 +14,7 @@ import scala.concurrent.Future
   * Since Ehcache is in-memory and non-blocking,
   * all operations are performed synchronously, i.e. ExecutionContext is not needed.
   */
-class EhcacheCache(underlying: Ehcache)
-    extends Cache[InMemoryRepr]
-    with LoggingSupport {
+class EhcacheCache(underlying: Ehcache) extends Cache[InMemoryRepr] with LoggingSupport {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
@@ -46,8 +44,7 @@ class EhcacheCache(underlying: Ehcache)
     * @param ttl Time To Live
     * @tparam V the type of the corresponding value
     */
-  override def put[V](key: String, value: V, ttl: Option[Duration])(
-      implicit codec: Codec[V, InMemoryRepr]) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, InMemoryRepr]) = {
     val element = new Element(key, value)
     ttl.foreach(t => element.setTimeToLive(t.toSeconds.toInt))
     underlying.put(element)

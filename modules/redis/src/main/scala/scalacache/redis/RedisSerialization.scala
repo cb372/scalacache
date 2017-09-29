@@ -21,16 +21,14 @@ trait RedisSerialization {
 
   protected def customClassloader: Option[ClassLoader] = None
 
-  def serialize[A](value: A)(
-      implicit codec: Codec[A, Array[Byte]]): Array[Byte] = {
+  def serialize[A](value: A)(implicit codec: Codec[A, Array[Byte]]): Array[Byte] = {
     if (useLegacySerialization)
       Legacy.serialize(value)
     else
       codec.serialize(value)
   }
 
-  def deserialize[A](bytes: Array[Byte])(
-      implicit codec: Codec[A, Array[Byte]]): A = {
+  def deserialize[A](bytes: Array[Byte])(implicit codec: Codec[A, Array[Byte]]): A = {
     if (useLegacySerialization)
       Legacy.deserialize[A](bytes)
     else
@@ -47,8 +45,7 @@ trait RedisSerialization {
       val OBJECT: Byte = 5
     }
 
-    def withObjectOutputStream(typeId: Byte,
-                               f: ObjectOutputStream => Unit): Array[Byte] = {
+    def withObjectOutputStream(typeId: Byte, f: ObjectOutputStream => Unit): Array[Byte] = {
       val baos = new ByteArrayOutputStream()
       baos.write(typeId) // Write the type ID
       val oos = new ObjectOutputStream(baos) // Write the rest of the array in ObjectOutputStream format
@@ -93,16 +90,13 @@ trait RedisSerialization {
       result.asInstanceOf[A]
     }
 
-    private def createObjectInputStream(
-        inputStream: InputStream): ObjectInputStream =
-      new ClassLoaderOIS(inputStream,
-                         customClassloader getOrElse getClass.getClassLoader)
+    private def createObjectInputStream(inputStream: InputStream): ObjectInputStream =
+      new ClassLoaderOIS(inputStream, customClassloader getOrElse getClass.getClassLoader)
   }
 
 }
 
-class ClassLoaderOIS(stream: InputStream, customClassloader: ClassLoader)
-    extends ObjectInputStream(stream) {
+class ClassLoaderOIS(stream: InputStream, customClassloader: ClassLoader) extends ObjectInputStream(stream) {
   override protected def resolveClass(desc: ObjectStreamClass) = {
     Class.forName(desc.getName, false, customClassloader)
   }

@@ -32,8 +32,7 @@ trait CacheAlg[V, M[F[_]] <: Sync[F]] {
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @return The appropriate value, if it was found in the cache
     */
-  def get[F[_]](keyParts: Any*)
-               (implicit mode: Mode[F, M], flags: Flags): F[Option[V]]
+  def get[F[_]](keyParts: Any*)(implicit mode: Mode[F, M], flags: Flags): F[Option[V]]
 
   /**
     * Insert a value into the cache, optionally setting a TTL (time-to-live)
@@ -45,9 +44,8 @@ trait CacheAlg[V, M[F[_]] <: Sync[F]] {
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     */
-  def put[F[_]](keyParts: Any*)
-               (value: V, ttl: Option[Duration] = None)
-               (implicit mode: Mode[F, M], flags: Flags): F[Unit]
+  def put[F[_]](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit mode: Mode[F, M],
+                                                                        flags: Flags): F[Unit]
 
   /**
     * Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
@@ -60,10 +58,8 @@ trait CacheAlg[V, M[F[_]] <: Sync[F]] {
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @return The value, either retrieved from the cache or computed
     */
-  def caching[F[_]](keyParts: Any*)
-                   (ttl: Option[Duration] = None)
-                   (f: => V)
-                   (implicit mode: Mode[F, M], flags: Flags): F[V]
+  def caching[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F, M],
+                                                                           flags: Flags): F[V]
 
   /**
     * Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
@@ -76,20 +72,14 @@ trait CacheAlg[V, M[F[_]] <: Sync[F]] {
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @return
     */
-  def cachingF[F[_]](keyParts: Any*)
-                    (ttl: Option[Duration] = None)
-                    (f: => F[V])
-                    (implicit mode: Mode[F, M], flags: Flags): F[V]
+  def cachingF[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F, M],
+                                                                               flags: Flags): F[V]
 
   // optimised methods for use by memoize: we know the key will be a single string so we can avoid some work
 
-  private[scalacache] def cachingForMemoize[F[_]](baseKey: String)
-                                                 (ttl: Option[Duration])
-                                                 (f: => V)
-                                                 (implicit mode: Mode[F, M], flags: Flags): F[V]
+  private[scalacache] def cachingForMemoize[F[_]](baseKey: String)(ttl: Option[Duration])(
+      f: => V)(implicit mode: Mode[F, M], flags: Flags): F[V]
 
-  private[scalacache] def cachingForMemoizeF[F[_]](baseKey: String)
-                                                 (ttl: Option[Duration])
-                                                 (f: => F[V])
-                                                 (implicit mode: Mode[F, M], flags: Flags): F[V]
+  private[scalacache] def cachingForMemoizeF[F[_]](baseKey: String)(ttl: Option[Duration])(
+      f: => F[V])(implicit mode: Mode[F, M], flags: Flags): F[V]
 }

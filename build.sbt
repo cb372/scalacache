@@ -117,6 +117,7 @@ lazy val commonDeps = slf4j ++ scalaTest
 
 lazy val commonSettings =
   mavenSettings ++
+    scalafmtSettings ++
     Seq(
       organization := "com.github.cb372",
       scalaVersion := ScalaVersion,
@@ -211,3 +212,9 @@ def scala211OnlyDeps(moduleIDs: ModuleID*) =
     case "2.11" => moduleIDs
     case other => Nil
   })
+
+lazy val scalafmtSettings = Seq(
+  // work around https://github.com/lucidsoftware/neo-sbt-scalafmt/issues/18
+  sourceDirectories in scalafmt in Compile := (unmanagedSourceDirectories in Compile).value,
+  sourceDirectories in scalafmt in Test := (unmanagedSourceDirectories in Test).value
+)

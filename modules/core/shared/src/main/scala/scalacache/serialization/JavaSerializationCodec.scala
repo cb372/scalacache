@@ -11,6 +11,7 @@ import scala.util.control.NonFatal
   * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
   */
 trait JavaSerializationCodec {
+
   /**
     * Uses plain Java serialization to deserialize objects
     */
@@ -22,16 +23,15 @@ trait JavaSerializationCodec {
 class JavaSerializationAnyCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S, Array[Byte]] {
 
   def using[T <: Closeable, R](obj: T)(f: T => R): R =
-    try
-      f(obj)
-    finally
-      try obj.close() catch {
-        case NonFatal(_) => // does nothing
-      }
+    try f(obj)
+    finally try obj.close()
+    catch {
+      case NonFatal(_) => // does nothing
+    }
 
   def serialize(value: S): Array[Byte] =
-    using (new ByteArrayOutputStream()) { buf =>
-      using (new ObjectOutputStream(buf)) { out =>
+    using(new ByteArrayOutputStream()) { buf =>
+      using(new ObjectOutputStream(buf)) { out =>
         out.writeObject(value)
         out.close()
         buf.toByteArray
@@ -39,9 +39,9 @@ class JavaSerializationAnyCodec[S <: Serializable](classTag: ClassTag[S]) extend
     }
 
   def deserialize(data: Array[Byte]): S =
-    using (new ByteArrayInputStream(data)) { buf =>
+    using(new ByteArrayInputStream(data)) { buf =>
       val in = new GenericCodecObjectInputStream(classTag, buf)
-      using (in) { inp =>
+      using(in) { inp =>
         inp.readObject().asInstanceOf[S]
       }
     }

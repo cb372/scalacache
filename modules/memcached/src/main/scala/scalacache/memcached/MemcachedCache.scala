@@ -1,12 +1,7 @@
 package scalacache.memcached
 
 import org.slf4j.LoggerFactory
-import net.spy.memcached.internal.{
-  OperationFuture,
-  OperationCompletionListener,
-  GetFuture,
-  GetCompletionListener
-}
+import net.spy.memcached.internal.{OperationFuture, OperationCompletionListener, GetFuture, GetCompletionListener}
 import net.spy.memcached.{AddrUtil, BinaryConnectionFactory, MemcachedClient}
 import scalacache.serialization.Codec
 import scalacache.{LoggingSupport, Cache}
@@ -21,11 +16,10 @@ import scala.concurrent.{Promise, ExecutionContext}
   * @param useLegacySerialization set this to true to use Spymemcached's serialization mechanism
   *                               to maintain compatibility with ScalaCache 0.7.x or earlier.
   */
-class MemcachedCache(client: MemcachedClient,
-                     keySanitizer: MemcachedKeySanitizer =
-                       ReplaceAndTruncateSanitizer(),
-                     useLegacySerialization: Boolean = false)(
-    implicit execContext: ExecutionContext = ExecutionContext.global)
+class MemcachedCache(
+    client: MemcachedClient,
+    keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer(),
+    useLegacySerialization: Boolean = false)(implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache[Array[Byte]]
     with MemcachedTTLConverter
     with LoggingSupport {
@@ -69,14 +63,11 @@ class MemcachedCache(client: MemcachedClient,
     * @param ttl Time To Live
     * @tparam V the type of the corresponding value
     */
-  override def put[V](key: String, value: V, ttl: Option[Duration])(
-      implicit codec: Codec[V, Array[Byte]]) = {
+  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Array[Byte]]) = {
     val p = Promise[Unit]()
     val valueToSend =
       if (useLegacySerialization) value else codec.serialize(value)
-    val f = client.set(keySanitizer.toValidMemcachedKey(key),
-                       toMemcachedExpiry(ttl),
-                       valueToSend)
+    val f = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)
     f.addListener(new OperationCompletionListener {
       def onComplete(g: OperationFuture[_]): Unit = p.complete {
         logCachePut(key, ttl)
@@ -133,9 +124,7 @@ object MemcachedCache {
     * @param addressString Address string, with addresses separated by spaces, e.g. "host1:11211 host2:22322"
     */
   def apply(addressString: String): MemcachedCache =
-    apply(
-      new MemcachedClient(new BinaryConnectionFactory(),
-                          AddrUtil.getAddresses(addressString)))
+    apply(new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(addressString)))
 
   /**
     * Create a cache that uses the given Memcached client

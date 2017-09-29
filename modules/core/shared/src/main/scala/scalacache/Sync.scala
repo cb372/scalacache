@@ -46,4 +46,3 @@ object SyncForTry extends Sync[Try] {
   def raiseError[A](t: Throwable): Try[A] = Failure(t)
 
 }
-

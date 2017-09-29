@@ -12,8 +12,8 @@ import scala.concurrent.{Future, ExecutionContext, blocking}
   */
 class RedisCache(val jedisPool: JedisPool,
                  override val customClassloader: Option[ClassLoader] = None,
-                 override val useLegacySerialization: Boolean = false)(
-    implicit val execContext: ExecutionContext = ExecutionContext.global)
+                 override val useLegacySerialization: Boolean = false)(implicit val execContext: ExecutionContext =
+                                                                         ExecutionContext.global)
     extends RedisCacheBase {
 
   type JClient = Jedis
@@ -45,8 +45,7 @@ object RedisCache {
     * @param customClassloader a classloader to use when deserializing objects from the cache.
     *                          If you are using Play, you should pass in `app.classloader`.
     */
-  def apply(jedisPool: JedisPool,
-            customClassloader: Option[ClassLoader] = None): RedisCache =
+  def apply(jedisPool: JedisPool, customClassloader: Option[ClassLoader] = None): RedisCache =
     new RedisCache(jedisPool, customClassloader)
 
 }

@@ -13,8 +13,7 @@ import scala.collection.JavaConverters._
   *                               to maintain compatibility with ScalaCache 0.7.x or earlier.
   */
 class ShardedRedisCache(val jedisPool: ShardedJedisPool,
-                        override val customClassloader: Option[ClassLoader] =
-                          None,
+                        override val customClassloader: Option[ClassLoader] = None,
                         override val useLegacySerialization: Boolean = false)(
     implicit val execContext: ExecutionContext = ExecutionContext.global)
     extends RedisCacheBase {
@@ -53,8 +52,7 @@ object ShardedRedisCache {
     * @param customClassloader a classloader to use when deserializing objects from the cache.
     *                          If you are using Play, you should pass in `app.classloader`.
     */
-  def apply(jedisPool: ShardedJedisPool,
-            customClassloader: Option[ClassLoader] = None): ShardedRedisCache =
+  def apply(jedisPool: ShardedJedisPool, customClassloader: Option[ClassLoader] = None): ShardedRedisCache =
     new ShardedRedisCache(jedisPool, customClassloader)
 
 }
