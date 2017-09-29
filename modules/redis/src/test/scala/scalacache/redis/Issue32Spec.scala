@@ -12,11 +12,7 @@ case class User(id: Int, name: String)
   * Test to check the sample code in issue #32 runs OK
   * (just to isolate the use of the List[User] type from the Play classloader problem)
   */
-class Issue32Spec
-    extends FlatSpec
-    with Matchers
-    with BeforeAndAfter
-    with RedisTestUtil {
+class Issue32Spec extends FlatSpec with Matchers with BeforeAndAfter with RedisTestUtil {
 
   assumingRedisIsRunning { (pool, client) =>
     implicit val scalaCache = ScalaCache(RedisCache(pool))

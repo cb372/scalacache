@@ -86,11 +86,7 @@ lazy val benchmarks = module("benchmarks")
     scalaVersion := ScalaVersion,
     publishArtifact := false,
     fork in (Compile, run) := true,
-    javaOptions in Jmh ++= Seq("-server",
-                               "-Xms2G",
-                               "-Xmx2G",
-                               "-XX:+UseG1GC",
-                               "-XX:-UseBiasedLocking"),
+    javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking"),
     javaOptions in (Test, run) ++= Seq(
       "-XX:+UnlockCommercialFeatures",
       "-XX:+FlightRecorder",
@@ -143,8 +139,7 @@ lazy val commonSettings =
         releaseStepCommand("sonatypeReleaseAll"),
         pushChanges
       ),
-      commands += Command.command("update-version-in-readme")(
-        updateVersionInReadme)
+      commands += Command.command("update-version-in-readme")(updateVersionInReadme)
     )
 
 lazy val mavenSettings = Seq(
@@ -188,21 +183,15 @@ lazy val updateVersionInReadme = ReleaseStep(action = st => {
 
   println(s"Updating project version to $projectVersion in the README")
   Process(
-    Seq(
-      "sed",
-      "-i",
-      "",
-      "-E",
-      "-e",
-      s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""",
-      "README.md")).!
+    Seq("sed",
+        "-i",
+        "",
+        "-E",
+        "-e",
+        s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""",
+        "README.md")).!
   println("Committing README.md")
-  Process(
-    Seq("git",
-        "commit",
-        "README.md",
-        "-m",
-        s"Update project version in README to $projectVersion")).!
+  Process(Seq("git", "commit", "README.md", "-m", s"Update project version in README to $projectVersion")).!
 
   st
 })

@@ -32,8 +32,7 @@ class MemcachedCacheSpec
     codec.serialize(v)
 
   if (!memcachedIsRunning) {
-    alert(
-      "Skipping tests because Memcached does not appear to be running on localhost.")
+    alert("Skipping tests because Memcached does not appear to be running on localhost.")
   } else {
 
     before {
@@ -66,14 +65,13 @@ class MemcachedCacheSpec
     behavior of "put with TTL"
 
     it should "store the given key-value pair in the underlying cache" in {
-      whenReady(MemcachedCache(client).put("key3", 123, Some(3 seconds))) {
-        _ =>
-          client.get("key3") should be(serialise(123))
+      whenReady(MemcachedCache(client).put("key3", 123, Some(3 seconds))) { _ =>
+        client.get("key3") should be(serialise(123))
 
-          // Should expire after 3 seconds
-          eventually(timeout(Span(4, Seconds))) {
-            client.get("key3") should be(null)
-          }
+        // Should expire after 3 seconds
+        eventually(timeout(Span(4, Seconds))) {
+          client.get("key3") should be(null)
+        }
       }
     }
 
@@ -89,8 +87,7 @@ class MemcachedCacheSpec
     }
 
     legacySupportCheck { legacySerialization =>
-      new MemcachedCache(client = client,
-                         useLegacySerialization = legacySerialization)
+      new MemcachedCache(client = client, useLegacySerialization = legacySerialization)
     }
   }
 

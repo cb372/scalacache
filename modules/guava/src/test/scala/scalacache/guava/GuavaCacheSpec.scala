@@ -26,9 +26,8 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
 
   it should "return None if the given key does not exist in the underlying cache" in {
     val underlying = newGCache
-    whenReady(GuavaCache(underlying).get[String]("non-existent key")) {
-      result =>
-        result should be(None)
+    whenReady(GuavaCache(underlying).get[String]("non-existent key")) { result =>
+      result should be(None)
     }
   }
 
@@ -37,9 +36,8 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
     val expiredEntry =
       Entry("hello", expiresAt = Some(Instant.now.minusSeconds(1)))
     underlying.put("key1", expiredEntry)
-    whenReady(GuavaCache(underlying).get[String]("non-existent key")) {
-      result =>
-        result should be(None)
+    whenReady(GuavaCache(underlying).get[String]("non-existent key")) { result =>
+      result should be(None)
     }
   }
 
@@ -59,8 +57,7 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
 
     val underlying = newGCache
     new GuavaCache(underlying)(clock).put("key1", "hello", Some(10.seconds))
-    underlying.getIfPresent("key1") should be(
-      Entry("hello", expiresAt = Some(Instant.from(now.plusSeconds(10)))))
+    underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(Instant.from(now.plusSeconds(10)))))
   }
 
   it should "support a TTL greater than Int.MaxValue millis" in {
@@ -69,8 +66,7 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
 
     val underlying = newGCache
     new GuavaCache(underlying)(clock).put("key1", "hello", Some(30.days))
-    underlying.getIfPresent("key1") should be(
-      Entry("hello", expiresAt = Some(Instant.parse("2015-10-31T00:00:00Z"))))
+    underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(Instant.parse("2015-10-31T00:00:00Z"))))
   }
 
   behavior of "remove"
