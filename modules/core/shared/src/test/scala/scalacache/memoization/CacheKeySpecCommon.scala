@@ -1,10 +1,10 @@
 package scalacache.memoization
 
 import org.scalatest._
-import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
 
 import scalacache.serialization.InMemoryRepr
-import scalacache.{ MockCache, ScalaCache }
+import scalacache.{MockCache, ScalaCache}
 
 trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with BeforeAndAfter with Eventually {
 

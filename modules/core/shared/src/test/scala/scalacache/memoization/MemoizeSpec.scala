@@ -1,7 +1,7 @@
 package scalacache.memoization
 
-import org.scalatest.concurrent.{ Eventually, ScalaFutures }
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import org.scalatest.{FlatSpec, Matchers}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
@@ -253,7 +253,8 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
     }
   }
 
-  class MyMockClass(dbCall: Int => String)(implicit val scalaCache: ScalaCache[InMemoryRepr], implicit val flags: Flags) {
+  class MyMockClass(dbCall: Int => String)(implicit val scalaCache: ScalaCache[InMemoryRepr],
+                                           implicit val flags: Flags) {
 
     def myLongRunningMethod(a: Int, b: String): String = memoizeSync {
       dbCall(a)
@@ -265,7 +266,8 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
 
   }
 
-  class MyMockClassWithFutures(dbCall: Int => String)(implicit val scalaCache: ScalaCache[InMemoryRepr], implicit val flags: Flags) {
+  class MyMockClassWithFutures(dbCall: Int => String)(implicit val scalaCache: ScalaCache[InMemoryRepr],
+                                                      implicit val flags: Flags) {
 
     def myLongRunningMethod(a: Int, b: String): Future[String] = memoize {
       Future { dbCall(a) }

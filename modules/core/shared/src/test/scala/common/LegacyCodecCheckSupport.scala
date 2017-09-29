@@ -1,7 +1,7 @@
 package common
 
-import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
-import org.scalatest.{ Matchers, FlatSpec }
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.{Matchers, FlatSpec}
 
 import scalacache._
 import scalacache.serialization.Codec
@@ -28,12 +28,12 @@ class DummySnackCodec extends Codec[Snack, Array[Byte]] {
 trait LegacyCodecCheckSupport { this: FlatSpec with Matchers with ScalaFutures with IntegrationPatience =>
 
   /**
-   * Given a function that returns a [[Cache]] based on whether or not Codec-based serialisation should be skipped,
-   * performs a basic check to verify usage/non-usage of in-scope Codecs.
-   *
-   * @param buildCache function that takes a boolean indicating whether not the cache returned should make use of
-   *                   in-scope Codecs
-   */
+    * Given a function that returns a [[Cache]] based on whether or not Codec-based serialisation should be skipped,
+    * performs a basic check to verify usage/non-usage of in-scope Codecs.
+    *
+    * @param buildCache function that takes a boolean indicating whether not the cache returned should make use of
+    *                   in-scope Codecs
+    */
   def legacySupportCheck(buildCache: Boolean => Cache[Array[Byte]]): Unit = {
 
     behavior of "useLegacySerialization"

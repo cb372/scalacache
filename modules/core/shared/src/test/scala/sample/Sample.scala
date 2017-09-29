@@ -12,8 +12,8 @@ import language.postfixOps
 case class User(id: Int, name: String)
 
 /**
- * Sample showing how to use ScalaCache.
- */
+  * Sample showing how to use ScalaCache.
+  */
 object Sample extends App {
 
   class UserRepository {
@@ -40,4 +40,3 @@ object Sample extends App {
   }
 
 }
-

@@ -10,7 +10,8 @@ class CacheKeyExcludingConstructorParamsSpec extends FlatSpec with CacheKeySpecC
 
   behavior of "cache key generation for method memoization (not including constructor params in cache key)"
 
-  implicit val scalaCache: ScalaCache[InMemoryRepr] = ScalaCache(cache, memoization = MemoizationConfig(toStringConverter = excludeClassConstructorParams))
+  implicit val scalaCache: ScalaCache[InMemoryRepr] =
+    ScalaCache(cache, memoization = MemoizationConfig(toStringConverter = excludeClassConstructorParams))
 
   it should "not include the enclosing class's constructor params in the cache key" in {
     val instance1 = new ClassWithConstructorParams(50)

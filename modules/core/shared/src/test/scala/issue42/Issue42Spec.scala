@@ -1,6 +1,6 @@
 package issue42
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.{FlatSpec, Matchers}
 
 import scala.util.Random
 import scalacache._
