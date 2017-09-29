@@ -10,5 +10,5 @@ import scalacache.memoization.MemoizationConfig
 case class ScalaCache[Repr](
   cache: Cache[Repr],
   cacheConfig: CacheConfig = CacheConfig(),
-  keyBuilder: CacheKeyBuilder = DefaultCacheKeyBuilder,
+  keyBuilder: CacheKeyBuilder = DefaultCacheKeyBuilder(),
   memoization: MemoizationConfig = MemoizationConfig())

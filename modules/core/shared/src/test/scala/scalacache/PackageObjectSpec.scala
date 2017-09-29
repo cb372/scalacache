@@ -104,35 +104,6 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
     }
   }
 
-  it should "perform the cache write asynchronously if ScalaCache is thus configured" in {
-    val cache = new LoggingMockCache {
-      override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, NoSerialization]): Future[Unit] = {
-        Thread.sleep(2000L)
-        super.put(key, value, ttl)
-      }
-    }
-    implicit val scalaCache = ScalaCache(cache, CacheConfig(waitForWriteToComplete = false))
-
-    var called = false
-    val fResult = scalacache.caching("myKey") {
-      Future {
-        called = true
-        "result of block"
-      }
-    }
-
-    whenReady(fResult) { result =>
-      cache.getCalledWithArgs(0) should be("myKey")
-      cache.putCalledWithArgs shouldBe empty
-      called should be(true)
-      result should be("result of block")
-
-      eventually {
-        cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
-      }
-    }
-  }
-
   it should "not run the block if the value is found in the cache" in {
     cache.mmap.put("myKey", "value from cache")
 

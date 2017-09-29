@@ -9,6 +9,8 @@ trait Async[F[_]] extends Sync[F] {
 
 class AsyncForFuture(implicit ec: ExecutionContext) extends Async[Future] {
 
+  def pure[A](a: A): Future[A] = Future.successful(a)
+
   def delay[A](thunk: => A): Future[A] = Future(thunk)
 
   def map[A, B](fa: Future[A])(f: A => B): Future[B] = fa.map(f)

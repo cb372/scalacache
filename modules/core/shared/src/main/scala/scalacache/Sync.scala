@@ -2,9 +2,11 @@ package scalacache
 
 import scalacache.modes.sync.Id
 import scala.language.higherKinds
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 trait Sync[F[_]] {
+
+  def pure[A](a: A): F[A]
 
   def delay[A](thunk: => A): F[A]
 
@@ -19,6 +21,8 @@ trait Sync[F[_]] {
 
 object SyncForId extends Sync[Id] {
 
+  def pure[A](a: A): Id[A] = a
+
   def delay[A](thunk: => A): Id[A] = thunk
 
   def map[A, B](fa: Id[A])(f: A => B): Id[B] = f(fa)
@@ -30,6 +34,8 @@ object SyncForId extends Sync[Id] {
 }
 
 object SyncForTry extends Sync[Try] {
+
+  def pure[A](a: A): Try[A] = Success(a)
 
   def delay[A](thunk: => A): Try[A] = Try(thunk)
 

@@ -5,29 +5,28 @@ trait CacheKeyBuilder {
   /**
    * Build a String from the given parts to use as a cache key
    */
-  def toCacheKey(parts: Seq[Any])(implicit cacheConfig: CacheConfig): String
+  def toCacheKey(parts: Seq[Any]): String
 
   /**
    * Build a cache key by prepending the configured prefix, if there is one
    */
-  def stringToCacheKey(key: String)(implicit cacheConfig: CacheConfig): String
+  def stringToCacheKey(key: String): String
 
 }
 
-object DefaultCacheKeyBuilder extends CacheKeyBuilder {
+case class DefaultCacheKeyBuilder(keyPrefix: Option[String] = None, separator: String = ":") extends CacheKeyBuilder {
 
   /**
    * Build a String from the given parts, separating them using the configured separator string.
    * Prepends the prefix if there is one.
    */
-  override def toCacheKey(parts: Seq[Any])(implicit cacheConfig: CacheConfig): String = {
+  override def toCacheKey(parts: Seq[Any]): String = {
     // Implementation note: the type of `parts` will be `WrappedArray` when called from the package object,
     // so random access is O(1).
     val sb = new StringBuilder(128)
-    val separator = cacheConfig.keySeparator
 
     // Add the key prefix if there is one
-    cacheConfig.keyPrefix match {
+    keyPrefix match {
       case Some(prefix) =>
         sb.append(prefix)
         sb.append(separator)
@@ -50,10 +49,9 @@ object DefaultCacheKeyBuilder extends CacheKeyBuilder {
     sb.toString
   }
 
-  override def stringToCacheKey(key: String)(implicit cacheConfig: CacheConfig): String = {
-    cacheConfig.keyPrefix match {
+  override def stringToCacheKey(key: String): String = {
+    keyPrefix match {
       case Some(prefix) =>
-        val separator = cacheConfig.keySeparator
         val sb = new StringBuilder(prefix.length + separator.length + key.length)
         sb.append(prefix)
         sb.append(separator)

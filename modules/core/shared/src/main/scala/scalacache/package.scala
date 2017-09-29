@@ -50,19 +50,6 @@ package object scalacache extends JavaSerializationCodec {
 
     private def _caching(key: String)(ttl: Option[Duration])(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext): Future[From] = {
 
-      def asynchronouslyCacheResult(result: Future[From]): Future[From] = {
-        result onSuccess {
-          case computedValue =>
-            putWithKey(key, computedValue, ttl) recover {
-              case e =>
-                if (logger.isWarnEnabled) {
-                  logger.warn(s"Failed to write to cache. Key = $key", e)
-                }
-            }
-        }
-        result
-      }
-
       def synchronouslyCacheResult(result: Future[From]): Future[From] = {
         for {
           computedValue <- result
@@ -76,12 +63,7 @@ package object scalacache extends JavaSerializationCodec {
         } yield computedValue
       }
 
-      def calculateAndCacheResult(): Future[From] = {
-        if (scalaCache.cacheConfig.waitForWriteToComplete)
-          synchronouslyCacheResult(f)
-        else
-          asynchronouslyCacheResult(f)
-      }
+      def calculateAndCacheResult(): Future[From] = synchronouslyCacheResult(f)
 
       val fromCache: Future[Option[From]] = getWithKey(key)
 
@@ -298,10 +280,10 @@ package object scalacache extends JavaSerializationCodec {
     typed[V, Repr].cachingForMemoize(key)(optionalTtl)(f)
 
   private def toKey(parts: Seq[Any])(implicit scalaCache: ScalaCache[_]): String =
-    scalaCache.keyBuilder.toCacheKey(parts)(scalaCache.cacheConfig)
+    scalaCache.keyBuilder.toCacheKey(parts)
 
   private def stringToKey(string: String)(implicit scalaCache: ScalaCache[_]): String =
-    scalaCache.keyBuilder.stringToCacheKey(string)(scalaCache.cacheConfig)
+    scalaCache.keyBuilder.stringToCacheKey(string)
 
   /**
    * Synchronous API, for the case when you don't want to deal with Futures.
