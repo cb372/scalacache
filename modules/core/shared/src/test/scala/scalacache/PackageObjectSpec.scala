@@ -106,7 +106,7 @@ class PackageObjectSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
   it should "perform the cache write asynchronously if ScalaCache is thus configured" in {
     val cache = new LoggingMockCache {
-      override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, NoSerialization]): Future[Unit] = {
+      override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, NoSerialization]): Future[Any] = {
         Thread.sleep(2000L)
         super.put(key, value, ttl)
       }

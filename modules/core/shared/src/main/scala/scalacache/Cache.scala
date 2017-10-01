@@ -23,7 +23,7 @@ trait Cache[Repr] {
    * @param ttl Time To Live
    * @tparam V the type of the corresponding value
    */
-  def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Repr]): Future[Unit]
+  def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Repr]): Future[Any]
 
   /**
    * Remove the given key and its associated value from the cache, if it exists.
@@ -31,12 +31,12 @@ trait Cache[Repr] {
    *
    * @param key cache key
    */
-  def remove(key: String): Future[Unit]
+  def remove(key: String): Future[Any]
 
   /**
    * Delete the entire contents of the cache. Use wisely!
    */
-  def removeAll(): Future[Unit]
+  def removeAll(): Future[Any]
 
   /**
    * You should call this when you have finished using this Cache.

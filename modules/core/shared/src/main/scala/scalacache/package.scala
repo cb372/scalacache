@@ -17,13 +17,13 @@ package object scalacache extends JavaSerializationCodec {
 
     def get(keyParts: Any*)(implicit flags: Flags): Future[Option[From]] = getWithKey(toKey(keyParts))
 
-    def put(keyParts: Any*)(value: From, ttl: Option[Duration] = None)(implicit flags: Flags): Future[Unit] =
+    def put(keyParts: Any*)(value: From, ttl: Option[Duration] = None)(implicit flags: Flags): Future[Any] =
       putWithKey(toKey(keyParts), value, ttl)
 
-    def remove(keyParts: Any*): Future[Unit] =
+    def remove(keyParts: Any*): Future[Any] =
       scalacache.remove(keyParts: _*)
 
-    def removeAll(): Future[Unit] =
+    def removeAll(): Future[Any] =
       scalacache.removeAll()
 
     def caching(keyParts: Any*)(f: => Future[From])(implicit flags: Flags, execContext: ExecutionContext = ExecutionContext.global): Future[From] = {
@@ -122,7 +122,7 @@ package object scalacache extends JavaSerializationCodec {
       }
     }
 
-    private def putWithKey(key: String, value: From, ttl: Option[Duration] = None)(implicit flags: Flags): Future[Unit] = {
+    private def putWithKey(key: String, value: From, ttl: Option[Duration] = None)(implicit flags: Flags): Future[Any] = {
       if (flags.writesEnabled) {
         val finiteTtl = ttl.filter(_.isFinite()) // discard Duration.Inf, Duration.Undefined
         scalaCache.cache.put(key, value, finiteTtl)
@@ -227,7 +227,7 @@ package object scalacache extends JavaSerializationCodec {
    * @param ttl Time To Live (optional, if not specified then the entry will be cached indefinitely)
    * @tparam V the type of the corresponding value
    */
-  def put[V, Repr](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): Future[Unit] =
+  def put[V, Repr](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): Future[Any] =
     typed[V, Repr].put(keyParts: _*)(value, ttl)
 
   /**
@@ -238,13 +238,13 @@ package object scalacache extends JavaSerializationCodec {
    *
    * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
    */
-  def remove(keyParts: Any*)(implicit scalaCache: ScalaCache[_]): Future[Unit] =
+  def remove(keyParts: Any*)(implicit scalaCache: ScalaCache[_]): Future[Any] =
     scalaCache.cache.remove(toKey(keyParts))
 
   /**
    * Delete the entire contents of the cache. Use wisely!
    */
-  def removeAll()(implicit scalaCache: ScalaCache[_]): Future[Unit] =
+  def removeAll()(implicit scalaCache: ScalaCache[_]): Future[Any] =
     scalaCache.cache.removeAll()
 
   /**
