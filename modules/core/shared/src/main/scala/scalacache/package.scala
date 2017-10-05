@@ -2,6 +2,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.language.higherKinds
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import scalacache.serialization.{Codec, JavaSerializationCodec}
@@ -11,6 +12,20 @@ package object scalacache extends JavaSerializationCodec {
 
   // this alias is just for convenience, so you don't need to import serialization._
   type NoSerialization = scalacache.serialization.InMemoryRepr
+
+  /*
+
+   TODO decide whether to continue with the tradition of duplication the API in the package object
+
+   It would look something like this:
+
+    def get[V, F[_], G[_], S[X[_]] <: Sync[X]](keyParts: Any*)(implicit
+                                                               cache: CacheAlg[V, S],
+                                                               mode: Mode[F, G, S],
+                                                               flags: Flags): G[Option[V]] =
+    cache.get(keyParts)
+
+   */
 
   class TypedApi[From, Repr](implicit val scalaCache: ScalaCache[Repr], codec: Codec[From, Repr]) { self =>
 
@@ -202,20 +217,6 @@ package object scalacache extends JavaSerializationCodec {
   def get[V, Repr](
       keyParts: Any*)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): Future[Option[V]] =
     typed[V, Repr].get(keyParts: _*)
-
-  /**
-    * Convenience method to get a value from the cache synchronously.
-    *
-    * Warning: may block indefinitely!
-    *
-    * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
-    * @tparam V the type of the corresponding value
-    * @return the value, if there is one
-    */
-  @deprecated("This method has moved. Please use scalacache.sync.get", "0.7.0")
-  def getSync[V, Repr](
-      keyParts: Any*)(implicit scalaCache: ScalaCache[Repr], flags: Flags, codec: Codec[V, Repr]): Option[V] =
-    sync.get[V, Repr](keyParts: _*)
 
   /**
     * Insert the given key-value pair into the cache, with an optional Time To Live.

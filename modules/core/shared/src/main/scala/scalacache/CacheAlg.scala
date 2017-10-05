@@ -48,7 +48,7 @@ trait CacheAlg[V, S[F[_]] <: Sync[F]] {
     * @tparam G The type of container in which the result will be wrapped. This is decided by the mode.
     */
   def put[F[_], G[_]](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit mode: Mode[F, G, S],
-                                                                              flags: Flags): G[_]
+                                                                              flags: Flags): G[Any]
 
   /**
     * Remove the given key and its associated value from the cache, if it exists.
@@ -56,12 +56,12 @@ trait CacheAlg[V, S[F[_]] <: Sync[F]] {
     *
     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
     */
-  def remove[F[_], G[_]](keyParts: Any*)(implicit mode: Mode[F, G, S]): G[_]
+  def remove[F[_], G[_]](keyParts: Any*)(implicit mode: Mode[F, G, S]): G[Any]
 
   /**
     * Delete the entire contents of the cache. Use wisely!
     */
-  def removeAll[F[_], G[_]]()(implicit mode: Mode[F, G, S]): G[_]
+  def removeAll[F[_], G[_]]()(implicit mode: Mode[F, G, S]): G[Any]
 
   /**
     * Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
@@ -98,4 +98,6 @@ trait CacheAlg[V, S[F[_]] <: Sync[F]] {
 
   private[scalacache] def cachingForMemoizeF[F[_], G[_]](baseKey: String)(ttl: Option[Duration])(
       f: => F[V])(implicit mode: Mode[F, G, S], flags: Flags): G[V]
+
+  // TODO close() method - synchronous?
 }

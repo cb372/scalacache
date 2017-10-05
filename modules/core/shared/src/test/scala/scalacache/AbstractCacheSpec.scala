@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scalacache.serialization.{Codec, InMemoryRepr}
 
-class PackageObjectSpec
+class AbstractCacheSpec
     extends FlatSpec
     with Matchers
     with BeforeAndAfter
@@ -28,7 +28,7 @@ class PackageObjectSpec
   behavior of "#get"
 
   it should "call get on the cache found in the ScalaCache" in {
-    scalacache.get[String, InMemoryRepr]("foo")
+    cache.get("foo")
     cache.getCalledWithArgs(0) should be("foo")
   }
 
