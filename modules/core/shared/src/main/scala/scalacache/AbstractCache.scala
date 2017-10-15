@@ -4,44 +4,56 @@ import scala.concurrent.duration.Duration
 
 import scala.language.higherKinds
 
-trait AbstractCache[V, S[F[_]] <: Sync[F]] extends CacheAlg[V, S] {
+/**
+  * An abstract implementation of [[CacheAlg]] that takes care of
+  * some things that are common across all concrete implementations.
+  *
+  * If you are writing a cache implementation, you probably want to
+  * extend this trait rather than extending [[CacheAlg]] directly.
+  *
+  * See the comment on [[CacheAlg]] for more information on the type params.
+  *
+  * @tparam V The value of types stored in the cache.
+  * @tparam S A type class describing what operations a container `E` must support in order to be used with this cache.
+  */
+trait AbstractCache[V, S[E[_]] <: Sync[E]] extends CacheAlg[V, S] {
 
   protected def config: CacheConfig
 
   // GET
 
-  protected def doGet[F[_], G[_]](key: String)(implicit mode: Mode[F, G, S], flags: Flags): F[Option[V]]
+  protected def doGet[E[_], F[_]](key: String)(implicit mode: Mode[E, F, S], flags: Flags): E[Option[V]]
 
-  override def get[F[_], G[_]](keyParts: Any*)(implicit mode: Mode[F, G, S], flags: Flags): G[Option[V]] =
+  override def get[E[_], F[_]](keyParts: Any*)(implicit mode: Mode[E, F, S], flags: Flags): F[Option[V]] =
     mode.transform(doGet(toKey(keyParts: _*)))
 
   // PUT
 
-  protected def doPut[F[_], G[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F, G, S],
-                                                                                flags: Flags): F[Any]
+  protected def doPut[E[_], F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[E, F, S],
+                                                                                flags: Flags): E[Any]
 
-  override def put[F[_], G[_]](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit mode: Mode[F, G, S],
-                                                                                flags: Flags): G[Any] =
+  override def put[E[_], F[_]](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit mode: Mode[E, F, S],
+                                                                                flags: Flags): F[Any] =
     mode.transform(doPut(toKey(keyParts: _*), value, ttl))
 
   // REMOVE
 
-  protected def doRemove[F[_], G[_]](key: String)(implicit mode: Mode[F, G, S]): F[Any]
+  protected def doRemove[E[_], F[_]](key: String)(implicit mode: Mode[E, F, S]): E[Any]
 
-  override def remove[F[_], G[_]](keyParts: Any*)(implicit mode: Mode[F, G, S]): G[Any] =
+  override def remove[E[_], F[_]](keyParts: Any*)(implicit mode: Mode[E, F, S]): F[Any] =
     mode.transform(doRemove(toKey(keyParts: _*)))
 
   // REMOVE ALL
 
-  protected def doRemoveAll[F[_], G[_]]()(implicit mode: Mode[F, G, S]): F[Any]
+  protected def doRemoveAll[E[_], F[_]]()(implicit mode: Mode[E, F, S]): E[Any]
 
-  override def removeAll[F[_], G[_]]()(implicit mode: Mode[F, G, S]): G[Any] =
+  override def removeAll[E[_], F[_]]()(implicit mode: Mode[E, F, S]): F[Any] =
     mode.transform(doRemoveAll())
 
   // CACHING
 
-  override def caching[F[_], G[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F, G, S],
-                                                                                          flags: Flags): G[V] = {
+  override def caching[E[_], F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[E, F, S],
+                                                                                          flags: Flags): F[V] = {
     val key = toKey(keyParts)
 
     import mode._
@@ -54,8 +66,8 @@ trait AbstractCache[V, S[F[_]] <: Sync[F]] extends CacheAlg[V, S] {
     }
   }
 
-  override def cachingF[F[_], G[_]](keyParts: Any*)(ttl: Option[Duration] = None)(
-      f: => F[V])(implicit mode: Mode[F, G, S], flags: Flags): G[V] = {
+  override def cachingE[E[_], F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(
+      f: => E[V])(implicit mode: Mode[E, F, S], flags: Flags): F[V] = {
     val key = toKey(keyParts)
 
     import mode._
@@ -71,8 +83,8 @@ trait AbstractCache[V, S[F[_]] <: Sync[F]] extends CacheAlg[V, S] {
 
   // MEMOIZE
 
-  override private[scalacache] def cachingForMemoize[F[_], G[_]](baseKey: String)(ttl: Option[Duration] = None)(
-      f: => V)(implicit mode: Mode[F, G, S], flags: Flags): G[V] = {
+  override private[scalacache] def cachingForMemoize[E[_], F[_]](baseKey: String)(ttl: Option[Duration] = None)(
+      f: => V)(implicit mode: Mode[E, F, S], flags: Flags): F[V] = {
     import mode._
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     M.flatMap(transform(doGet(key))) {
@@ -84,8 +96,8 @@ trait AbstractCache[V, S[F[_]] <: Sync[F]] extends CacheAlg[V, S] {
     }
   }
 
-  override private[scalacache] def cachingForMemoizeF[F[_], G[_]](baseKey: String)(ttl: Option[Duration])(
-      f: => F[V])(implicit mode: Mode[F, G, S], flags: Flags): G[V] = {
+  override private[scalacache] def cachingForMemoizeE[E[_], F[_]](baseKey: String)(ttl: Option[Duration])(
+      f: => E[V])(implicit mode: Mode[E, F, S], flags: Flags): F[V] = {
     import mode._
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     M.flatMap(transform(doGet(key))) {
