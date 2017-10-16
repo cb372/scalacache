@@ -2,27 +2,32 @@ package scalacache.memoization
 
 import java.util.Date
 
-import org.scalatest.concurrent.{ Eventually, IntegrationPatience }
-import org.scalatest.{ BeforeAndAfterAll, FlatSpec, Matchers }
+import org.scalatest.concurrent.{Eventually, IntegrationPatience}
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 import org.squeryl.adapters.H2Adapter
 import org.squeryl.annotations.Column
 import org.squeryl._
 import org.squeryl.PrimitiveTypeMode._
 
-import scalacache.{ LoggingCache, MockCache, ScalaCache }
+import scalacache.{LoggingCache, MockCache, ScalaCache}
 
 /**
- * Test for https://github.com/cb372/scalacache/issues/14
- */
-class SquerylIntegrationSpec extends FlatSpec with Matchers with BeforeAndAfterAll with Eventually with IntegrationPatience {
+  * Test for https://github.com/cb372/scalacache/issues/14
+  */
+class SquerylIntegrationSpec
+    extends FlatSpec
+    with Matchers
+    with BeforeAndAfterAll
+    with Eventually
+    with IntegrationPatience {
   var theUserId: Int = -1
 
   override def beforeAll() = {
     Class.forName("org.h2.Driver")
-    SessionFactory.concreteFactory =
-      Some(() => Session.create(java.sql.DriverManager.getConnection("jdbc:h2:mem:test"), new H2Adapter))
-    SessionFactory.externalTransactionManagementAdapter =
-      Some(() => Some(Session.create(java.sql.DriverManager.getConnection("jdbc:h2:mem:test"), new H2Adapter)))
+    SessionFactory.concreteFactory = Some(
+      () => Session.create(java.sql.DriverManager.getConnection("jdbc:h2:mem:test"), new H2Adapter))
+    SessionFactory.externalTransactionManagementAdapter = Some(
+      () => Some(Session.create(java.sql.DriverManager.getConnection("jdbc:h2:mem:test"), new H2Adapter)))
 
     inTransaction {
       // create the DB table
@@ -42,9 +47,7 @@ class SquerylIntegrationSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
     def findUser(userId: Int): Option[User] = memoizeSync {
       inTransaction {
-        from(users)((u) =>
-          select(u)
-        )
+        from(users)((u) => select(u))
       }.headOption
     }
 
@@ -79,10 +82,8 @@ class SquerylIntegrationSpec extends FlatSpec with Matchers with BeforeAndAfterA
 
 case class UserStatus(dbval: Int)
 
-class User(val id: Int = 0,
-           val name: String,
-           val status: Int,
-           @Column("created_at") var createdAt: Date) extends KeyedEntity[Int] {
+class User(val id: Int = 0, val name: String, val status: Int, @Column("created_at") var createdAt: Date)
+    extends KeyedEntity[Int] {
 
   def this() = {
     this(0, "", 0, new Date())
@@ -100,4 +101,3 @@ class User(val id: Int = 0,
 object FooDb extends Schema {
   val users: Table[User] = table[User]("user")
 }
-
