@@ -7,6 +7,7 @@ import org.scalatest.concurrent.{ScalaFutures, Eventually, IntegrationPatience}
 import org.scalatest.time.{Span, Seconds}
 
 import scala.language.postfixOps
+import scalacache._
 import scalacache.serialization.Codec
 
 class MemcachedCacheSpec
@@ -18,6 +19,9 @@ class MemcachedCacheSpec
     with IntegrationPatience {
 
   val client = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
+
+  import scala.concurrent.ExecutionContext.Implicits.global
+  import scalacache.modes.scalaFuture._
 
   def memcachedIsRunning = {
     try {
@@ -41,13 +45,13 @@ class MemcachedCacheSpec
 
     it should "return the value stored in Memcached" in {
       client.set("key1", 0, serialise(123))
-      whenReady(MemcachedCache(client).get[Int]("key1")) {
+      whenReady(MemcachedCache[Int](client).get("key1")) {
         _ should be(Some(123))
       }
     }
 
     it should "return None if the given key does not exist in the underlying cache" in {
-      whenReady(MemcachedCache(client).get[Int]("non-existent-key")) {
+      whenReady(MemcachedCache[Int](client).get("non-existent-key")) {
         _ should be(None)
       }
     }
@@ -55,7 +59,7 @@ class MemcachedCacheSpec
     behavior of "put"
 
     it should "store the given key-value pair in the underlying cache" in {
-      whenReady(MemcachedCache(client).put("key2", 123, None)) { _ =>
+      whenReady(MemcachedCache[Int](client).put("key2")(123, None)) { _ =>
         client.get("key2") should be(serialise(123))
       }
     }
@@ -63,7 +67,7 @@ class MemcachedCacheSpec
     behavior of "put with TTL"
 
     it should "store the given key-value pair in the underlying cache" in {
-      whenReady(MemcachedCache(client).put("key3", 123, Some(3 seconds))) { _ =>
+      whenReady(MemcachedCache[Int](client).put("key3")(123, Some(3 seconds))) { _ =>
         client.get("key3") should be(serialise(123))
 
         // Should expire after 3 seconds
@@ -79,7 +83,7 @@ class MemcachedCacheSpec
       client.set("key1", 0, 123)
       client.get("key1") should be(123)
 
-      whenReady(MemcachedCache(client).remove("key1")) { _ =>
+      whenReady(MemcachedCache[Int](client).remove("key1")) { _ =>
         client.get("key1") should be(null)
       }
     }
