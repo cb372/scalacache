@@ -23,8 +23,8 @@ class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
 
-  def doGet[E[_], F[_]](key: String)(implicit mode: Mode[E, F, Sync], flags: Flags): E[Option[V]] = {
-    mode.S.delay {
+  def doGet[F[_]](key: String)(implicit mode: Mode[F, Sync], flags: Flags): F[Option[V]] = {
+    mode.M.delay {
       val baseValue = underlying.getIfPresent(key)
       val result = {
         if (baseValue != null) {
@@ -37,20 +37,19 @@ class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config
     }
   }
 
-  def doPut[E[_], F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[E, F, Sync],
-                                                                      flags: Flags): E[Any] = {
-    mode.S.delay {
+  def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F, Sync], flags: Flags): F[Any] = {
+    mode.M.delay {
       val entry = Entry(value, ttl.map(toExpiryTime))
       underlying.put(key, entry)
       logCachePut(key, ttl)
     }
   }
 
-  override def doRemove[E[_], F[_]](key: String)(implicit mode: Mode[E, F, Sync]): E[Any] =
-    mode.S.delay(underlying.invalidate(key))
+  override def doRemove[F[_]](key: String)(implicit mode: Mode[F, Sync]): F[Any] =
+    mode.M.delay(underlying.invalidate(key))
 
-  override def doRemoveAll[E[_], F[_]]()(implicit mode: Mode[E, F, Sync]): E[Any] =
-    mode.S.delay(underlying.invalidateAll())
+  override def doRemoveAll[F[_]]()(implicit mode: Mode[F, Sync]): F[Any] =
+    mode.M.delay(underlying.invalidateAll())
 
   def close(): Unit = {
     // Nothing to do

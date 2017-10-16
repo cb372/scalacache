@@ -1,10 +1,9 @@
 package scalacache
 
-import scalacache.modes.sync.Id
 import scala.language.higherKinds
-import scala.util.{Failure, Success, Try}
 
-trait Sync[F[_]] {
+// TODO delete this and just use Async?
+trait Sync[F[_]] extends Monad[F] {
 
   def delay[A](thunk: => A): F[A]
 
@@ -13,18 +12,3 @@ trait Sync[F[_]] {
 
 }
 
-object SyncForId extends Sync[Id] {
-
-  def delay[A](thunk: => A): Id[A] = thunk
-
-  def raiseError[A](t: Throwable): Id[A] = throw t
-
-}
-
-object SyncForTry extends Sync[Try] {
-
-  def delay[A](thunk: => A): Try[A] = Try(thunk)
-
-  def raiseError[A](t: Throwable): Try[A] = Failure(t)
-
-}

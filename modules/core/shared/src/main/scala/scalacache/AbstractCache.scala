@@ -14,98 +14,98 @@ import scala.language.higherKinds
   * See the comment on [[CacheAlg]] for more information on the type params.
   *
   * @tparam V The value of types stored in the cache.
-  * @tparam S A type class describing what operations a container `E` must support in order to be used with this cache.
+  * @tparam S A type class describing what operations a container `F` must support in order to be used with this cache.
   */
-trait AbstractCache[V, S[E[_]] <: Sync[E]] extends CacheAlg[V, S] {
+trait AbstractCache[V, S[F[_]] <: Sync[F]] extends CacheAlg[V, S] {
 
   protected def config: CacheConfig
 
   // GET
 
-  protected def doGet[E[_], F[_]](key: String)(implicit mode: Mode[E, F, S], flags: Flags): E[Option[V]]
+  protected def doGet[F[_]](key: String)(implicit mode: Mode[F, S], flags: Flags): F[Option[V]]
 
-  override def get[E[_], F[_]](keyParts: Any*)(implicit mode: Mode[E, F, S], flags: Flags): F[Option[V]] =
-    mode.transform(doGet(toKey(keyParts: _*)))
+  final override def get[F[_]](keyParts: Any*)(implicit mode: Mode[F, S], flags: Flags): F[Option[V]] =
+    doGet(toKey(keyParts: _*))
 
   // PUT
 
-  protected def doPut[E[_], F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[E, F, S],
-                                                                                flags: Flags): E[Any]
+  protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F, S],
+                                                                          flags: Flags): F[Any]
 
-  override def put[E[_], F[_]](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit mode: Mode[E, F, S],
+  final override def put[F[_]](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit mode: Mode[F, S],
                                                                                 flags: Flags): F[Any] =
-    mode.transform(doPut(toKey(keyParts: _*), value, ttl))
+    doPut(toKey(keyParts: _*), value, ttl)
 
   // REMOVE
 
-  protected def doRemove[E[_], F[_]](key: String)(implicit mode: Mode[E, F, S]): E[Any]
+  protected def doRemove[F[_]](key: String)(implicit mode: Mode[F, S]): F[Any]
 
-  override def remove[E[_], F[_]](keyParts: Any*)(implicit mode: Mode[E, F, S]): F[Any] =
-    mode.transform(doRemove(toKey(keyParts: _*)))
+  final override def remove[F[_]](keyParts: Any*)(implicit mode: Mode[F, S]): F[Any] =
+    doRemove(toKey(keyParts: _*))
 
   // REMOVE ALL
 
-  protected def doRemoveAll[E[_], F[_]]()(implicit mode: Mode[E, F, S]): E[Any]
+  protected def doRemoveAll[F[_]]()(implicit mode: Mode[F, S]): F[Any]
 
-  override def removeAll[E[_], F[_]]()(implicit mode: Mode[E, F, S]): F[Any] =
-    mode.transform(doRemoveAll())
+  final override def removeAll[F[_]]()(implicit mode: Mode[F, S]): F[Any] =
+    doRemoveAll()
 
   // CACHING
 
-  override def caching[E[_], F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[E, F, S],
+  final override def caching[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F, S],
                                                                                           flags: Flags): F[V] = {
     val key = toKey(keyParts)
 
     import mode._
-    M.flatMap(mode.transform(doGet(key))) {
+    M.flatMap(doGet(key)) {
       case Some(valueFromCache) =>
         M.pure(valueFromCache)
       case None =>
         val calculatedValue = f
-        M.map(mode.transform(doPut(key, calculatedValue, ttl)))(_ => calculatedValue)
+        M.map(doPut(key, calculatedValue, ttl))(_ => calculatedValue)
     }
   }
 
-  override def cachingE[E[_], F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(
-      f: => E[V])(implicit mode: Mode[E, F, S], flags: Flags): F[V] = {
+  override def cachingF[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F, S],
+                                                                                        flags: Flags): F[V] = {
     val key = toKey(keyParts)
 
     import mode._
-    M.flatMap(transform(doGet(key))) {
+    M.flatMap(doGet(key)) {
       case Some(valueFromCache) =>
         M.pure(valueFromCache)
       case None =>
-        M.flatMap(transform(f)) { calculatedValue =>
-          M.map(transform(doPut(key, calculatedValue, ttl)))(_ => calculatedValue)
+        M.flatMap(f) { calculatedValue =>
+          M.map(doPut(key, calculatedValue, ttl))(_ => calculatedValue)
         }
     }
   }
 
   // MEMOIZE
 
-  override private[scalacache] def cachingForMemoize[E[_], F[_]](baseKey: String)(ttl: Option[Duration] = None)(
-      f: => V)(implicit mode: Mode[E, F, S], flags: Flags): F[V] = {
+  override private[scalacache] def cachingForMemoize[F[_]](baseKey: String)(ttl: Option[Duration] = None)(
+      f: => V)(implicit mode: Mode[F, S], flags: Flags): F[V] = {
     import mode._
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
-    M.flatMap(transform(doGet(key))) {
+    M.flatMap(doGet(key)) {
       case Some(valueFromCache) =>
         M.pure(valueFromCache)
       case None =>
         val calculatedValue = f
-        M.map(transform(doPut(key, calculatedValue, ttl)))(_ => calculatedValue)
+        M.map(doPut(key, calculatedValue, ttl))(_ => calculatedValue)
     }
   }
 
-  override private[scalacache] def cachingForMemoizeE[E[_], F[_]](baseKey: String)(ttl: Option[Duration])(
-      f: => E[V])(implicit mode: Mode[E, F, S], flags: Flags): F[V] = {
+  override private[scalacache] def cachingForMemoizeF[F[_]](baseKey: String)(ttl: Option[Duration])(
+      f: => F[V])(implicit mode: Mode[F, S], flags: Flags): F[V] = {
     import mode._
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
-    M.flatMap(transform(doGet(key))) {
+    M.flatMap(doGet(key)) {
       case Some(valueFromCache) =>
         M.pure(valueFromCache)
       case None =>
-        M.flatMap(transform(f)) { calculatedValue =>
-          M.map(transform(doPut(key, calculatedValue, ttl)))(_ => calculatedValue)
+        M.flatMap(f) { calculatedValue =>
+          M.map(doPut(key, calculatedValue, ttl))(_ => calculatedValue)
         }
     }
   }
