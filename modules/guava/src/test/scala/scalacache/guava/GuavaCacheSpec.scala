@@ -2,7 +2,7 @@ package scalacache.guava
 
 import java.time.{Clock, Instant, ZoneOffset}
 
-import scalacache.Entry
+import scalacache.{CacheConfig, Entry}
 import org.scalatest.{FlatSpec, Matchers}
 import com.google.common.cache.CacheBuilder
 
@@ -11,7 +11,10 @@ import org.scalatest.concurrent.ScalaFutures
 
 class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
 
-  def newGCache = CacheBuilder.newBuilder.build[String, Object]
+  private def newGCache = CacheBuilder.newBuilder.build[String, Entry[String]]
+
+  implicit val cacheConfig: CacheConfig = CacheConfig()
+  import scalacache.modes.sync._
 
   behavior of "get"
 
@@ -19,16 +22,12 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
     val underlying = newGCache
     val entry = Entry("hello", expiresAt = None)
     underlying.put("key1", entry)
-    whenReady(GuavaCache(underlying).get[String]("key1")) { result =>
-      result should be(Some("hello"))
-    }
+    GuavaCache(underlying).get("key1") should be(Some("hello"))
   }
 
   it should "return None if the given key does not exist in the underlying cache" in {
     val underlying = newGCache
-    whenReady(GuavaCache(underlying).get[String]("non-existent key")) { result =>
-      result should be(None)
-    }
+    GuavaCache(underlying).get("non-existent key") should be(None)
   }
 
   it should "return None if the given key exists but the value has expired" in {
@@ -36,16 +35,14 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
     val expiredEntry =
       Entry("hello", expiresAt = Some(Instant.now.minusSeconds(1)))
     underlying.put("key1", expiredEntry)
-    whenReady(GuavaCache(underlying).get[String]("non-existent key")) { result =>
-      result should be(None)
-    }
+    GuavaCache(underlying).get("non-existent key") should be(None)
   }
 
   behavior of "put"
 
   it should "store the given key-value pair in the underlying cache with no TTL" in {
     val underlying = newGCache
-    GuavaCache(underlying).put("key1", "hello", None)
+    GuavaCache(underlying).put("key1")("hello", None)
     underlying.getIfPresent("key1") should be(Entry("hello", None))
   }
 
@@ -56,7 +53,7 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
     val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newGCache
-    new GuavaCache(underlying)(clock).put("key1", "hello", Some(10.seconds))
+    new GuavaCache(underlying)(cacheConfig, clock).put("key1")("hello", Some(10.seconds))
     underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(Instant.from(now.plusSeconds(10)))))
   }
 
@@ -65,7 +62,7 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
     val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newGCache
-    new GuavaCache(underlying)(clock).put("key1", "hello", Some(30.days))
+    new GuavaCache(underlying)(cacheConfig, clock).put("key1")("hello", Some(30.days))
     underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(Instant.parse("2015-10-31T00:00:00Z"))))
   }
 
