@@ -6,6 +6,25 @@ import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
 import scalacache.modes.sync.Id
 
+trait Monad[F[_]] {
+
+  def pure[A](a: A): F[A]
+
+  def map[A, B](fa: F[A])(f: A => B): F[B]
+
+  def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
+
+}
+
+trait Sync[F[_]] extends Monad[F] {
+
+  def delay[A](thunk: => A): F[A]
+
+  // TODO is this needed?
+  def raiseError[A](t: Throwable): F[A]
+
+}
+
 trait Async[F[_]] extends Sync[F] {
 
   def async[A](register: (Either[Throwable, A] => Unit) => Unit): F[A]

@@ -6,7 +6,7 @@ import java.time.{Clock, Instant}
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
 import org.slf4j.LoggerFactory
 
-import scalacache.{AbstractCache, CacheConfig, Entry, Flags, LoggingSupport, Mode, Sync}
+import scalacache.{AbstractCache, CacheConfig, Entry, Flags, LoggingSupport, Mode}
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 
@@ -17,13 +17,13 @@ import scala.language.higherKinds
  */
 class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config: CacheConfig,
                                                              clock: Clock = Clock.systemUTC())
-    extends AbstractCache[V, Sync]
+    extends AbstractCache[V]
     with LoggingSupport {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
 
-  def doGet[F[_]](key: String)(implicit mode: Mode[F, Sync], flags: Flags): F[Option[V]] = {
+  def doGet[F[_]](key: String)(implicit mode: Mode[F], flags: Flags): F[Option[V]] = {
     mode.M.delay {
       val baseValue = underlying.getIfPresent(key)
       val result = {
@@ -37,7 +37,7 @@ class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config
     }
   }
 
-  def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F, Sync], flags: Flags): F[Any] = {
+  def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F], flags: Flags): F[Any] = {
     mode.M.delay {
       val entry = Entry(value, ttl.map(toExpiryTime))
       underlying.put(key, entry)
@@ -45,10 +45,10 @@ class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config
     }
   }
 
-  override def doRemove[F[_]](key: String)(implicit mode: Mode[F, Sync]): F[Any] =
+  override def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] =
     mode.M.delay(underlying.invalidate(key))
 
-  override def doRemoveAll[F[_]]()(implicit mode: Mode[F, Sync]): F[Any] =
+  override def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] =
     mode.M.delay(underlying.invalidateAll())
 
   def close(): Unit = {
