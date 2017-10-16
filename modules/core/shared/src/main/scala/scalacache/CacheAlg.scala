@@ -77,6 +77,8 @@ trait CacheAlg[V] {
   def cachingF[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F],
                                                                                flags: Flags): F[V]
 
+  def close[F[_]]()(implicit mode: Mode[F]): F[Any]
+
   // optimised methods for use by memoize: we know the key will be a single string so we can avoid some work
 
   private[scalacache] def cachingForMemoize[F[_]](baseKey: String)(ttl: Option[Duration])(
@@ -85,5 +87,4 @@ trait CacheAlg[V] {
   private[scalacache] def cachingForMemoizeF[F[_]](baseKey: String)(ttl: Option[Duration])(
       f: => F[V])(implicit mode: Mode[F], flags: Flags): F[V]
 
-  // TODO close() method - synchronous?
 }

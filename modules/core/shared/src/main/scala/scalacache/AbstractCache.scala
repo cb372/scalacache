@@ -13,24 +13,51 @@ import scala.language.higherKinds
   *
   * @tparam V The value of types stored in the cache.
   */
-trait AbstractCache[V] extends CacheAlg[V] {
+trait AbstractCache[V] extends CacheAlg[V] with LoggingSupport {
 
   protected def config: CacheConfig
 
   // GET
 
-  protected def doGet[F[_]](key: String)(implicit mode: Mode[F], flags: Flags): F[Option[V]]
+  protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]]
 
-  final override def get[F[_]](keyParts: Any*)(implicit mode: Mode[F], flags: Flags): F[Option[V]] =
-    doGet(toKey(keyParts: _*))
+  private def checkFlagsAndGet[F[_]](key: String)(implicit mode: Mode[F], flags: Flags): F[Option[V]] = {
+    if (flags.readsEnabled) {
+      doGet(key)
+    } else {
+      if (logger.isDebugEnabled) {
+        logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
+      }
+      mode.M.pure(None)
+    }
+  }
+
+  final override def get[F[_]](keyParts: Any*)(implicit mode: Mode[F], flags: Flags): F[Option[V]] = {
+    val key = toKey(keyParts: _*)
+    checkFlagsAndGet(key)
+  }
 
   // PUT
 
-  protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F], flags: Flags): F[Any]
+  protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any]
+
+  private def checkFlagsAndPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F],
+                                                                                   flags: Flags): F[Any] = {
+    if (flags.writesEnabled) {
+      doPut(key, value, ttl)
+    } else {
+      if (logger.isDebugEnabled) {
+        logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
+      }
+      mode.M.pure(())
+    }
+  }
 
   final override def put[F[_]](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit mode: Mode[F],
-                                                                                flags: Flags): F[Any] =
-    doPut(toKey(keyParts: _*), value, ttl)
+                                                                                flags: Flags): F[Any] = {
+    val key = toKey(keyParts: _*)
+    checkFlagsAndPut(key, value, ttl)
+  }
 
   // REMOVE
 
@@ -53,12 +80,12 @@ trait AbstractCache[V] extends CacheAlg[V] {
     val key = toKey(keyParts)
 
     import mode._
-    M.flatMap(doGet(key)) {
+    M.flatMap(checkFlagsAndGet(key)) {
       case Some(valueFromCache) =>
         M.pure(valueFromCache)
       case None =>
         val calculatedValue = f
-        M.map(doPut(key, calculatedValue, ttl))(_ => calculatedValue)
+        M.map(checkFlagsAndPut(key, calculatedValue, ttl))(_ => calculatedValue)
     }
   }
 
@@ -67,12 +94,12 @@ trait AbstractCache[V] extends CacheAlg[V] {
     val key = toKey(keyParts)
 
     import mode._
-    M.flatMap(doGet(key)) {
+    M.flatMap(checkFlagsAndGet(key)) {
       case Some(valueFromCache) =>
         M.pure(valueFromCache)
       case None =>
         M.flatMap(f) { calculatedValue =>
-          M.map(doPut(key, calculatedValue, ttl))(_ => calculatedValue)
+          M.map(checkFlagsAndPut(key, calculatedValue, ttl))(_ => calculatedValue)
         }
     }
   }
@@ -83,12 +110,12 @@ trait AbstractCache[V] extends CacheAlg[V] {
       f: => V)(implicit mode: Mode[F], flags: Flags): F[V] = {
     import mode._
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
-    M.flatMap(doGet(key)) {
+    M.flatMap(checkFlagsAndGet(key)) {
       case Some(valueFromCache) =>
         M.pure(valueFromCache)
       case None =>
         val calculatedValue = f
-        M.map(doPut(key, calculatedValue, ttl))(_ => calculatedValue)
+        M.map(checkFlagsAndPut(key, calculatedValue, ttl))(_ => calculatedValue)
     }
   }
 
@@ -96,12 +123,12 @@ trait AbstractCache[V] extends CacheAlg[V] {
       f: => F[V])(implicit mode: Mode[F], flags: Flags): F[V] = {
     import mode._
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
-    M.flatMap(doGet(key)) {
+    M.flatMap(checkFlagsAndGet(key)) {
       case Some(valueFromCache) =>
         M.pure(valueFromCache)
       case None =>
         M.flatMap(f) { calculatedValue =>
-          M.map(doPut(key, calculatedValue, ttl))(_ => calculatedValue)
+          M.map(checkFlagsAndPut(key, calculatedValue, ttl))(_ => calculatedValue)
         }
     }
   }

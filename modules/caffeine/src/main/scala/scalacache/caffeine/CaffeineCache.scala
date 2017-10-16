@@ -17,13 +17,12 @@ import scala.language.higherKinds
  */
 class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config: CacheConfig,
                                                              clock: Clock = Clock.systemUTC())
-    extends AbstractCache[V]
-    with LoggingSupport {
+    extends AbstractCache[V] {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
 
-  def doGet[F[_]](key: String)(implicit mode: Mode[F], flags: Flags): F[Option[V]] = {
+  def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     mode.M.delay {
       val baseValue = underlying.getIfPresent(key)
       val result = {
@@ -37,7 +36,7 @@ class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config
     }
   }
 
-  def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F], flags: Flags): F[Any] = {
+  def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] = {
     mode.M.delay {
       val entry = Entry(value, ttl.map(toExpiryTime))
       underlying.put(key, entry)
@@ -51,8 +50,9 @@ class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config
   override def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] =
     mode.M.delay(underlying.invalidateAll())
 
-  def close(): Unit = {
+  override def close[F[_]]()(implicit mode: Mode[F]): F[Any] = {
     // Nothing to do
+    mode.M.pure(())
   }
 
   private def toExpiryTime(ttl: Duration): Instant =

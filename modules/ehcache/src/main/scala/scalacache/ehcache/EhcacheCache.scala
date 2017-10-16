@@ -2,68 +2,50 @@ package scalacache.ehcache
 
 import org.slf4j.LoggerFactory
 
-import scalacache.serialization.{Codec, InMemoryRepr}
-import scalacache.{Cache, LoggingSupport}
+import scalacache.{AbstractCache, CacheConfig, Mode}
 import scala.concurrent.duration.Duration
 import net.sf.ehcache.{Element, Cache => Ehcache}
 
-import scala.concurrent.Future
+import scala.language.higherKinds
 
 /**
   * Thin wrapper around Ehcache.
-  * Since Ehcache is in-memory and non-blocking,
-  * all operations are performed synchronously, i.e. ExecutionContext is not needed.
   */
-class EhcacheCache(underlying: Ehcache) extends Cache[InMemoryRepr] with LoggingSupport {
+class EhcacheCache[V](underlying: Ehcache)(implicit val config: CacheConfig) extends AbstractCache[V] {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
 
-  /**
-    * Get the value corresponding to the given key from the cache
-    *
-    * @param key cache key
-    * @tparam V the type of the corresponding value
-    * @return the value, if there is one
-    */
-  override def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]) = {
-    val result = {
-      val elem = underlying.get(key)
-      if (elem == null) None
-      else Option(elem.getObjectValue.asInstanceOf[V])
+  override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
+    mode.M.delay {
+      val result = {
+        val elem = underlying.get(key)
+        if (elem == null) None
+        else Option(elem.getObjectValue.asInstanceOf[V])
+      }
+      logCacheHitOrMiss(key, result)
+      result
     }
-    logCacheHitOrMiss(key, result)
-    Future.successful(result)
   }
 
-  /**
-    * Insert the given key-value pair into the cache, with an optional Time To Live.
-    *
-    * @param key cache key
-    * @param value corresponding value
-    * @param ttl Time To Live
-    * @tparam V the type of the corresponding value
-    */
-  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, InMemoryRepr]) = {
-    val element = new Element(key, value)
-    ttl.foreach(t => element.setTimeToLive(t.toSeconds.toInt))
-    underlying.put(element)
-    logCachePut(key, ttl)
-    Future.successful(())
+  override protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] = {
+    mode.M.delay {
+      val element = new Element(key, value)
+      ttl.foreach(t => element.setTimeToLive(t.toSeconds.toInt))
+      underlying.put(element)
+      logCachePut(key, ttl)
+    }
   }
 
-  /**
-    * Remove the given key and its associated value from the cache, if it exists.
-    * If the key is not in the cache, do nothing.
-    *
-    * @param key cache key
-    */
-  override def remove(key: String) = Future.successful(underlying.remove(key))
+  override protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] =
+    mode.M.delay(underlying.remove(key))
 
-  override def removeAll() = Future.successful(underlying.removeAll())
+  override protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] =
+    mode.M.delay(underlying.removeAll())
 
-  override def close(): Unit = {
+  override def close[F[_]]()(implicit mode: Mode[F]): F[Any] = {
     // Nothing to do
+    mode.M.pure(())
   }
 
 }
@@ -75,6 +57,7 @@ object EhcacheCache {
     *
     * @param underlying an Ehcache cache
     */
-  def apply(underlying: Ehcache): EhcacheCache = new EhcacheCache(underlying)
+  def apply[V](underlying: Ehcache)(implicit config: CacheConfig): EhcacheCache[V] =
+    new EhcacheCache[V](underlying)
 
 }
