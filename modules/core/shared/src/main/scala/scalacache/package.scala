@@ -5,9 +5,16 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.higherKinds
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
+import scalacache.CacheConfig
 import scalacache.serialization.{Codec, JavaSerializationCodec}
 
-package object scalacache extends JavaSerializationCodec {
+trait ScalaCacheLowPriorityImplicits {
+
+  implicit val defaultCacheConfig: CacheConfig = CacheConfig()
+
+}
+
+package object scalacache extends JavaSerializationCodec with ScalaCacheLowPriorityImplicits {
   private final val logger = LoggerFactory.getLogger(getClass.getName)
 
   // this alias is just for convenience, so you don't need to import serialization._

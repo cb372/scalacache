@@ -8,18 +8,17 @@ import language.postfixOps
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 
-import scalacache.CacheConfig
+import scalacache._
 
 class EhcacheCacheSpec extends FlatSpec with Matchers with Eventually with BeforeAndAfter with ScalaFutures {
 
-  val underlying = {
+  private val underlying = {
     val cacheManager = new CacheManager
     val cache = new Ehcache("test", 1000, false, false, 0, 0)
     cacheManager.addCache(cache)
     cache
   }
 
-  implicit val cacheConfig: CacheConfig = CacheConfig()
   import scalacache.modes.sync._
 
   before {

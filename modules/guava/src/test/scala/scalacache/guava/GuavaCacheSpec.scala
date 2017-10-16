@@ -2,7 +2,7 @@ package scalacache.guava
 
 import java.time.{Clock, Instant, ZoneOffset}
 
-import scalacache.{CacheConfig, Entry}
+import scalacache._
 import org.scalatest.{FlatSpec, Matchers}
 import com.google.common.cache.CacheBuilder
 
@@ -13,7 +13,6 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
 
   private def newGCache = CacheBuilder.newBuilder.build[String, Entry[String]]
 
-  implicit val cacheConfig: CacheConfig = CacheConfig()
   import scalacache.modes.sync._
 
   behavior of "get"
@@ -53,7 +52,7 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
     val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newGCache
-    new GuavaCache(underlying)(cacheConfig, clock).put("key1")("hello", Some(10.seconds))
+    new GuavaCache(underlying)(implicitly[CacheConfig], clock).put("key1")("hello", Some(10.seconds))
     underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(Instant.from(now.plusSeconds(10)))))
   }
 
@@ -62,7 +61,7 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
     val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newGCache
-    new GuavaCache(underlying)(cacheConfig, clock).put("key1")("hello", Some(30.days))
+    new GuavaCache(underlying)(implicitly[CacheConfig], clock).put("key1")("hello", Some(30.days))
     underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(Instant.parse("2015-10-31T00:00:00Z"))))
   }
 

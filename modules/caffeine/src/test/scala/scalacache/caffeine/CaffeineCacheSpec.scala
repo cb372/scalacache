@@ -2,7 +2,7 @@ package scalacache.caffeine
 
 import java.time.{Clock, Instant, ZoneOffset}
 
-import scalacache.{CacheConfig, Entry}
+import scalacache._
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import com.github.benmanes.caffeine.cache.Caffeine
 
@@ -13,7 +13,6 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
   private def newCCache = Caffeine.newBuilder.build[String, Entry[String]]
 
-  implicit val cacheConfig: CacheConfig = CacheConfig()
   import scalacache.modes.sync._
 
   behavior of "get"
@@ -53,7 +52,7 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
     val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newCCache
-    new CaffeineCache(underlying)(cacheConfig, clock).put("key1")("hello", Some(10.seconds))
+    new CaffeineCache(underlying)(implicitly[CacheConfig], clock).put("key1")("hello", Some(10.seconds))
     underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(now.plusSeconds(10))))
   }
 
@@ -62,7 +61,7 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
     val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newCCache
-    new CaffeineCache(underlying)(cacheConfig, clock).put("key1")("hello", Some(30.days))
+    new CaffeineCache(underlying)(implicitly[CacheConfig], clock).put("key1")("hello", Some(30.days))
     underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(Instant.parse("2015-10-31T00:00:00Z"))))
   }
 
