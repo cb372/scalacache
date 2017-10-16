@@ -12,14 +12,9 @@ import scala.concurrent.{Promise, ExecutionContext}
 
 /**
   * Wrapper around spymemcached
-  *
-  * @param useLegacySerialization set this to true to use Spymemcached's serialization mechanism
-  *                               to maintain compatibility with ScalaCache 0.7.x or earlier.
   */
-class MemcachedCache(
-    client: MemcachedClient,
-    keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer(),
-    useLegacySerialization: Boolean = false)(implicit execContext: ExecutionContext = ExecutionContext.global)
+class MemcachedCache(client: MemcachedClient, keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(
+    implicit execContext: ExecutionContext = ExecutionContext.global)
     extends Cache[Array[Byte]]
     with MemcachedTTLConverter
     with LoggingSupport {
@@ -42,10 +37,7 @@ class MemcachedCache(
         val baseResult = f.get
         val result = {
           if (baseResult != null) {
-            if (useLegacySerialization)
-              Some(baseResult.asInstanceOf[V])
-            else
-              Some(codec.deserialize(baseResult.asInstanceOf[Array[Byte]]))
+            Some(codec.deserialize(baseResult.asInstanceOf[Array[Byte]]))
           } else None
         }
         logCacheHitOrMiss(key, result)
@@ -65,8 +57,7 @@ class MemcachedCache(
     */
   override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, Array[Byte]]) = {
     val p = Promise[Unit]()
-    val valueToSend =
-      if (useLegacySerialization) value else codec.serialize(value)
+    val valueToSend = codec.serialize(value)
     val f = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)
     f.addListener(new OperationCompletionListener {
       def onComplete(g: OperationFuture[_]): Unit = p.complete {

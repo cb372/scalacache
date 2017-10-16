@@ -15,7 +15,7 @@ import scala.concurrent.duration._
   * Contains implementations of all methods that can be implemented independent of the type of Redis client.
   * This is everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.
   */
-trait RedisCacheBase extends Cache[Array[Byte]] with RedisSerialization with LoggingSupport {
+trait RedisCacheBase extends Cache[Array[Byte]] with LoggingSupport {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
@@ -57,7 +57,7 @@ trait RedisCacheBase extends Cache[Array[Byte]] with RedisSerialization with Log
         val bytes = jedis.get(key.utf8bytes)
         val result = {
           if (bytes != null) {
-            Some(deserialize[V](bytes))
+            Some(codec.deserialize(bytes))
           } else None
         }
         logCacheHitOrMiss(key, result)
@@ -79,7 +79,7 @@ trait RedisCacheBase extends Cache[Array[Byte]] with RedisSerialization with Log
       blocking {
         withJedisCommands { jedis =>
           val keyBytes = key.utf8bytes
-          val valueBytes = serialize(value)
+          val valueBytes = codec.serialize(value)
           ttl match {
             case None => jedis.set(keyBytes, valueBytes)
             case Some(Duration.Zero) => jedis.set(keyBytes, valueBytes)

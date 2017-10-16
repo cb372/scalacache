@@ -40,7 +40,7 @@ def module(name: String) =
   Project(id = name, base = file(s"modules/$name"))
     .settings(commonSettings)
     .settings(moduleName := s"scalacache-$name")
-    .dependsOn(coreJVM % "test->test;compile->compile")
+    .dependsOn(coreJVM)
 
 lazy val guava = module("guava")
   .settings(

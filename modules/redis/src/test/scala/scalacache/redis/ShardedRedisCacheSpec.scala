@@ -13,8 +13,8 @@ class ShardedRedisCacheSpec extends RedisCacheSpecBase {
 
   val withJedis = assumingMultipleRedisAreRunning _
 
-  def constructCache(pool: JPool, useLegacySerialization: Boolean): Cache[Array[Byte]] =
-    new ShardedRedisCache(jedisPool = pool, useLegacySerialization = useLegacySerialization)
+  def constructCache(pool: JPool): Cache[Array[Byte]] =
+    new ShardedRedisCache(jedisPool = pool)
 
   def flushRedis(client: JClient): Unit =
     client.getAllShards.asScala.foreach(_.flushDB())

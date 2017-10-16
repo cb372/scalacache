@@ -14,8 +14,8 @@ class SentinelRedisCacheSpec extends RedisCacheSpecBase {
 
   val withJedis = assumingRedisSentinelIsRunning _
 
-  def constructCache(pool: JPool, useLegacySerialization: Boolean): Cache[Array[Byte]] =
-    new SentinelRedisCache(jedisPool = pool, useLegacySerialization = useLegacySerialization)
+  def constructCache(pool: JPool): Cache[Array[Byte]] =
+    new SentinelRedisCache(jedisPool = pool)
 
   def flushRedis(client: JClient): Unit = client.flushDB()
 
