@@ -19,10 +19,10 @@ package object scalacache extends JavaSerializationCodec {
 
    It would look something like this:
 
-    def get[V, F[_], G[_], S[X[_]] <: Sync[X]](keyParts: Any*)(implicit
+    def get[V, E[_], F[_], S[X[_]] <: Sync[X]](keyParts: Any*)(implicit
                                                                cache: CacheAlg[V, S],
-                                                               mode: Mode[F, G, S],
-                                                               flags: Flags): G[Option[V]] =
+                                                               mode: Mode[E, F, S],
+                                                               flags: Flags): F[Option[V]] =
     cache.get(keyParts)
 
    */
