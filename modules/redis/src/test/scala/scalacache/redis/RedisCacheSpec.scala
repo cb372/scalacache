@@ -3,7 +3,8 @@ package scalacache.redis
 import redis.clients.jedis._
 
 import scala.language.postfixOps
-import scalacache.Cache
+import scalacache._
+import scalacache.serialization.Codec
 
 class RedisCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
@@ -12,8 +13,8 @@ class RedisCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
   val withJedis = assumingRedisIsRunning _
 
-  def constructCache(pool: JPool): Cache[Array[Byte]] =
-    new RedisCache(jedisPool = pool)
+  def constructCache[V](pool: JPool)(implicit codec: Codec[V, Array[Byte]]): CacheAlg[V] =
+    new RedisCache[V](jedisPool = pool)
 
   def flushRedis(client: JClient): Unit = client.flushDB()
 

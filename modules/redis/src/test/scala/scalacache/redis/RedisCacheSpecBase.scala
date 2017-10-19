@@ -3,14 +3,14 @@ package scalacache.redis
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
-import redis.clients.jedis.{JedisCommands, BinaryJedisCommands}
+import redis.clients.jedis.{BinaryJedisCommands, JedisCommands}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scalacache.serialization.Codec
-import scalacache.Cache
+import scalacache._
 
 trait RedisCacheSpecBase
     extends FlatSpec
@@ -25,13 +25,15 @@ trait RedisCacheSpecBase
   type JClient <: JedisCommands with BinaryJedisCommands
 
   def withJedis: ((JPool, JClient) => Unit) => Unit
-  def constructCache(pool: JPool): Cache[Array[Byte]]
+  def constructCache[V](pool: JPool)(implicit codec: Codec[V, Array[Byte]]): CacheAlg[V]
   def flushRedis(client: JClient): Unit
 
   def runTestsIfPossible() = {
 
+    import scalacache.modes.scalaFuture._
+
     withJedis { (pool, client) =>
-      val cache = constructCache(pool)
+      val cache = constructCache[Int](pool)
 
       before {
         flushRedis(client)
@@ -41,17 +43,17 @@ trait RedisCacheSpecBase
 
       it should "return the value stored in Redis" in {
         client.set(bytes("key1"), serialize(123))
-        whenReady(cache.get[Int]("key1")) { _ should be(Some(123)) }
+        whenReady(cache.get("key1")) { _ should be(Some(123)) }
       }
 
       it should "return None if the given key does not exist in the underlying cache" in {
-        whenReady(cache.get[Int]("non-existent-key")) { _ should be(None) }
+        whenReady(cache.get("non-existent-key")) { _ should be(None) }
       }
 
       behavior of "put"
 
       it should "store the given key-value pair in the underlying cache" in {
-        whenReady(cache.put("key2", 123, None)) { _ =>
+        whenReady(cache.put("key2")(123, None)) { _ =>
           deserialize[Int](client.get(bytes("key2"))) should be(123)
         }
       }
@@ -59,7 +61,7 @@ trait RedisCacheSpecBase
       behavior of "put with TTL"
 
       it should "store the given key-value pair in the underlying cache" in {
-        whenReady(cache.put("key3", 123, Some(1 second))) { _ =>
+        whenReady(cache.put("key3")(123, Some(1 second))) { _ =>
           deserialize[Int](client.get(bytes("key3"))) should be(123)
 
           // Should expire after 1 second
@@ -72,7 +74,7 @@ trait RedisCacheSpecBase
       behavior of "put with TTL of zero"
 
       it should "store the given key-value pair in the underlying cache with no expiry" in {
-        whenReady(cache.put("key4", 123, Some(Duration.Zero))) { _ =>
+        whenReady(cache.put("key4")(123, Some(Duration.Zero))) { _ =>
           deserialize[Int](client.get(bytes("key4"))) should be(123)
           client.ttl(bytes("key4")) should be(-1L)
         }
@@ -81,7 +83,7 @@ trait RedisCacheSpecBase
       behavior of "put with TTL of less than 1 second"
 
       it should "store the given key-value pair in the underlying cache" in {
-        whenReady(cache.put("key5", 123, Some(100 milliseconds))) { _ =>
+        whenReady(cache.put("key5")(123, Some(100 milliseconds))) { _ =>
           deserialize[Int](client.get(bytes("key5"))) should be(123)
           client.pttl("key5").toLong should be > 0L
 
@@ -95,7 +97,8 @@ trait RedisCacheSpecBase
       behavior of "caching with serialization"
 
       def roundTrip[V](key: String, value: V)(implicit codec: Codec[V, Array[Byte]]): Future[Option[V]] = {
-        cache.put(key, value, None).flatMap(_ => cache.get[V](key))
+        val c = constructCache[V](pool)
+        c.put(key)(value, None).flatMap(_ => c.get(key))
       }
 
       it should "round-trip a String" in {
