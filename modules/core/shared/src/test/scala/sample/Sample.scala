@@ -29,7 +29,7 @@ object Sample extends App {
       Future { User(id, s"user$id") }
     }
 
-    def withOptionalExpiry(id: Int): Future[User] = memoize(Option(60 seconds)) {
+    def withOptionalExpiry(id: Int): Future[User] = memoize(Some(60 seconds)) {
       Future { User(id, s"user$id") }
     }
 

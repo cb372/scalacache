@@ -13,9 +13,7 @@ import scala.language.higherKinds
   *
   * @tparam V The value of types stored in the cache.
   */
-trait AbstractCache[V] extends CacheAlg[V] with LoggingSupport {
-
-  protected def config: CacheConfig
+trait AbstractCache[V] extends LovelyCache[V] with LoggingSupport {
 
   // GET
 
@@ -106,8 +104,8 @@ trait AbstractCache[V] extends CacheAlg[V] with LoggingSupport {
 
   // MEMOIZE
 
-  override private[scalacache] def cachingForMemoize[F[_]](baseKey: String)(ttl: Option[Duration] = None)(
-      f: => V)(implicit mode: Mode[F], flags: Flags): F[V] = {
+  override def cachingForMemoize[F[_]](baseKey: String)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F],
+                                                                                               flags: Flags): F[V] = {
     import mode._
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     M.flatMap(checkFlagsAndGet(key)) {
@@ -119,8 +117,8 @@ trait AbstractCache[V] extends CacheAlg[V] with LoggingSupport {
     }
   }
 
-  override private[scalacache] def cachingForMemoizeF[F[_]](baseKey: String)(ttl: Option[Duration])(
-      f: => F[V])(implicit mode: Mode[F], flags: Flags): F[V] = {
+  override def cachingForMemoizeF[F[_]](baseKey: String)(ttl: Option[Duration])(f: => F[V])(implicit mode: Mode[F],
+                                                                                            flags: Flags): F[V] = {
     import mode._
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     M.flatMap(checkFlagsAndGet(key)) {

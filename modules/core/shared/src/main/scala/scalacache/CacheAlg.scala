@@ -11,6 +11,9 @@ import scala.language.higherKinds
   */
 trait CacheAlg[V] {
 
+  // This doesn't really belong in the algebra but memoization needs it so yolo
+  protected def config: CacheConfig
+
   /**
     * Get a value from the cache
     *
@@ -72,19 +75,22 @@ trait CacheAlg[V] {
     * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
-    * @return
+    * @return The value, either retrieved from the cache or computed
     */
   def cachingF[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F],
                                                                                flags: Flags): F[V]
 
+  /**
+    * You should call this when you have finished using this Cache.
+    * (e.g. when your application shuts down)
+    *
+    * It will take care of gracefully shutting down the underlying cache client.
+    *
+    * Note that you should not try to use this Cache instance after you have called this method.
+    *
+    * @param mode The operation mode, which decides the type of container in which to wrap the result
+    * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
+    */
   def close[F[_]]()(implicit mode: Mode[F]): F[Any]
-
-  // optimised methods for use by memoize: we know the key will be a single string so we can avoid some work
-
-  private[scalacache] def cachingForMemoize[F[_]](baseKey: String)(ttl: Option[Duration])(
-      f: => V)(implicit mode: Mode[F], flags: Flags): F[V]
-
-  private[scalacache] def cachingForMemoizeF[F[_]](baseKey: String)(ttl: Option[Duration])(
-      f: => F[V])(implicit mode: Mode[F], flags: Flags): F[V]
 
 }
