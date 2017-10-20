@@ -11,9 +11,6 @@ import scala.language.higherKinds
   */
 trait CacheAlg[V] {
 
-  // This doesn't really belong in the algebra but memoization needs it so yolo
-  protected def config: CacheConfig
-
   /**
     * Get a value from the cache
     *

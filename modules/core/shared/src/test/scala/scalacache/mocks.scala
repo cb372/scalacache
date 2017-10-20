@@ -1,62 +1,96 @@
 package scalacache
 
+import org.slf4j.LoggerFactory
+
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
+import scala.language.higherKinds
 import scalacache.serialization.{Codec, InMemoryRepr}
 
-class EmptyCache extends Cache[InMemoryRepr] {
-  override def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]): Future[Option[V]] = Future.successful(None)
-  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, InMemoryRepr]) =
-    Future.successful((): Unit)
-  override def remove(key: String) = Future.successful((): Unit)
-  override def removeAll() = Future.successful((): Unit)
-  override def close(): Unit = {}
+class EmptyCache[V](implicit val config: CacheConfig) extends AbstractCache[V] {
+
+  override protected def logger = LoggerFactory.getLogger("EmptyCache")
+
+  override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]) =
+    mode.M.pure(None)
+
+  override protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]) =
+    mode.M.pure(())
+
+  override protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]) =
+    mode.M.pure(())
+
+  override protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]) =
+    mode.M.pure(())
+
+  override def close[F[_]]()(implicit mode: Mode[F]) = mode.M.pure(())
+
 }
 
-class FullCache(value: Any) extends Cache[InMemoryRepr] {
-  override def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]): Future[Option[V]] =
-    Future.successful(Some(value).asInstanceOf[Option[V]])
-  override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, InMemoryRepr]) =
-    Future.successful((): Unit)
-  override def remove(key: String) = Future.successful((): Unit)
-  override def removeAll() = Future.successful((): Unit)
-  override def close(): Unit = {}
+class FullCache[V](value: V)(implicit val config: CacheConfig) extends AbstractCache[V] {
+
+  override protected def logger = LoggerFactory.getLogger("FullCache")
+
+  override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]) =
+    mode.M.pure(Some(value))
+
+  override protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]) =
+    mode.M.pure(())
+
+  override protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]) =
+    mode.M.pure(())
+
+  override protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]) =
+    mode.M.pure(())
+
+  override def close[F[_]]()(implicit mode: Mode[F]) = mode.M.pure(())
+
 }
 
-class FailedFutureReturningCache extends Cache[InMemoryRepr] {
-  override def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]): Future[Option[V]] =
-    Future.failed(new RuntimeException("failed to read"))
-  override def put[V](key: String, value: V, ttl: Option[Duration])(
-      implicit codec: Codec[V, InMemoryRepr]): Future[Unit] = Future.failed(new RuntimeException("failed to write"))
-  override def remove(key: String) = Future.successful((): Unit)
-  override def removeAll() = Future.successful((): Unit)
-  override def close(): Unit = {}
+class ErrorRaisingCache[V](implicit val config: CacheConfig) extends AbstractCache[V] {
+
+  override protected def logger = LoggerFactory.getLogger("FullCache")
+
+  override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]) =
+    mode.M.raiseError(new RuntimeException("failed to read"))
+
+  override protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]) =
+    mode.M.raiseError(new RuntimeException("failed to write"))
+
+  override protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]) =
+    mode.M.pure(())
+
+  override protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]) =
+    mode.M.pure(())
+
+  override def close[F[_]]()(implicit mode: Mode[F]) = mode.M.pure(())
+
 }
 
 /**
   * A mock cache for use in tests and samples.
   * Does not support TTL.
   */
-class MockCache extends Cache[InMemoryRepr] {
+class MockCache[V](implicit val config: CacheConfig) extends AbstractCache[V] {
 
-  val mmap = collection.mutable.Map[String, Any]()
+  override protected def logger = LoggerFactory.getLogger("MockCache")
 
-  def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]) = {
-    val value = mmap.get(key)
-    Future.successful(value.asInstanceOf[Option[V]])
-  }
+  val mmap = collection.mutable.Map[String, V]()
 
-  def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, InMemoryRepr]) =
-    Future.successful(mmap.put(key, value))
+  override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]) =
+    mode.M.delay(mmap.get(key))
 
-  def remove(key: String) =
-    Future.successful(mmap.remove(key))
+  override protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]) =
+    mode.M.delay(mmap.put(key, value))
 
-  def removeAll() =
-    Future.successful(mmap.clear())
+  override protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]) =
+    mode.M.delay(mmap.remove(key))
 
-  def close(): Unit = {}
+  override protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]) =
+    mode.M.delay(mmap.clear())
+
+  override def close[F[_]]()(implicit mode: Mode[F]) = mode.M.pure(())
 
 }
 
@@ -64,23 +98,24 @@ class MockCache extends Cache[InMemoryRepr] {
   * A cache that keeps track of the arguments it was called with. Useful for tests.
   * Designed to be mixed in as a stackable trait.
   */
-trait LoggingCache extends Cache[InMemoryRepr] {
+trait LoggingCache[V] extends AbstractCache[V] {
   var (getCalledWithArgs, putCalledWithArgs, removeCalledWithArgs) =
     (ArrayBuffer.empty[String], ArrayBuffer.empty[(String, Any, Option[Duration])], ArrayBuffer.empty[String])
 
-  abstract override def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]): Future[Option[V]] = {
+  protected abstract override def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     getCalledWithArgs.append(key)
-    super.get[V](key)
+    super.doGet(key)
   }
 
-  abstract override def put[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V, InMemoryRepr]) = {
+  protected abstract override def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(
+      implicit mode: Mode[F]): F[Any] = {
     putCalledWithArgs.append((key, value, ttl))
-    super.put(key, value, ttl)
+    super.doPut(key, value, ttl)
   }
 
-  abstract override def remove(key: String) = {
+  protected abstract override def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] = {
     removeCalledWithArgs.append(key)
-    super.remove(key)
+    super.doRemove(key)
   }
 
   def reset(): Unit = {
@@ -94,4 +129,4 @@ trait LoggingCache extends Cache[InMemoryRepr] {
 /**
   * A mock cache that keeps track of the arguments it was called with.
   */
-class LoggingMockCache extends MockCache with LoggingCache
+class LoggingMockCache[V] extends MockCache[V] with LoggingCache[V]

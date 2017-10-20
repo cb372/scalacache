@@ -22,11 +22,11 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
 
   import StringEnrichment.StringWithUtf8Bytes
 
+  def config: CacheConfig
+
   protected type JClient <: BinaryJedisCommands with Closeable
 
   protected def jedisPool: Pool[JClient]
-
-  protected def config: CacheConfig
 
   protected def codec: Codec[V, Array[Byte]]
 

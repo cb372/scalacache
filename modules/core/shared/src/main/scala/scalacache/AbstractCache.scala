@@ -54,7 +54,8 @@ trait AbstractCache[V] extends LovelyCache[V] with LoggingSupport {
   final override def put[F[_]](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit mode: Mode[F],
                                                                                 flags: Flags): F[Any] = {
     val key = toKey(keyParts: _*)
-    checkFlagsAndPut(key, value, ttl)
+    val finiteTtl = ttl.filter(_.isFinite()) // discard Duration.Inf, Duration.Undefined
+    checkFlagsAndPut(key, value, finiteTtl)
   }
 
   // REMOVE
@@ -75,7 +76,7 @@ trait AbstractCache[V] extends LovelyCache[V] with LoggingSupport {
 
   final override def caching[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F],
                                                                                           flags: Flags): F[V] = {
-    val key = toKey(keyParts)
+    val key = toKey(keyParts: _*)
 
     import mode._
     M.flatMap(checkFlagsAndGet(key)) {
@@ -89,7 +90,7 @@ trait AbstractCache[V] extends LovelyCache[V] with LoggingSupport {
 
   override def cachingF[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F],
                                                                                         flags: Flags): F[V] = {
-    val key = toKey(keyParts)
+    val key = toKey(keyParts: _*)
 
     import mode._
     M.flatMap(checkFlagsAndGet(key)) {
