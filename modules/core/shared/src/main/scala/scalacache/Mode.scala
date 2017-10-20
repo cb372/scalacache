@@ -21,6 +21,7 @@ object modes {
 
   object sync {
 
+    // TODO mode to scalacache package object
     type Id[X] = X
 
     /**

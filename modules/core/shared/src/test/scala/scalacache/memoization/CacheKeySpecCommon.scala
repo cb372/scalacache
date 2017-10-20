@@ -1,100 +1,105 @@
-// TODO rewrite
-//package scalacache.memoization
-//
-//import org.scalatest._
-//import org.scalatest.concurrent.{Eventually, ScalaFutures}
-//
-//import scalacache.serialization.InMemoryRepr
-//import scalacache.{MockCache, ScalaCache}
-//
-//trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with BeforeAndAfter with Eventually {
-//
-//  val cache = new MockCache
-//  implicit def scalaCache: ScalaCache[InMemoryRepr]
-//
-//  before {
-//    cache.mmap.clear()
-//  }
-//
-//  def checkCacheKey(expectedKey: String)(call: => Int) {
-//    // Run the memoize block, putting some value into the cache
-//    val value = call
-//
-//    // Check that the value is in the cache, with the expected key
-//    eventually {
-//      whenReady(cache.get[Int](expectedKey)) { result =>
-//        result should be(Some(value))
-//      }
-//    }
-//  }
-//
-//  def multipleArgLists(a: Int, b: String)(c: String, d: Int): Int = memoizeSync {
-//    123
-//  }
-//
-//  case class CaseClass(a: Int) { override def toString = "custom toString" }
-//  def takesCaseClass(cc: CaseClass): Int = memoizeSync {
-//    123
-//  }
-//
-//  def lazyArg(a: => Int): Int = memoizeSync {
-//    123
-//  }
-//
-//  def functionArg(a: String => Int): Int = memoizeSync {
-//    123
-//  }
-//
-//  def withExcludedParams(a: Int, @cacheKeyExclude b: String, c: String)(@cacheKeyExclude d: Int): Int = memoizeSync {
-//    123
-//  }
-//
-//}
-//
-//class AClass(implicit val scalaCache: ScalaCache[InMemoryRepr]) {
-//  def insideClass(a: Int): Int = memoizeSync {
-//    123
-//  }
-//
-//  class InnerClass {
-//    def insideInnerClass(a: Int): Int = memoizeSync {
-//      123
-//    }
-//  }
-//  val inner = new InnerClass
-//
-//  object InnerObject {
-//    def insideInnerObject(a: Int): Int = memoizeSync {
-//      123
-//    }
-//  }
-//}
-//
-//trait ATrait {
-//  implicit val scalaCache: ScalaCache[InMemoryRepr]
-//
-//  def insideTrait(a: Int): Int = memoizeSync {
-//    123
-//  }
-//}
-//
-//object AnObject {
-//  implicit var scalaCache: ScalaCache[InMemoryRepr] = null
-//  def insideObject(a: Int): Int = memoizeSync {
-//    123
-//  }
-//}
-//
-//class ClassWithConstructorParams(b: Int) {
-//  implicit var scalaCache: ScalaCache[InMemoryRepr] = null
-//  def foo(a: Int): Int = memoizeSync {
-//    a + b
-//  }
-//}
-//
-//class ClassWithExcludedConstructorParam(b: Int, @cacheKeyExclude c: Int) {
-//  implicit var scalaCache: ScalaCache[InMemoryRepr] = null
-//  def foo(a: Int): Int = memoizeSync {
-//    a + b + c
-//  }
-//}
+package scalacache.memoization
+
+import org.scalatest._
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
+
+import scalacache._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scalacache.modes.scalaFuture._
+import scalacache.modes.sync.Id
+
+trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with BeforeAndAfter with Eventually {
+
+  implicit def config: CacheConfig
+
+  implicit lazy val cache: MockCache[Int] = new MockCache[Int]()(config)
+
+  before {
+    cache.mmap.clear()
+  }
+
+  def checkCacheKey(expectedKey: String)(call: => Future[Int]) {
+    // Run the memoize block, putting some value into the cache
+    val future = call
+
+    whenReady(future) { value =>
+      // Check that the value is in the cache, with the expected key
+      eventually {
+        implicit val mode: Mode[Id] = scalacache.modes.sync.mode
+        cache.get(expectedKey) should be(Some(value))
+      }
+    }
+  }
+
+  def multipleArgLists(a: Int, b: String)(c: String, d: Int): Future[Int] = memoize {
+    123
+  }
+
+  case class CaseClass(a: Int) { override def toString = "custom toString" }
+  def takesCaseClass(cc: CaseClass): Future[Int] = scalacache.memoization.memoize {
+    123
+  }
+
+  def lazyArg(a: => Int): Future[Int] = memoize {
+    123
+  }
+
+  def functionArg(a: String => Int): Future[Int] = memoize {
+    123
+  }
+
+  def withExcludedParams(a: Int, @cacheKeyExclude b: String, c: String)(@cacheKeyExclude d: Int): Future[Int] =
+    memoize {
+      123
+    }
+
+}
+
+class AClass(implicit cache: LovelyCache[Int]) {
+  def insideClass(a: Int): Future[Int] = memoize {
+    123
+  }
+
+  class InnerClass {
+    def insideInnerClass(a: Int): Future[Int] = memoize {
+      123
+    }
+  }
+  val inner = new InnerClass
+
+  object InnerObject {
+    def insideInnerObject(a: Int): Future[Int] = memoize {
+      123
+    }
+  }
+}
+
+trait ATrait {
+  implicit val cache: LovelyCache[Int]
+
+  def insideTrait(a: Int): Future[Int] = memoize {
+    123
+  }
+}
+
+object AnObject {
+  implicit var cache: LovelyCache[Int] = null
+  def insideObject(a: Int): Future[Int] = memoize {
+    123
+  }
+}
+
+class ClassWithConstructorParams(b: Int) {
+  implicit var cache: LovelyCache[Int] = null
+  def foo(a: Int): Future[Int] = memoize {
+    a + b
+  }
+}
+
+class ClassWithExcludedConstructorParam(b: Int, @cacheKeyExclude c: Int) {
+  implicit var cache: LovelyCache[Int] = null
+  def foo(a: Int): Future[Int] = memoize {
+    a + b + c
+  }
+}
