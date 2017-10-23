@@ -32,6 +32,7 @@ package object scalacache extends JavaSerializationCodec with ScalaCacheLowPrior
                                                                flags: Flags): F[Option[V]] =
     cache.get(keyParts)
 
+    Also try the curried type params trick
    */
 
   class TypedApi[From, Repr](implicit val scalaCache: ScalaCache[Repr], codec: Codec[From, Repr]) { self =>

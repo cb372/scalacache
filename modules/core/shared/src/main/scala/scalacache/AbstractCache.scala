@@ -77,57 +77,81 @@ trait AbstractCache[V] extends LovelyCache[V] with LoggingSupport {
   final override def caching[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F],
                                                                                           flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
-
-    import mode._
-    M.flatMap(checkFlagsAndGet(key)) {
-      case Some(valueFromCache) =>
-        M.pure(valueFromCache)
-      case None =>
-        val calculatedValue = f
-        M.map(checkFlagsAndPut(key, calculatedValue, ttl))(_ => calculatedValue)
-    }
+    _caching(key, ttl, f)
   }
 
   override def cachingF[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F],
                                                                                         flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
-
-    import mode._
-    M.flatMap(checkFlagsAndGet(key)) {
-      case Some(valueFromCache) =>
-        M.pure(valueFromCache)
-      case None =>
-        M.flatMap(f) { calculatedValue =>
-          M.map(checkFlagsAndPut(key, calculatedValue, ttl))(_ => calculatedValue)
-        }
-    }
+    _cachingF(key, ttl, f)
   }
 
   // MEMOIZE
 
   override def cachingForMemoize[F[_]](baseKey: String)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F],
                                                                                                flags: Flags): F[V] = {
-    import mode._
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
-    M.flatMap(checkFlagsAndGet(key)) {
-      case Some(valueFromCache) =>
-        M.pure(valueFromCache)
-      case None =>
-        val calculatedValue = f
-        M.map(checkFlagsAndPut(key, calculatedValue, ttl))(_ => calculatedValue)
-    }
+    _caching(key, ttl, f)
   }
 
   override def cachingForMemoizeF[F[_]](baseKey: String)(ttl: Option[Duration])(f: => F[V])(implicit mode: Mode[F],
                                                                                             flags: Flags): F[V] = {
-    import mode._
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
-    M.flatMap(checkFlagsAndGet(key)) {
+    _cachingF(key, ttl, f)
+  }
+
+  private def _caching[F[_]](key: String, ttl: Option[Duration], f: => V)(implicit mode: Mode[F], flags: Flags): F[V] = {
+    import mode._
+
+    M.flatMap {
+      M.handleNonFatal(checkFlagsAndGet(key)) { e =>
+        if (logger.isWarnEnabled) {
+          logger.warn(s"Failed to read from cache. Key = $key", e)
+        }
+        None
+      }
+    } {
+      case Some(valueFromCache) =>
+        M.pure(valueFromCache)
+      case None =>
+        val calculatedValue = f
+        M.map {
+          M.handleNonFatal {
+            checkFlagsAndPut(key, calculatedValue, ttl)
+          } { e =>
+            if (logger.isWarnEnabled) {
+              logger.warn(s"Failed to write to cache. Key = $key", e)
+            }
+          }
+        }(_ => calculatedValue)
+    }
+  }
+
+  private def _cachingF[F[_]](key: String, ttl: Option[Duration], f: => F[V])(implicit mode: Mode[F],
+                                                                              flags: Flags): F[V] = {
+    import mode._
+
+    M.flatMap {
+      M.handleNonFatal(checkFlagsAndGet(key)) { e =>
+        if (logger.isWarnEnabled) {
+          logger.warn(s"Failed to read from cache. Key = $key", e)
+        }
+        None
+      }
+    } {
       case Some(valueFromCache) =>
         M.pure(valueFromCache)
       case None =>
         M.flatMap(f) { calculatedValue =>
-          M.map(checkFlagsAndPut(key, calculatedValue, ttl))(_ => calculatedValue)
+          M.map {
+            M.handleNonFatal {
+              checkFlagsAndPut(key, calculatedValue, ttl)
+            } { e =>
+              if (logger.isWarnEnabled) {
+                logger.warn(s"Failed to write to cache. Key = $key", e)
+              }
+            }
+          }(_ => calculatedValue)
         }
     }
   }

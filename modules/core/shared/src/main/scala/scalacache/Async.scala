@@ -3,10 +3,11 @@ package scalacache
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.language.higherKinds
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import scalacache.modes.sync.Id
 
-trait Monad[F[_]] {
+trait MonadError[F[_]] {
 
   def pure[A](a: A): F[A]
 
@@ -14,14 +15,16 @@ trait Monad[F[_]] {
 
   def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
 
-}
-
-trait Sync[F[_]] extends Monad[F] {
-
-  def delay[A](thunk: => A): F[A]
-
   // TODO is this needed?
   def raiseError[A](t: Throwable): F[A]
+
+  def handleNonFatal[A](fa: => F[A])(f: Throwable => A): F[A]
+
+}
+
+trait Sync[F[_]] extends MonadError[F] {
+
+  def delay[A](thunk: => A): F[A]
 
 }
 
@@ -42,6 +45,14 @@ object AsyncForId extends Async[Id] {
   def delay[A](thunk: => A): Id[A] = thunk
 
   def raiseError[A](t: Throwable): Id[A] = throw t
+
+  def handleNonFatal[A](fa: => Id[A])(f: Throwable => A): Id[A] = {
+    try {
+      fa
+    } catch {
+      case NonFatal(e) => f(e)
+    }
+  }
 
   def async[A](register: (Either[Throwable, A] => Unit) => Unit): Id[A] = {
     val promise = Promise[A]()
@@ -75,6 +86,12 @@ object AsyncForTry extends Async[Try] {
     Try(Await.result(promise.future, Duration.Inf))
   }
 
+  def handleNonFatal[A](fa: => Try[A])(f: Throwable => A): Try[A] = {
+    fa.recover {
+      case NonFatal(e) => f(e)
+    }
+  }
+
 }
 
 class AsyncForFuture(implicit ec: ExecutionContext) extends Async[Future] {
@@ -96,6 +113,12 @@ class AsyncForFuture(implicit ec: ExecutionContext) extends Async[Future] {
       case Right(x) => promise.success(x)
     }
     promise.future
+  }
+
+  def handleNonFatal[A](fa: => Future[A])(f: Throwable => A): Future[A] = {
+    fa.recover {
+      case NonFatal(e) => f(e)
+    }
   }
 
 }
