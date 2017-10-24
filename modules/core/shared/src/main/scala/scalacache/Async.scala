@@ -5,7 +5,6 @@ import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.language.higherKinds
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
-import scalacache.modes.sync.Id
 
 trait MonadError[F[_]] {
 

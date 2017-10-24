@@ -7,7 +7,6 @@ import scalacache._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scalacache.modes.scalaFuture._
-import scalacache.modes.sync.Id
 
 trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with BeforeAndAfter with Eventually {
 

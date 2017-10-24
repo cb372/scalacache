@@ -1,7 +1,7 @@
 package scalacache
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.language.higherKinds
+import scala.language.{higherKinds, implicitConversions}
 import scala.util.Try
 
 /**
@@ -20,9 +20,6 @@ trait Mode[F[_]] {
 object modes {
 
   object sync {
-
-    // TODO mode to scalacache package object
-    type Id[X] = X
 
     /**
       * The simplest possible mode: just return the value as-is, without wrapping it in any effect monad.

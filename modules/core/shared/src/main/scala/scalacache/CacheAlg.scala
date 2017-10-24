@@ -61,7 +61,7 @@ trait CacheAlg[V] {
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @return The value, either retrieved from the cache or computed
     */
-  def caching[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F], flags: Flags): F[V]
+  def caching[F[_]](keyParts: Any*)(ttl: Option[Duration])(f: => V)(implicit mode: Mode[F], flags: Flags): F[V]
 
   /**
     * Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
@@ -74,8 +74,7 @@ trait CacheAlg[V] {
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @return The value, either retrieved from the cache or computed
     */
-  def cachingF[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F],
-                                                                               flags: Flags): F[V]
+  def cachingF[F[_]](keyParts: Any*)(ttl: Option[Duration])(f: => F[V])(implicit mode: Mode[F], flags: Flags): F[V]
 
   /**
     * You should call this when you have finished using this Cache.

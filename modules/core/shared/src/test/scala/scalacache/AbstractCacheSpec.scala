@@ -6,7 +6,6 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scalacache.modes.sync.Id
 
 class AbstractCacheSpec
     extends FlatSpec
