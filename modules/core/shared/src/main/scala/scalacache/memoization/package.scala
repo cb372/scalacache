@@ -25,7 +25,7 @@ package object memoization {
     * @tparam V The type of the value to be cached
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoize[F[_], V](f: => V)(implicit cache: LovelyCache[V], mode: Mode[F], flags: Flags): F[V] =
+  def memoize[F[_], V](f: => V)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     macro Macros.memoizeImpl[F, V]
 
   /**
@@ -45,7 +45,7 @@ package object memoization {
     * @tparam V The type of the value to be cached
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoize[F[_], V](ttl: Duration)(f: => V)(implicit cache: LovelyCache[V], mode: Mode[F], flags: Flags): F[V] =
+  def memoize[F[_], V](ttl: Duration)(f: => V)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     macro Macros.memoizeImplWithTTL[F, V]
 
   /**
@@ -67,7 +67,7 @@ package object memoization {
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
   def memoize[F[_], V](optionalTtl: Option[Duration])(
-      f: => V)(implicit cache: LovelyCache[V], mode: Mode[F], flags: Flags): F[V] =
+      f: => V)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     macro Macros.memoizeImplWithOptionalTTL[F, V]
 
   /**
@@ -84,7 +84,7 @@ package object memoization {
     * @tparam V The type of the value to be cached
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoizeF[F[_], V](f: => F[V])(implicit cache: LovelyCache[V], mode: Mode[F], flags: Flags): F[V] =
+  def memoizeF[F[_], V](f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     macro Macros.memoizeFImpl[F, V]
 
   /**
@@ -104,7 +104,7 @@ package object memoization {
     * @tparam V The type of the value to be cached
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoizeF[F[_], V](ttl: Duration)(f: => F[V])(implicit cache: LovelyCache[V], mode: Mode[F], flags: Flags): F[V] =
+  def memoizeF[F[_], V](ttl: Duration)(f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     macro Macros.memoizeFImplWithTTL[F, V]
 
   /**
@@ -126,7 +126,7 @@ package object memoization {
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
   def memoizeF[F[_], V](optionalTtl: Option[Duration])(
-      f: => F[V])(implicit cache: LovelyCache[V], mode: Mode[F], flags: Flags): F[V] =
+      f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     macro Macros.memoizeFImplWithOptionalTTL[F, V]
 
 }

@@ -6,7 +6,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scalacache.modes.scalaFuture._
 
 package object pkg {
-  implicit var cache: LovelyCache[Int] = null
+  implicit var cache: Cache[Int] = null
 
   def insidePackageObject(a: Int): Future[Int] = memoize {
     123

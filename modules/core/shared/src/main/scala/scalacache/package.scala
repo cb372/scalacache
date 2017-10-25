@@ -26,7 +26,7 @@ package object scalacache extends JavaSerializationCodec with ScalaCacheLowPrior
     * @tparam V The type of the corresponding value
     * @return the value, if there is one
     */
-  def get[F[_], V](keyParts: Any*)(implicit cache: LovelyCache[V], mode: Mode[F], flags: Flags): F[Option[V]] =
+  def get[F[_], V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[Option[V]] =
     cache.get(keyParts: _*)
 
   /**
@@ -45,7 +45,7 @@ package object scalacache extends JavaSerializationCodec with ScalaCacheLowPrior
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V The type of the corresponding value
     */
-  def put[F[_], V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit cache: LovelyCache[V],
+  def put[F[_], V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[V],
                                                                            mode: Mode[F],
                                                                            flags: Flags): F[Any] =
     cache.put(keyParts: _*)(value, ttl)
@@ -64,7 +64,7 @@ package object scalacache extends JavaSerializationCodec with ScalaCacheLowPrior
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V The type of the value to be removed
     */
-  def remove[F[_], V](keyParts: Any*)(implicit cache: LovelyCache[V], mode: Mode[F]): F[Any] =
+  def remove[F[_], V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[F]): F[Any] =
     cache.remove(keyParts: _*)
 
   /**
@@ -88,7 +88,7 @@ package object scalacache extends JavaSerializationCodec with ScalaCacheLowPrior
     * @return The result, either retrived from the cache or returned by the block
     */
   def caching[F[_], V](keyParts: Any*)(ttl: Option[Duration])(
-      f: => V)(implicit cache: LovelyCache[V], mode: Mode[F], flags: Flags): F[V] =
+      f: => V)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     cache.caching(keyParts: _*)(ttl)(f)
 
   /**
@@ -112,7 +112,7 @@ package object scalacache extends JavaSerializationCodec with ScalaCacheLowPrior
     * @return The result, either retrived from the cache or returned by the block
     */
   def cachingF[F[_], V](keyParts: Any*)(ttl: Option[Duration])(
-      f: => F[V])(implicit cache: LovelyCache[V], mode: Mode[F], flags: Flags): F[V] =
+      f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     cache.cachingF(keyParts: _*)(ttl)(f)
 
   /**
@@ -138,19 +138,19 @@ package object scalacache extends JavaSerializationCodec with ScalaCacheLowPrior
     */
   object sync {
 
-    def get[V](keyParts: Any*)(implicit cache: LovelyCache[V], mode: Mode[Id], flags: Flags): Option[V] =
+    def get[V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): Option[V] =
       cache.get[Id](keyParts: _*)
 
-    def put[V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit cache: LovelyCache[V],
+    def put[V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[V],
                                                                        mode: Mode[Id],
                                                                        flags: Flags): Any =
       cache.put[Id](keyParts: _*)(value, ttl)
 
-    def remove[V](keyParts: Any*)(implicit cache: LovelyCache[V], mode: Mode[Id]): Any =
+    def remove[V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[Id]): Any =
       cache.remove[Id](keyParts: _*)
 
     def caching[V](keyParts: Any*)(ttl: Option[Duration])(
-        f: => V)(implicit cache: LovelyCache[V], mode: Mode[Id], flags: Flags): V =
+        f: => V)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): V =
       cache.caching[Id](keyParts: _*)(ttl)(f)
   }
 

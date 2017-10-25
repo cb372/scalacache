@@ -17,7 +17,7 @@ import scalacache.modes.sync._
 class CaffeineBenchmark {
 
   val underlyingCache = Caffeine.newBuilder().build[String, Entry[String]]()
-  implicit val cache: LovelyCache[String] = CaffeineCache(underlyingCache)
+  implicit val cache: Cache[String] = CaffeineCache(underlyingCache)
 
   val key = "key"
   val value: String = "value"

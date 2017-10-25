@@ -13,7 +13,7 @@ import scala.language.higherKinds
   *
   * @tparam V The value of types stored in the cache.
   */
-trait AbstractCache[V] extends LovelyCache[V] with LoggingSupport {
+trait AbstractCache[V] extends Cache[V] with LoggingSupport {
 
   // GET
 

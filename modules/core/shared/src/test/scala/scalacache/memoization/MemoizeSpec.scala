@@ -270,7 +270,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
     }
   }
 
-  class MyMockClass(dbCall: Int => String)(implicit val cache: LovelyCache[String], mode: Mode[Id], flags: Flags) {
+  class MyMockClass(dbCall: Int => String)(implicit val cache: Cache[String], mode: Mode[Id], flags: Flags) {
 
     def myLongRunningMethod(a: Int, b: String): Id[String] = memoize {
       dbCall(a)
@@ -282,8 +282,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
 
   }
 
-  class MyMockClassWithFutures(
-      dbCall: Int => String)(implicit cache: LovelyCache[String], mode: Mode[Future], flags: Flags) {
+  class MyMockClassWithFutures(dbCall: Int => String)(implicit cache: Cache[String], mode: Mode[Future], flags: Flags) {
 
     def myLongRunningMethod(a: Int, b: String): Future[String] = memoizeF {
       Future { dbCall(a) }

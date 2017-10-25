@@ -55,7 +55,7 @@ trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with Befo
 
 }
 
-class AClass(implicit cache: LovelyCache[Int]) {
+class AClass(implicit cache: Cache[Int]) {
   def insideClass(a: Int): Future[Int] = memoize {
     123
   }
@@ -75,7 +75,7 @@ class AClass(implicit cache: LovelyCache[Int]) {
 }
 
 trait ATrait {
-  implicit val cache: LovelyCache[Int]
+  implicit val cache: Cache[Int]
 
   def insideTrait(a: Int): Future[Int] = memoize {
     123
@@ -83,21 +83,21 @@ trait ATrait {
 }
 
 object AnObject {
-  implicit var cache: LovelyCache[Int] = null
+  implicit var cache: Cache[Int] = null
   def insideObject(a: Int): Future[Int] = memoize {
     123
   }
 }
 
 class ClassWithConstructorParams(b: Int) {
-  implicit var cache: LovelyCache[Int] = null
+  implicit var cache: Cache[Int] = null
   def foo(a: Int): Future[Int] = memoize {
     a + b
   }
 }
 
 class ClassWithExcludedConstructorParam(b: Int, @cacheKeyExclude c: Int) {
-  implicit var cache: LovelyCache[Int] = null
+  implicit var cache: Cache[Int] = null
   def foo(a: Int): Future[Int] = memoize {
     a + b + c
   }

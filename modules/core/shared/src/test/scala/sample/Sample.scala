@@ -18,7 +18,7 @@ case class User(id: Int, name: String)
 object Sample extends App {
 
   class UserRepository {
-    implicit val cache: LovelyCache[User] = new MockCache()
+    implicit val cache: Cache[User] = new MockCache()
 
     def getUser(id: Int): Future[User] = memoizeF {
       // Do DB lookup here...

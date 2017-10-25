@@ -14,7 +14,7 @@ class Issue42Spec extends FlatSpec with Matchers {
   import concurrent.duration._
   import scala.language.postfixOps
 
-  implicit val cache: LovelyCache[User] = new MockCache()
+  implicit val cache: Cache[User] = new MockCache()
   import scalacache.modes.sync._
 
   def generateNewName() = Random.alphanumeric.take(10).mkString
