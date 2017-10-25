@@ -14,7 +14,7 @@ class ShardedRedisCacheSpec extends RedisCacheSpecBase {
 
   val withJedis = assumingMultipleRedisAreRunning _
 
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V, Array[Byte]]): CacheAlg[V] =
+  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[V] =
     new ShardedRedisCache[V](jedisPool = pool)
 
   def flushRedis(client: JClient): Unit =

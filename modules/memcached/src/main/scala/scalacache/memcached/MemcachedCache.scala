@@ -19,7 +19,7 @@ class MemcachedException(message: String) extends Exception(message)
   */
 class MemcachedCache[V](client: MemcachedClient, keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(
     implicit val config: CacheConfig,
-    codec: Codec[V, Array[Byte]])
+    codec: Codec[V])
     extends AbstractCache[V]
     with MemcachedTTLConverter {
 
@@ -34,7 +34,7 @@ class MemcachedCache[V](client: MemcachedClient, keySanitizer: MemcachedKeySanit
           if (g.getStatus.isSuccess) {
             try {
               val bytes = g.get()
-              val value = codec.deserialize(bytes.asInstanceOf[Array[Byte]])
+              val value = codec.decode(bytes.asInstanceOf[Array[Byte]])
               cb(Right(Some(value)))
             } catch {
               case NonFatal(e) => cb(Left(e))
@@ -53,7 +53,7 @@ class MemcachedCache[V](client: MemcachedClient, keySanitizer: MemcachedKeySanit
 
   override protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] = {
     mode.M.async { cb =>
-      val valueToSend = codec.serialize(value)
+      val valueToSend = codec.encode(value)
       val f = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)
       f.addListener(new OperationCompletionListener {
         def onComplete(g: OperationFuture[_]): Unit = {
@@ -106,7 +106,7 @@ object MemcachedCache {
   /**
     * Create a Memcached client connecting to localhost:11211 and use it for caching
     */
-  def apply[V](implicit config: CacheConfig, codec: Codec[V, Array[Byte]]): MemcachedCache[V] =
+  def apply[V](implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[V] =
     apply("localhost:11211")
 
   /**
@@ -114,7 +114,7 @@ object MemcachedCache {
     *
     * @param addressString Address string, with addresses separated by spaces, e.g. "host1:11211 host2:22322"
     */
-  def apply[V](addressString: String)(implicit config: CacheConfig, codec: Codec[V, Array[Byte]]): MemcachedCache[V] =
+  def apply[V](addressString: String)(implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[V] =
     apply(new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(addressString)))
 
   /**
@@ -122,8 +122,7 @@ object MemcachedCache {
     *
     * @param client Memcached client
     */
-  def apply[V](client: MemcachedClient)(implicit config: CacheConfig,
-                                        codec: Codec[V, Array[Byte]]): MemcachedCache[V] =
+  def apply[V](client: MemcachedClient)(implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[V] =
     new MemcachedCache[V](client)
 
 }

@@ -28,14 +28,14 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
 
   protected def jedisPool: Pool[JClient]
 
-  protected def codec: Codec[V, Array[Byte]]
+  protected def codec: Codec[V]
 
   protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = mode.M.delay {
     withJedisCommands { jedis =>
       val bytes = jedis.get(key.utf8bytes)
       val result = {
         if (bytes != null) {
-          Some(codec.deserialize(bytes))
+          Some(codec.decode(bytes))
         } else None
       }
       logCacheHitOrMiss(key, result)
@@ -47,7 +47,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
     mode.M.delay {
       withJedisCommands { jedis =>
         val keyBytes = key.utf8bytes
-        val valueBytes = codec.serialize(value)
+        val valueBytes = codec.encode(value)
         ttl match {
           case None => jedis.set(keyBytes, valueBytes)
           case Some(Duration.Zero) => jedis.set(keyBytes, valueBytes)

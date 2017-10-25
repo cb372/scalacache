@@ -13,7 +13,7 @@ class RedisCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
   val withJedis = assumingRedisIsRunning _
 
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V, Array[Byte]]): CacheAlg[V] =
+  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[V] =
     new RedisCache[V](jedisPool = pool)
 
   def flushRedis(client: JClient): Unit = client.flushDB()

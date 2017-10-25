@@ -9,10 +9,10 @@ import scalacache.serialization.Codec
   */
 trait RedisSerialization {
 
-  def serialize[A](value: A)(implicit codec: Codec[A, Array[Byte]]): Array[Byte] =
-    codec.serialize(value)
+  def serialize[A](value: A)(implicit codec: Codec[A]): Array[Byte] =
+    codec.encode(value)
 
-  def deserialize[A](bytes: Array[Byte])(implicit codec: Codec[A, Array[Byte]]): A =
-    codec.deserialize(bytes)
+  def deserialize[A](bytes: Array[Byte])(implicit codec: Codec[A]): A =
+    codec.decode(bytes)
 
 }

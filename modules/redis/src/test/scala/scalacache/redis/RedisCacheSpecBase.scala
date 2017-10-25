@@ -25,7 +25,7 @@ trait RedisCacheSpecBase
   type JClient <: JedisCommands with BinaryJedisCommands
 
   def withJedis: ((JPool, JClient) => Unit) => Unit
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V, Array[Byte]]): CacheAlg[V]
+  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[V]
   def flushRedis(client: JClient): Unit
 
   def runTestsIfPossible() = {
@@ -96,7 +96,7 @@ trait RedisCacheSpecBase
 
       behavior of "caching with serialization"
 
-      def roundTrip[V](key: String, value: V)(implicit codec: Codec[V, Array[Byte]]): Future[Option[V]] = {
+      def roundTrip[V](key: String, value: V)(implicit codec: Codec[V]): Future[Option[V]] = {
         val c = constructCache[V](pool)
         c.put(key)(value, None).flatMap(_ => c.get(key))
       }

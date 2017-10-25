@@ -11,8 +11,7 @@ import scalacache.serialization.Codec
 /**
   * Thin wrapper around Jedis that works with Redis Sentinel.
   */
-class SentinelRedisCache[V](val jedisPool: JedisSentinelPool)(implicit val config: CacheConfig,
-                                                              val codec: Codec[V, Array[Byte]])
+class SentinelRedisCache[V](val jedisPool: JedisSentinelPool)(implicit val config: CacheConfig, val codec: Codec[V])
     extends RedisCacheBase[V] {
 
   type JClient = Jedis
@@ -37,9 +36,8 @@ object SentinelRedisCache {
     * @param sentinels set of sentinels in format [host1:port, host2:port]
     * @param password password of the cluster
     */
-  def apply[V](clusterName: String, sentinels: Set[String], password: String)(
-      implicit config: CacheConfig,
-      codec: Codec[V, Array[Byte]]): SentinelRedisCache[V] =
+  def apply[V](clusterName: String, sentinels: Set[String], password: String)(implicit config: CacheConfig,
+                                                                              codec: Codec[V]): SentinelRedisCache[V] =
     apply(new JedisSentinelPool(clusterName, sentinels.asJava, new GenericObjectPoolConfig, password))
 
   /**
@@ -52,7 +50,7 @@ object SentinelRedisCache {
     */
   def apply[V](clusterName: String, sentinels: Set[String], poolConfig: GenericObjectPoolConfig, password: String)(
       implicit config: CacheConfig,
-      codec: Codec[V, Array[Byte]]): SentinelRedisCache[V] =
+      codec: Codec[V]): SentinelRedisCache[V] =
     apply(new JedisSentinelPool(clusterName, sentinels.asJava, poolConfig, password))
 
   /**
@@ -61,7 +59,7 @@ object SentinelRedisCache {
     * @param jedisSentinelPool a JedisSentinelPool
     */
   def apply[V](jedisSentinelPool: JedisSentinelPool)(implicit config: CacheConfig,
-                                                     codec: Codec[V, Array[Byte]]): SentinelRedisCache[V] =
+                                                     codec: Codec[V]): SentinelRedisCache[V] =
     new SentinelRedisCache[V](jedisSentinelPool)
 
 }

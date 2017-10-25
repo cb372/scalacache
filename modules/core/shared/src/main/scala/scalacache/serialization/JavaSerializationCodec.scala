@@ -15,12 +15,12 @@ trait JavaSerializationCodec {
   /**
     * Uses plain Java serialization to deserialize objects
     */
-  implicit def AnyRefBinaryCodec[S <: Serializable](implicit ev: ClassTag[S]): Codec[S, Array[Byte]] =
+  implicit def AnyRefBinaryCodec[S <: Serializable](implicit ev: ClassTag[S]): Codec[S] =
     new JavaSerializationAnyCodec[S](ev)
 
 }
 
-class JavaSerializationAnyCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S, Array[Byte]] {
+class JavaSerializationAnyCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S] {
 
   def using[T <: Closeable, R](obj: T)(f: T => R): R =
     try f(obj)
@@ -29,7 +29,7 @@ class JavaSerializationAnyCodec[S <: Serializable](classTag: ClassTag[S]) extend
       case NonFatal(_) => // does nothing
     }
 
-  def serialize(value: S): Array[Byte] =
+  def encode(value: S): Array[Byte] =
     using(new ByteArrayOutputStream()) { buf =>
       using(new ObjectOutputStream(buf)) { out =>
         out.writeObject(value)
@@ -38,7 +38,7 @@ class JavaSerializationAnyCodec[S <: Serializable](classTag: ClassTag[S]) extend
       }
     }
 
-  def deserialize(data: Array[Byte]): S =
+  def decode(data: Array[Byte]): S =
     using(new ByteArrayInputStream(data)) { buf =>
       val in = new GenericCodecObjectInputStream(classTag, buf)
       using(in) { inp =>

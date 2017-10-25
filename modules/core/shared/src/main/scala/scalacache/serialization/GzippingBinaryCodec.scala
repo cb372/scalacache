@@ -24,7 +24,7 @@ object CompressingCodec {
   * Mixing this into any Codec will automatically GZip the resulting Byte Array when serialising and handle un-Gzipping when
   * deserialising
   */
-trait GZippingBinaryCodec[A] extends Codec[A, Array[Byte]] {
+trait GZippingBinaryCodec[A] extends Codec[A] {
 
   import CompressingCodec._
 
@@ -33,8 +33,8 @@ trait GZippingBinaryCodec[A] extends Codec[A, Array[Byte]] {
     */
   protected def sizeThreshold: Int = CompressingCodec.DefaultSizeThreshold
 
-  abstract override def serialize(value: A): Array[Byte] = {
-    val serialised = super.serialize(value)
+  abstract override def encode(value: A): Array[Byte] = {
+    val serialised = super.encode(value)
     if (serialised.length > sizeThreshold) {
       Headers.Gzipped +: compress(serialised)
     } else {
@@ -42,11 +42,11 @@ trait GZippingBinaryCodec[A] extends Codec[A, Array[Byte]] {
     }
   }
 
-  abstract override def deserialize(data: Array[Byte]): A = {
+  abstract override def decode(data: Array[Byte]): A = {
     val firstByte = data.headOption
     firstByte match {
-      case Some(Headers.Uncompressed) => super.deserialize(data.tail)
-      case Some(Headers.Gzipped) => super.deserialize(decompress(data.tail))
+      case Some(Headers.Uncompressed) => super.decode(data.tail)
+      case Some(Headers.Gzipped) => super.decode(decompress(data.tail))
       case unexpected =>
         throw new RuntimeException(
           s"Expected either ${Headers.Uncompressed} or ${Headers.Gzipped} but got $unexpected")

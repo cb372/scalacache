@@ -30,8 +30,8 @@ class MemcachedCacheSpec
     } catch { case _: Exception => false }
   }
 
-  def serialise[A](v: A)(implicit codec: Codec[A, Array[Byte]]): Array[Byte] =
-    codec.serialize(v)
+  def serialise[A](v: A)(implicit codec: Codec[A]): Array[Byte] =
+    codec.encode(v)
 
   if (!memcachedIsRunning) {
     alert("Skipping tests because Memcached does not appear to be running on localhost.")

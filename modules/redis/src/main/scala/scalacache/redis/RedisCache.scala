@@ -9,7 +9,7 @@ import scalacache.serialization.Codec
 /**
   * Thin wrapper around Jedis
   */
-class RedisCache[V](val jedisPool: JedisPool)(implicit val config: CacheConfig, val codec: Codec[V, Array[Byte]])
+class RedisCache[V](val jedisPool: JedisPool)(implicit val config: CacheConfig, val codec: Codec[V])
     extends RedisCacheBase[V] {
 
   type JClient = Jedis
@@ -30,14 +30,14 @@ object RedisCache {
   /**
     * Create a Redis client connecting to the given host and use it for caching
     */
-  def apply[V](host: String, port: Int)(implicit config: CacheConfig, codec: Codec[V, Array[Byte]]): RedisCache[V] =
+  def apply[V](host: String, port: Int)(implicit config: CacheConfig, codec: Codec[V]): RedisCache[V] =
     apply(new JedisPool(host, port))
 
   /**
     * Create a cache that uses the given Jedis client pool
     * @param jedisPool a Jedis pool
     */
-  def apply[V](jedisPool: JedisPool)(implicit config: CacheConfig, codec: Codec[V, Array[Byte]]): RedisCache[V] =
+  def apply[V](jedisPool: JedisPool)(implicit config: CacheConfig, codec: Codec[V]): RedisCache[V] =
     new RedisCache[V](jedisPool)
 
 }

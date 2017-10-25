@@ -7,13 +7,13 @@ import scala.util.Random
 class GZippingJavaAnyBinaryCodecSpec extends FlatSpec with Matchers {
 
   import GZippingJavaAnyBinaryCodec._
-  val codec = implicitly[Codec[Phone, Array[Byte]]]
+  val codec = implicitly[Codec[Phone]]
 
   it should "work without compression" in {
     val phone = Phone(1, "abc")
-    val serialised = codec.serialize(phone)
+    val serialised = codec.encode(phone)
     serialised.head shouldBe CompressingCodec.Headers.Uncompressed
-    val deserialised = codec.deserialize(serialised)
+    val deserialised = codec.decode(serialised)
     deserialised shouldBe phone
   }
 
@@ -22,9 +22,9 @@ class GZippingJavaAnyBinaryCodecSpec extends FlatSpec with Matchers {
                       Random.alphanumeric
                         .take(CompressingCodec.DefaultSizeThreshold + 1)
                         .mkString)
-    val serialised = codec.serialize(phone)
+    val serialised = codec.encode(phone)
     serialised.head shouldBe CompressingCodec.Headers.Gzipped
-    val deserialised = codec.deserialize(serialised)
+    val deserialised = codec.decode(serialised)
     deserialised shouldBe phone
   }
 
