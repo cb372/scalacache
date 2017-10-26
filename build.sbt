@@ -16,7 +16,7 @@ lazy val root = Project(id = "scalacache", base = file("."))
     sonatypeSettings,
     publishArtifact := false
   )
-  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine)
+  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72)
 
 lazy val core =
   CrossProject(id = "core", file("modules/core"), CrossType.Full)
@@ -77,6 +77,28 @@ lazy val caffeine = module("caffeine")
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine" % "2.5.5",
       "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
+    )
+  )
+
+lazy val catsEffect = module("cats-effect")
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-effect" % "0.4"
+    )
+  )
+
+lazy val monix = module("monix")
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.monix" %% "monix" % "3.0.0-M1"
+    )
+  )
+  .dependsOn(catsEffect)
+
+lazy val scalaz72 = module("scalaz72")
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.scalaz" %% "scalaz-concurrent" % "7.2.16"
     )
   )
 
