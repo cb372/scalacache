@@ -5,6 +5,7 @@ import org.scalatest.{BeforeAndAfter, Matchers, FlatSpec}
 import scalacache._
 import memoization._
 import redis._
+import scalacache.modes.sync._
 
 case class User(id: Int, name: String)
 
@@ -15,17 +16,16 @@ case class User(id: Int, name: String)
 class Issue32Spec extends FlatSpec with Matchers with BeforeAndAfter with RedisTestUtil {
 
   assumingRedisIsRunning { (pool, client) =>
-    // TODO rewrite
-//    implicit val scalaCache = ScalaCache(RedisCache(pool))
-//
-//    def getUser(id: Int): List[User] = memoizeSync {
-//      List(User(id, "Taro"))
-//    }
-//
-//    "memoize and Redis" should "work with List[User]" in {
-//      getUser(1) should be(List(User(1, "Taro")))
-//      getUser(1) should be(List(User(1, "Taro")))
-//    }
+    implicit val cache = RedisCache[List[User]](pool)
+
+    def getUser(id: Int): Id[List[User]] = memoize {
+      List(User(id, "Taro"))
+    }
+
+    "memoize and Redis" should "work with List[User]" in {
+      getUser(1) should be(List(User(1, "Taro")))
+      getUser(1) should be(List(User(1, "Taro")))
+    }
   }
 
 }
