@@ -103,7 +103,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
     // Reproduces https://github.com/cb372/scalacache/issues/13
     """
     implicit val emptyCache = new EmptyCache[Int] with LoggingCache[Int]
-    def foo(key: Int): Id[Int] = memoize {
+    def foo(key: Int): Id[Int] = memoize(None) {
       key + 1
     }
     """ should compile
@@ -272,11 +272,11 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
 
   class MyMockClass(dbCall: Int => String)(implicit val cache: Cache[String], mode: Mode[Id], flags: Flags) {
 
-    def myLongRunningMethod(a: Int, b: String): Id[String] = memoize {
+    def myLongRunningMethod(a: Int, b: String): Id[String] = memoize(None) {
       dbCall(a)
     }
 
-    def withTTL(a: Int, b: String): Id[String] = memoize(10 seconds) {
+    def withTTL(a: Int, b: String): Id[String] = memoize(Some(10 seconds)) {
       dbCall(a)
     }
 
@@ -284,11 +284,11 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
 
   class MyMockClassWithFutures(dbCall: Int => String)(implicit cache: Cache[String], mode: Mode[Future], flags: Flags) {
 
-    def myLongRunningMethod(a: Int, b: String): Future[String] = memoizeF {
+    def myLongRunningMethod(a: Int, b: String): Future[String] = memoizeF(None) {
       Future { dbCall(a) }
     }
 
-    def withTTL(a: Int, b: String): Future[String] = memoizeF(10 seconds) {
+    def withTTL(a: Int, b: String): Future[String] = memoizeF(Some(10 seconds)) {
       Future { dbCall(a) }
     }
 

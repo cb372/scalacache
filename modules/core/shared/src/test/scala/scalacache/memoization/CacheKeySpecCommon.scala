@@ -31,44 +31,44 @@ trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with Befo
     }
   }
 
-  def multipleArgLists(a: Int, b: String)(c: String, d: Int): Future[Int] = memoize {
+  def multipleArgLists(a: Int, b: String)(c: String, d: Int): Future[Int] = memoize(None) {
     123
   }
 
   case class CaseClass(a: Int) { override def toString = "custom toString" }
-  def takesCaseClass(cc: CaseClass): Future[Int] = scalacache.memoization.memoize {
+  def takesCaseClass(cc: CaseClass): Future[Int] = scalacache.memoization.memoize(None) {
     123
   }
 
-  def lazyArg(a: => Int): Future[Int] = memoize {
+  def lazyArg(a: => Int): Future[Int] = memoize(None) {
     123
   }
 
-  def functionArg(a: String => Int): Future[Int] = memoize {
+  def functionArg(a: String => Int): Future[Int] = memoize(None) {
     123
   }
 
   def withExcludedParams(a: Int, @cacheKeyExclude b: String, c: String)(@cacheKeyExclude d: Int): Future[Int] =
-    memoize {
+    memoize(None) {
       123
     }
 
 }
 
 class AClass(implicit cache: Cache[Int]) {
-  def insideClass(a: Int): Future[Int] = memoize {
+  def insideClass(a: Int): Future[Int] = memoize(None) {
     123
   }
 
   class InnerClass {
-    def insideInnerClass(a: Int): Future[Int] = memoize {
+    def insideInnerClass(a: Int): Future[Int] = memoize(None) {
       123
     }
   }
   val inner = new InnerClass
 
   object InnerObject {
-    def insideInnerObject(a: Int): Future[Int] = memoize {
+    def insideInnerObject(a: Int): Future[Int] = memoize(None) {
       123
     }
   }
@@ -77,28 +77,28 @@ class AClass(implicit cache: Cache[Int]) {
 trait ATrait {
   implicit val cache: Cache[Int]
 
-  def insideTrait(a: Int): Future[Int] = memoize {
+  def insideTrait(a: Int): Future[Int] = memoize(None) {
     123
   }
 }
 
 object AnObject {
   implicit var cache: Cache[Int] = null
-  def insideObject(a: Int): Future[Int] = memoize {
+  def insideObject(a: Int): Future[Int] = memoize(None) {
     123
   }
 }
 
 class ClassWithConstructorParams(b: Int) {
   implicit var cache: Cache[Int] = null
-  def foo(a: Int): Future[Int] = memoize {
+  def foo(a: Int): Future[Int] = memoize(None) {
     a + b
   }
 }
 
 class ClassWithExcludedConstructorParam(b: Int, @cacheKeyExclude c: Int) {
   implicit var cache: Cache[Int] = null
-  def foo(a: Int): Future[Int] = memoize {
+  def foo(a: Int): Future[Int] = memoize(None) {
     a + b + c
   }
 }

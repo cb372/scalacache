@@ -18,7 +18,7 @@ class Issue32Spec extends FlatSpec with Matchers with BeforeAndAfter with RedisT
   assumingRedisIsRunning { (pool, client) =>
     implicit val cache = RedisCache[List[User]](pool)
 
-    def getUser(id: Int): Id[List[User]] = memoize {
+    def getUser(id: Int): Id[List[User]] = memoize(None) {
       List(User(id, "Taro"))
     }
 

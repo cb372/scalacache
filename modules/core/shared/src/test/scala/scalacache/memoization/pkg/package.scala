@@ -8,7 +8,7 @@ import scalacache.modes.scalaFuture._
 package object pkg {
   implicit var cache: Cache[Int] = null
 
-  def insidePackageObject(a: Int): Future[Int] = memoize {
+  def insidePackageObject(a: Int): Future[Int] = memoize(None) {
     123
   }
 

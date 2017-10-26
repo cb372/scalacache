@@ -9,45 +9,17 @@ import scalacache.{Flags, Cache, Mode}
 class Macros(val c: blackbox.Context) {
   import c.universe._
 
-  def memoizeImpl[F[_], V: c.WeakTypeTag](
+  def memoizeImpl[F[_], V: c.WeakTypeTag](ttl: c.Expr[Option[Duration]])(
       f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoize($keyName)(_root_.scala.None)($f)($mode, $flags)"""
+      q"""$cache.cachingForMemoize($keyName)($ttl)($f)($mode, $flags)"""
     })
   }
 
-  def memoizeImplWithTTL[F[_], V: c.WeakTypeTag](ttl: c.Expr[Duration])(
+  def memoizeFImpl[F[_], V: c.WeakTypeTag](ttl: c.Expr[Option[Duration]])(
       f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoize($keyName)(_root_.scala.Some($ttl))($f)($mode, $flags)"""
-    })
-  }
-
-  def memoizeImplWithOptionalTTL[F[_], V: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(
-      f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
-    commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoize($keyName)($optionalTtl)($f)($mode, $flags)"""
-    })
-  }
-
-  def memoizeFImpl[F[_], V: c.WeakTypeTag](
-      f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
-    commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoizeF($keyName)(_root_.scala.None)($f)($mode, $flags)"""
-    })
-  }
-
-  def memoizeFImplWithTTL[F[_], V: c.WeakTypeTag](ttl: c.Expr[Duration])(
-      f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
-    commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoizeF($keyName)(_root_.scala.Some($ttl))($f)($mode, $flags)"""
-    })
-  }
-
-  def memoizeFImplWithOptionalTTL[F[_], V: c.WeakTypeTag](optionalTtl: c.Expr[Option[Duration]])(
-      f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
-    commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoizeF($keyName)($optionalTtl)($f)($mode, $flags)"""
+      q"""$cache.cachingForMemoizeF($keyName)($ttl)($f)($mode, $flags)"""
     })
   }
 
