@@ -2,8 +2,7 @@ import org.scalajs.sbtplugin.cross.CrossProject
 
 import xerial.sbt.Sonatype.sonatypeSettings
 import sbtrelease.ReleaseStateTransformations._
-
-import scala.language.postfixOps
+import sys.process.Process
 
 scalafmtOnCompile in ThisBuild := true
 
@@ -28,8 +27,8 @@ lazy val core =
         "org.scalacheck" %% "scalacheck" % "1.13.4" % Test
       ),
       scala211OnlyDeps(
-        "org.squeryl" %% "squeryl" % "0.9.5-7" % Test,
-        "com.h2database" % "h2" % "1.4.182" % Test
+        "org.squeryl" %% "squeryl" % "0.9.9" % Test,
+        "com.h2database" % "h2" % "1.4.196" % Test
       )
     )
 
@@ -60,7 +59,7 @@ lazy val memcached = module("memcached")
 lazy val ehcache = module("ehcache")
   .settings(
     libraryDependencies ++= Seq(
-      "net.sf.ehcache" % "ehcache" % "2.10.2.2.21",
+      "net.sf.ehcache" % "ehcache" % "2.10.4",
       "javax.transaction" % "jta" % "1.1"
     )
   )
@@ -75,8 +74,8 @@ lazy val redis = module("redis")
 lazy val caffeine = module("caffeine")
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.5",
-      "com.google.code.findbugs" % "jsr305" % "3.0.0" % "provided"
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.6",
+      "com.google.code.findbugs" % "jsr305" % "3.0.0" % Provided
     )
   )
 
@@ -127,7 +126,7 @@ lazy val slf4j = Seq(
 )
 
 lazy val scalaTest = Seq(
-  "org.scalatest" %% "scalatest" % "3.0.3" % Test
+  "org.scalatest" %% "scalatest" % "3.0.4" % Test
 )
 
 // Dependencies common to all projects
@@ -139,7 +138,7 @@ lazy val commonSettings =
     Seq(
       organization := "com.github.cb372",
       scalaVersion := ScalaVersion,
-      crossScalaVersions := Seq(ScalaVersion, "2.12.3"),
+      crossScalaVersions := Seq(ScalaVersion, "2.12.4"),
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       resolvers += Resolver.typesafeRepo("releases"),
       libraryDependencies ++= commonDeps,

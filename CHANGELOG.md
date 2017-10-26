@@ -1,3 +1,16 @@
+0.10.0 (2017/10/02)
+---
+
+* Remove dependency on joda-time library by switching to Java 8 time API (internal implementation detail, no breaking API changes) [#139](https://github.com/cb372/scalacache/pull/139)
+* Widen the return type of some methods from `Future[Unit]` to `Future[Any]` [#143](https://github.com/cb372/scalacache/pull/143)
+* Bump dependencies (thanks to @golem131):
+    * spymemcached 2.12.1 -> 2.12.3
+    * caffeine 2.5.2 -> 2.5.5
+    * scalatest 3.0.0 -> 3.0.3
+    * sbt 0.13.16
+    * Scala 2.12.3
+    * scalajs 0.6.17 -> 0.6.19
+
 0.9.4 (2017/06/22)
 ----
 
