@@ -19,11 +19,11 @@ class Issue42Spec extends FlatSpec with Matchers {
 
   def generateNewName() = Random.alphanumeric.take(10).mkString
 
-  def getUser(id: Int)(implicit flags: Flags): User = memoize[Id, User](None) {
+  def getUser(id: Int)(implicit flags: Flags): User = memoizeSync(None) {
     User(id, generateNewName())
   }
 
-  def getUserWithTtl(id: Int)(implicit flags: Flags): User = memoize[Id, User](Some(1 days)) {
+  def getUserWithTtl(id: Int)(implicit flags: Flags): User = memoizeSync(Some(1 days)) {
     User(id, generateNewName())
   }
 

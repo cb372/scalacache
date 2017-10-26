@@ -23,6 +23,13 @@ class Macros(val c: blackbox.Context) {
     })
   }
 
+  def memoizeSyncImpl[V: c.WeakTypeTag](ttl: c.Expr[Option[Duration]])(
+      f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[scalacache.Id]], flags: c.Expr[Flags]): c.Tree = {
+    commonMacroImpl(cache, { keyName =>
+      q"""$cache.cachingForMemoize($keyName)($ttl)($f)($mode, $flags)"""
+    })
+  }
+
   private def commonMacroImpl[F[_], V: c.WeakTypeTag](cache: c.Expr[Cache[V]],
                                                       keyNameToCachingCall: (c.TermName) => c.Tree): Tree = {
 

@@ -103,7 +103,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
     // Reproduces https://github.com/cb372/scalacache/issues/13
     """
     implicit val emptyCache = new EmptyCache[Int] with LoggingCache[Int]
-    def foo(key: Int): Id[Int] = memoize(None) {
+    def foo(key: Int): Int = memoizeSync(None) {
       key + 1
     }
     """ should compile
@@ -272,11 +272,11 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
 
   class MyMockClass(dbCall: Int => String)(implicit val cache: Cache[String], mode: Mode[Id], flags: Flags) {
 
-    def myLongRunningMethod(a: Int, b: String): Id[String] = memoize(None) {
+    def myLongRunningMethod(a: Int, b: String): String = memoizeSync(None) {
       dbCall(a)
     }
 
-    def withTTL(a: Int, b: String): Id[String] = memoize(Some(10 seconds)) {
+    def withTTL(a: Int, b: String): String = memoizeSync(Some(10 seconds)) {
       dbCall(a)
     }
 

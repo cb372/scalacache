@@ -45,7 +45,7 @@ class SquerylIntegrationSpec
     import FooDb.users
     implicit val cache = new MockCache[Option[User]] with LoggingCache[Option[User]]
 
-    def findUser(userId: Int): Option[User] = memoize[Id, Option[User]](None) {
+    def findUser(userId: Int): Option[User] = memoizeSync(None) {
       inTransaction {
         from(users)((u) => select(u))
       }.headOption

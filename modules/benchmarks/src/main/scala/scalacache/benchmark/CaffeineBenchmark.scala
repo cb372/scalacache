@@ -26,7 +26,7 @@ class CaffeineBenchmark {
     cache.get(key)
   }
 
-  def itemCachedMemoize(key: String): Id[String] = memoize {
+  def itemCachedMemoize(key: String): String = memoizeSync(None) {
     value
   }
 
