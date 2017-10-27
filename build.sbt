@@ -15,7 +15,7 @@ lazy val root = Project(id = "scalacache", base = file("."))
     sonatypeSettings,
     publishArtifact := false
   )
-  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72)
+  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, tests)
 
 lazy val core =
   CrossProject(id = "core", file("modules/core"), CrossType.Full)
@@ -100,6 +100,10 @@ lazy val scalaz72 = module("scalaz72")
       "org.scalaz" %% "scalaz-concurrent" % "7.2.16"
     )
   )
+
+lazy val tests = module("tests")
+  .settings(publishArtifact := false)
+  .dependsOn(caffeine, memcached, catsEffect, monix, scalaz72)
 
 lazy val benchmarks = module("benchmarks")
   .enablePlugins(JmhPlugin)
