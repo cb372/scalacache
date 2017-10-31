@@ -17,6 +17,9 @@ trait MonadError[F[_]] {
   // TODO is this needed?
   def raiseError[A](t: Throwable): F[A]
 
+  // Note: the argument is by-name only for the sake of the Id instance.
+  // A bit hacky but it works, at the expense of some overhead for allocating a thunk
+  // even when other implementations don't need it.
   def handleNonFatal[A](fa: => F[A])(f: Throwable => A): F[A]
 
 }
