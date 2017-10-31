@@ -9,39 +9,70 @@ import monix.execution.Scheduler
 
 import scalaz.concurrent.{Task => ScalazTask}
 import net.spy.memcached.{AddrUtil, MemcachedClient}
+import redis.clients.jedis.JedisPool
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
-import scalacache._
+import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 import scalacache.caffeine.CaffeineCache
 import scalacache.memcached.MemcachedCache
+import scalacache.redis.RedisCache
 
 class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   private val memcachedClient = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
+  private val jedisPool = new JedisPool("localhost", 6379)
 
   override def afterAll(): Unit = {
     memcachedClient.shutdown()
+    jedisPool.close()
   }
 
-  def memcachedIsRunning: Boolean = {
+  private def memcachedIsRunning: Boolean = {
     try {
       memcachedClient.get("foo")
       true
     } catch { case _: Exception => false }
   }
 
-  case class CacheBackend(name: String, cache: Cache[String])
+  private def redisIsRunning: Boolean = {
+    try {
+      val jedis = jedisPool.getResource()
+      try {
+        jedis.ping()
+        true
+      } finally {
+        jedis.close()
+      }
+    } catch {
+      case NonFatal(_) => false
+    }
+  }
 
-  private val caffeine = CacheBackend("caffeine", CaffeineCache[String])
+  case class CacheBackend(name: String, cache: scalacache.Cache[String])
+
+  private val caffeine = CacheBackend("Caffeine", CaffeineCache[String])
   private val memcached: Option[CacheBackend] =
     if (memcachedIsRunning)
-      Some(CacheBackend("memcached", MemcachedCache[String](memcachedClient)))
-    else
+      Some(CacheBackend("Memcached", MemcachedCache[String](memcachedClient)))
+    else {
+      alert("Skipping Memcached integration tests because Memcached does not appear to be running on localhost.")
       None
+    }
 
-  val backends: List[CacheBackend] = List(Some(caffeine), memcached).flatten
+  private val redis: Option[CacheBackend] =
+    if (redisIsRunning)
+      Some(CacheBackend("Redis", RedisCache[String](jedisPool)))
+    else {
+      alert("Skipping Redis integration tests because Redis does not appear to be running on localhost.")
+      None
+    }
+
+  val backends: List[CacheBackend] = List(Some(caffeine), memcached, redis).flatten
+
+  import scalacache._
 
   for (CacheBackend(name, cache) <- backends) {
 

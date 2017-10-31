@@ -103,7 +103,7 @@ lazy val scalaz72 = module("scalaz72")
 
 lazy val tests = module("tests")
   .settings(publishArtifact := false)
-  .dependsOn(caffeine, memcached, catsEffect, monix, scalaz72)
+  .dependsOn(caffeine, memcached, redis, catsEffect, monix, scalaz72)
 
 lazy val benchmarks = module("benchmarks")
   .enablePlugins(JmhPlugin)
