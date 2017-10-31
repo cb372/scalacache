@@ -1,12 +1,22 @@
-package scalacache.cats.effect
+package scalacache
 
-import cats.effect.{Async => CatsAsync}
+import cats.effect.{Async => CatsAsync, IO}
 
 import scala.language.higherKinds
 import scala.util.control.NonFatal
-import scalacache.Async
 
-object CatsEffectInstances {
+object CatsEffect {
+
+  object modes {
+
+    /**
+      * A mode that wraps computations in cats-effect IO.
+      */
+    implicit val io: Mode[IO] = new Mode[IO] {
+      val M: Async[IO] = asyncForCatsEffectAsync[IO]
+    }
+
+  }
 
   def asyncForCatsEffectAsync[F[_]](implicit af: CatsAsync[F]): Async[F] = new Async[F] {
 

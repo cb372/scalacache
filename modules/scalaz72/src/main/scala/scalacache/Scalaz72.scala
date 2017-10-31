@@ -1,11 +1,18 @@
-package scalacache.scalaz72
+package scalacache
 
 import scala.util.control.NonFatal
-import scalacache.Async
 import scalaz.\/
 import scalaz.concurrent.{Future, Task}
 
-object ScalazInstances {
+object Scalaz72 {
+
+  object modes {
+
+    implicit val task: Mode[Task] = new Mode[Task] {
+      val M: Async[Task] = AsyncForScalazTask
+    }
+
+  }
 
   val AsyncForScalazTask: Async[Task] = new Async[Task] {
 

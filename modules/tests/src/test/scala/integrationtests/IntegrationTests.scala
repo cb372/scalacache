@@ -15,7 +15,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
+
+import scalacache._
 import scalacache.caffeine.CaffeineCache
 import scalacache.memcached.MemcachedCache
 import scalacache.redis.RedisCache
@@ -51,7 +52,7 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
     }
   }
 
-  case class CacheBackend(name: String, cache: scalacache.Cache[String])
+  case class CacheBackend(name: String, cache: Cache[String])
 
   private val caffeine = CacheBackend("Caffeine", CaffeineCache[String])
   private val memcached: Option[CacheBackend] =
@@ -72,18 +73,16 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   val backends: List[CacheBackend] = List(Some(caffeine), memcached, redis).flatten
 
-  import scalacache._
-
   for (CacheBackend(name, cache) <- backends) {
 
     s"($name) ⇔ (cats-effect IO)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
-      implicit val mode: Mode[CatsIO] = scalacache.cats.effect.modes.io
+      implicit val mode: Mode[CatsIO] = CatsEffect.modes.io
 
       val key = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString
 
-      import _root_.cats.syntax.all._
+      import cats.syntax.all._
       val program =
         for {
           _ <- put(key)(initialValue)
@@ -101,7 +100,7 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
     s"($name) ⇔ (Monix Task)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
-      implicit val mode: Mode[MonixTask] = scalacache.monix.modes.task
+      implicit val mode: Mode[MonixTask] = Monix.modes.task
 
       val key = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString
@@ -117,15 +116,14 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
       checkComputationHasNotRun(key)
 
-      val scheduler: Scheduler = _root_.monix.execution.Scheduler.global
-      val future = program.runAsync(scheduler)
+      val future = program.runAsync(monix.execution.Scheduler.global)
       val result = Await.result(future, Duration.Inf)
       assert(result.contains("prepended " + initialValue))
     }
 
     s"($name) ⇔ (Scalaz Task)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
-      implicit val mode: Mode[ScalazTask] = scalacache.scalaz72.modes.task
+      implicit val mode: Mode[ScalazTask] = Scalaz72.modes.task
 
       val key = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString
