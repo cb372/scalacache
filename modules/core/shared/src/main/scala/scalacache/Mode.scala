@@ -1,5 +1,6 @@
 package scalacache
 
+import scala.annotation.implicitNotFound
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.{higherKinds, implicitConversions}
 import scala.util.Try
@@ -9,8 +10,20 @@ import scala.util.Try
   * in which you want to wrap your computations.
   *
   * @tparam F The effect monad that will wrap the return value of any cache operations.
-  *           e.g. [[scalacache.modes.sync.Id]], [[scala.concurrent.Future]], [[scala.util.Try]] or cats-effect IO.
+  *           e.g. [[scalacache.Id]], [[scala.concurrent.Future]], [[scala.util.Try]] or cats-effect IO.
   */
+@implicitNotFound(msg = """Could not find a Mode for type ${F}.
+
+If you want synchronous execution, try importing the sync mode:
+
+import scalacache.modes.sync._
+
+If you are working with Scala Futures, import the scalaFuture mode
+and don't forget you will also need an ExecutionContext:
+
+import scalacache.modes.scalaFuture._
+import scala.concurrent.ExecutionContext.Implicits.global
+ """)
 trait Mode[F[_]] {
 
   def M: Async[F]
