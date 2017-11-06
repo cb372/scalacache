@@ -67,6 +67,17 @@ package object scalacache extends JavaSerializationCodec with ScalaCacheLowPrior
   def remove[F[_], V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[F]): F[Any] =
     cache.remove(keyParts: _*)
 
+  final class RemoveAll[V] {
+    def apply[F[_]]()(implicit cache: Cache[V], mode: Mode[F]): F[Any] = cache.removeAll[F]()
+  }
+
+  /**
+    * Remove all values from the cache.
+    *
+    * @tparam V The type of values to be removed
+    */
+  def removeAll[V]: RemoveAll[V] = new RemoveAll[V]
+
   /**
     * Wrap the given block with a caching decorator.
     * First look in the cache. If the value is found, then return it immediately.
