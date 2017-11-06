@@ -105,6 +105,15 @@ lazy val tests = module("tests")
   .settings(publishArtifact := false)
   .dependsOn(caffeine, memcached, redis, catsEffect, monix, scalaz72)
 
+lazy val doc = module("doc")
+  .enablePlugins(TutPlugin)
+  .settings(
+    publishArtifact := false,
+    tutNameFilter := """^README.md$""".r,
+    tutTargetDirectory := (baseDirectory in root).value
+  )
+  .dependsOn(coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72)
+
 lazy val benchmarks = module("benchmarks")
   .enablePlugins(JmhPlugin)
   .settings(

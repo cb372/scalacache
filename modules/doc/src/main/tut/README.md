@@ -27,7 +27,7 @@ The JVM must be Java 8 or newer.
 
 At the very least you will need to import the ScalaCache API.
 
-```scala
+```tut:silent
 import scalacache._
 ```
 
@@ -41,7 +41,7 @@ Let's go with Memcached for this example, assuming that there is a Memcached ser
 
 The constructor takes a type parameter, which is the type of the values you want to store in the cache.
 
-```scala
+```tut:silent
 import scalacache.memcached._
 
 case class Cat(id: Int, name: String, colour: String)
@@ -69,58 +69,46 @@ import scalacache.modes.try_._
 
 ### Basic cache operations
 
-```scala
-scala> val ericTheCat = Cat(1, "Eric", "tuxedo")
-ericTheCat: Cat = Cat(1,Eric,tuxedo)
+```tut
+val ericTheCat = Cat(1, "Eric", "tuxedo")
 
-scala> // Choose the Try mode (more on this later)
-     | import scalacache.modes.try_._
+// Choose the Try mode (more on this later)
 import scalacache.modes.try_._
 
-scala> // Add an item to the cache
-     | put("eric")(ericTheCat)
-res4: scala.util.Try[Any] = Success(())
+// Add an item to the cache
+put("eric")(ericTheCat)
 
-scala> // Add an item to the cache with a Time To Live
-     | import scala.concurrent.duration._
+// Add an item to the cache with a Time To Live
 import scala.concurrent.duration._
+put("eric")(ericTheCat, ttl = Some(10.seconds))
 
-scala> put("eric")(ericTheCat, ttl = Some(10.seconds))
-res6: scala.util.Try[Any] = Success(())
+// Retrieve the added item
+get("eric")
 
-scala> // Retrieve the added item
-     | get("eric")
-res8: scala.util.Try[Option[Cat]] = Success(Some(Cat(1,Eric,tuxedo)))
+// Remove it from the cache
+remove("eric")
 
-scala> // Remove it from the cache
-     | remove("eric")
-res10: scala.util.Try[Any] = Success(())
+// Flush the cache
+removeAll[Cat]()
 
-scala> // Flush the cache
-     | removeAll[Cat]()
-res12: scala.util.Try[Any] = Success(())
+// Wrap any block with caching: if the key is not present in the cache,
+// the block will be executed and the value will be cached and returned
+val result = caching("benjamin")(ttl = None) {
+  // e.g. call an external API ...
+  Cat(2, "Benjamin", "ginger")
+}
 
-scala> // Wrap any block with caching: if the key is not present in the cache,
-     | // the block will be executed and the value will be cached and returned
-     | val result = caching("benjamin")(ttl = None) {
-     |   // e.g. call an external API ...
-     |   Cat(2, "Benjamin", "ginger")
-     | }
-result: scala.util.Try[Cat] = Success(Cat(2,Benjamin,ginger))
+// If the result of the block is wrapped in an effect, use cachingF
+val result = cachingF("benjamin")(ttl = None) {
+	import scala.util.Try
+  Try { 
+    // e.g. call an external API ...
+    Cat(2, "Benjamin", "ginger")
+  }
+}
 
-scala> // If the result of the block is wrapped in an effect, use cachingF
-     | val result = cachingF("benjamin")(ttl = None) {
-     | 	import scala.util.Try
-     |   Try { 
-     |     // e.g. call an external API ...
-     |     Cat(2, "Benjamin", "ginger")
-     |   }
-     | }
-result: scala.util.Try[Cat] = Success(Cat(2,Benjamin,ginger))
-
-scala> // You can also pass multiple parts to be combined into one key
-     | put("foo", 123, "bar")(ericTheCat) // Will be cached with key "foo:123:bar"
-res17: scala.util.Try[Any] = Success(())
+// You can also pass multiple parts to be combined into one key
+put("foo", 123, "bar")(ericTheCat) // Will be cached with key "foo:123:bar"
 ```
 
 ### Synchronous API
@@ -349,7 +337,7 @@ libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.10.0"
 
 Usage:
 
-```scala
+```tut:silent
 import scalacache._
 import scalacache.guava._
 
@@ -358,7 +346,7 @@ implicit val guavaCache: Cache[String] = GuavaCache[String]
 
 This will build a Guava cache with all the default settings. If you want to customize your Guava cache, then build it yourself and pass it to `GuavaCache` like this:
 
-```scala
+```tut:silent
 import scalacache._
 import scalacache.guava._
 import com.google.common.cache.CacheBuilder
@@ -377,7 +365,7 @@ libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.10.0"
 
 Usage:
 
-```scala
+```tut:silent
 import scalacache._
 import scalacache.memcached._
 
@@ -386,7 +374,7 @@ implicit val memcachedCache: Cache[String] = MemcachedCache("localhost:11211")
 
 or provide your own Memcached client, like this:
 
-```scala
+```tut:silent
 import scalacache._
 import scalacache.memcached._
 import net.spy.memcached._
@@ -418,7 +406,7 @@ libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.10.0"
 
 Usage:
 
-```scala
+```tut:silent
 import scalacache._
 import scalacache.ehcache._
 import net.sf.ehcache.{Cache => UnderlyingCache, _}
@@ -441,7 +429,7 @@ libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.10.0"
 
 Usage:
 
-```scala
+```tut:silent
 import scalacache._
 import scalacache.redis._
 
@@ -450,7 +438,7 @@ implicit val redisCache: Cache[String] = RedisCache("host1", 6379)
 
 or provide your own [Jedis](https://github.com/xetorthio/jedis) client, like this:
 
-```scala
+```tut:silent
 import scalacache._
 import scalacache.redis._
 import _root_.redis.clients.jedis._
@@ -471,7 +459,7 @@ libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.10.0"
 
 Usage:
 
-```scala
+```tut:silent
 import scalacache._
 import scalacache.caffeine._
 
@@ -480,7 +468,7 @@ implicit val caffeineCache: Cache[String] = CaffeineCache[String]
 
 This will build a Caffeine cache with all the default settings. If you want to customize your Caffeine cache, then build it yourself and pass it to `CaffeineCache` like this:
 
-```scala
+```tut:silent
 import scalacache._
 import scalacache.caffeine._
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -510,5 +498,8 @@ def getUser(id: Int) = memoize {
 }
 ```
 
-
-
+```tut:invisible
+for (cache <- List(catsCache, ehcacheCache, redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache)) {
+  cache.close()(scalacache.modes.sync.mode)
+} 
+```
