@@ -51,26 +51,11 @@ implicit val catsCache: Cache[Cat] = MemcachedCache("localhost:11211")
 
 Note that we made the cache `implicit` so that the ScalaCache API can find it.
 
-### Choose a mode
-
-TODO move this further down
-
-Depending on your application, you might want ScalaCache to wrap its operations in a Try, a Future, a Scalaz Task, or some other effect container.
-
-Or maybe you want to keep it simple and just return plain old values, performing the operations on the current thread and throwing exceptions in case of failure.
-
-In order to control ScalaCache's behaviour in this way, you need to choose a "mode".
-
-We'll come back to modes later. For now, let's choose a mode that wraps all operations in `scala.util.Try`.
-
-``tut:silent
-import scalacache.modes.try_._
-```
-
 ### Basic cache operations
 
 ```tut
 val ericTheCat = Cat(1, "Eric", "tuxedo")
+val doraemon = Cat(99, "Doraemon", "blue")
 
 // Choose the Try mode (more on this later)
 import scalacache.modes.try_._
@@ -80,13 +65,13 @@ put("eric")(ericTheCat)
 
 // Add an item to the cache with a Time To Live
 import scala.concurrent.duration._
-put("eric")(ericTheCat, ttl = Some(10.seconds))
+put("doraemon")(doraemon, ttl = Some(10.seconds))
 
 // Retrieve the added item
 get("eric")
 
 // Remove it from the cache
-remove("eric")
+remove("doraemon")
 
 // Flush the cache
 removeAll[Cat]()
@@ -110,50 +95,133 @@ val result = cachingF("benjamin")(ttl = None) {
 // You can also pass multiple parts to be combined into one key
 put("foo", 123, "bar")(ericTheCat) // Will be cached with key "foo:123:bar"
 ```
+### Modes
+
+Depending on your application, you might want ScalaCache to wrap its operations in a Try, a Future, a Scalaz Task, or some other effect container.
+
+Or maybe you want to keep it simple and just return plain old values, performing the operations on the current thread and throwing exceptions in case of failure.
+
+In order to control ScalaCache's behaviour in this way, you need to choose a "mode".
+
+ScalaCache comes with a few built-in modes.
+
+#### Synchronous mode
+
+```tut:silent
+import scalacache.modes.sync._
+```
+
+* Blocks the current thread until the operation completes
+* Returns a plain value, not wrapped in any container
+* Throws exceptions in case of failure
+
+#### Try mode
+
+```tut:silent
+import scalacache.modes.try_._
+```
+
+* Blocks the current thread until the operation completes
+* Wraps failures in `scala.util.Failure`
+
+#### Future mode
+
+```tut:silent
+import scalacache.modes.scalaFuture._
+```
+
+* Executes the operation on a separate thread and returns a `scala.util.Future`
+
+You will also need an ExecutionContext in implicit scope:
+
+```tut:silent
+import scala.concurrent.ExecutionContext.Implicits.global
+```
+
+#### cats-effect IO mode
+
+You will need a dependency on the `scalacache-cats-effect` module:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.10.0"
+```
+
+```tut:silent
+import scalacache.CatsEffect.modes._
+```
+
+* Wraps the operation in `IO`, deferring execution until it is explicitly run
+
+#### Monix Task
+
+You will need a dependency on the `scalacache-monix` module:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-monix" % "0.10.0"
+```
+
+```tut:silent
+import scalacache.Monix.modes._
+```
+
+* Wraps the operation in `Task`, deferring execution until it is explicitly run
+
+#### Scalaz Task
+
+You will need a dependency on the `scalacache-scalaz72` module:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.10.0"
+```
+
+```tut:silent
+import scalacache.Scalaz72.modes._
+```
+
+* Wraps the operation in `Task`, deferring execution until it is explicitly run
 
 ### Synchronous API
 
-If you don't want to bother with Futures, you can do a blocking read from the cache using the `getSync` method. This just wraps the `get` method, blocking indefinitely.
+Unfortunately Scala's type inference doesn't play very nicely with ScalaCache's synchronous mode.
 
-```scala
+If you want to use synchronous mode, the synchronous API is recommended.
+
+```tut
 import scalacache._
+import scalacache.modes.sync._
 
-val myValue: Option[String] = sync.get("myKey")
+val myValue: Option[Cat] = sync.get("eric")
 ```
 
 If you're using an in-memory cache (e.g. Guava) then this is fine. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then `sync.get` is not recommended. If the network goes down, your app could hang forever!
 
-There are also synchronous versions of the `caching` and `cachingWithTTL` methods available:
+There is also a synchronous version of `caching`:
 
-```scala
-val result = sync.caching("myKey") {
+```tut
+val result = sync.caching("myKey")(ttl = None) {
   // do stuff...
-  "result of block"
-}
-
-val result = sync.cachingWithTTL("myKey")(10.seconds) {
-  // do stuff...
-  "result of block"
+  ericTheCat
 }
 ```
 
 ### Memoization of method results
 
-```scala 
+
+```tut 
 import scalacache._
-import memoization._
+import scalacache.memoization._
 
-implicit val scalaCache = ScalaCache(new MyCache())
+import scalacache.modes.try_._
+import scala.util.Try
 
-def getUser(id: Int): Future[User] = memoize {
-  Future {
-    // Retrieve data from a remote API here ...
-    User(id, s"user${id}")
-  }
-}
+// TODO sort out ambiguous implicit here
+//def getCat(id: Int): Try[Cat] = memoize(Some(10.seconds)) {
+//  // Retrieve data from a remote API here ...
+//  Cat(id, s"cat ${id}", "black")
+//}
 ```
 
-Did you spot the magic word 'memoize' in the `getUser` method? Just adding this keyword will cause the result of the method to be memoized to a cache.
+Did you spot the magic word 'memoize' in the `getCat` method? Just adding this keyword will cause the result of the method to be memoized to a cache.
 The next time you call the method with the same arguments the result will be retrieved from the cache and returned immediately.
 
 #### Time To Live
