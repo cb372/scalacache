@@ -225,6 +225,35 @@ result: Cat = Cat(1,Eric,tuxedo)
 
 ### Memoization of method results
 
+```scala
+scala> import scalacache._
+import scalacache._
+
+scala> import scalacache.memoization._
+import scalacache.memoization._
+
+scala> import scalacache.modes.try_._
+import scalacache.modes.try_._
+
+scala> import scala.util.Try
+import scala.util.Try
+
+scala> // You wouldn't normally need to specify the type params for memoize.
+     | // This is an artifact of the way this README is generated using tut.
+     | def getCat(id: Int): Try[Cat] = memoize[Try, Cat](Some(10.seconds)) {
+     |   // Retrieve data from a remote API here ...
+     |   Cat(id, s"cat ${id}", "black")
+     | }
+getCat: (id: Int)scala.util.Try[Cat]
+
+scala> getCat(123)
+res20: scala.util.Try[Cat] = Success(Cat(123,cat 123,black))
+```
+
+Did you spot the magic word 'memoize' in the `getCat` method? Just adding this keyword will cause the result of the method to be memoized to a cache.
+The next time you call the method with the same arguments the result will be retrieved from the cache and returned immediately.
+
+If the result of your block is wrapped in an effect container, use `memoizeF`:
 
 ```scala
 scala> import scalacache._
@@ -239,54 +268,41 @@ import scalacache.modes.try_._
 scala> import scala.util.Try
 import scala.util.Try
 
-scala> // TODO sort out ambiguous implicit here
-     | //def getCat(id: Int): Try[Cat] = memoize(Some(10.seconds)) {
-     | //  // Retrieve data from a remote API here ...
-     | //  Cat(id, s"cat ${id}", "black")
-     | //}
+scala> def getCatF(id: Int): Try[Cat] = memoizeF[Try, Cat](Some(10.seconds)) {
+     |   Try {
+     |     // Retrieve data from a remote API here ...
+     |     Cat(id, s"cat ${id}", "black")
+     |   }
+     | }
+getCatF: (id: Int)scala.util.Try[Cat]
+
+scala> getCatF(123)
+res21: scala.util.Try[Cat] = Success(Cat(123,cat 123,black))
 ```
-
-Did you spot the magic word 'memoize' in the `getCat` method? Just adding this keyword will cause the result of the method to be memoized to a cache.
-The next time you call the method with the same arguments the result will be retrieved from the cache and returned immediately.
-
-#### Time To Live
-
-You can optionally specify a Time To Live for the cached result:
-
-```scala 
-import concurrent.duration._
-import language.postfixOps
-
-def getUser(id: Int): Future[User] = memoize(60 seconds) {
-  Future {
-    // Retrieve data from a remote API here ...
-    User(id, s"user${id}")
-  }
-}
-```
-
-In the above sample, the retrieved User object will be evicted from the cache after 60 seconds.
 
 #### Synchronous memoization API
 
-Again, there are synchronous equivalents available for the case where you don't want to bother with Futures:
+Again, there is a synchronous memoization method for convient use of the synchronous mode:
 
-```scala 
-import scalacache._
-import memoization._
+```scala
+scala> import scalacache.modes.sync._
+import scalacache.modes.sync._
 
-implicit val scalaCache = ScalaCache(new MyCache())
+scala> def getCatSync(id: Int): Cat = memoizeSync(Some(10.seconds)) {
+     |   // Do DB lookup here ...
+     |   Cat(id, s"cat ${id}", "black")
+     | }
+getCatSync: (id: Int)Cat
 
-def getUser(id: Int): User = memoizeSync {
-  // Do DB lookup here...
-  User(id, s"user${id}")
-}
+scala> getCatSync(123)
+res22: Cat = Cat(123,cat 123,black)
 ```
 
 #### How it works
 
-Like Spring Cache and similar frameworks, ScalaCache automatically builds a cache key based on the method being called, and the values of the arguments being passed to that method.
-However, instead of using proxies like Spring, it makes use of Scala macros, so most of the information needed to build the cache key is gathered at compile time. No reflection or AOP magic is required at runtime.
+`memoize` automatically builds a cache key based on the method being called, and the values of the arguments being passed to that method.
+
+Under the hood it makes use of Scala macros, so most of the information needed to build the cache key is gathered at compile time. No reflection or AOP magic is required at runtime.
 
 #### Cache key generation
 
@@ -294,11 +310,11 @@ The cache key is built automatically from the class name, the name of the enclos
 
 For example, given the following method:
 
-```scala 
+```scala
 package foo
 
 object Bar {
-  def baz(a: Int, b: String)(c: String): Int = memoizeSync {
+  def baz(a: Int, b: String)(c: String): Int = memoizeSync(None) {
     // Reticulating splines...   
     123
   }
@@ -306,7 +322,8 @@ object Bar {
 ```
 
 the result of the method call
-```scala 
+
+```scala
 val result = Bar.baz(1, "hello")("world")
 ```
 
@@ -325,7 +342,7 @@ package foo
 
 class Bar(a: Int) {
 
-  def baz(b: Int): Int = memoizeSync {
+  def baz(b: Int): Int = memoizeSync(None) {
     a + b
   }
   
@@ -334,9 +351,8 @@ class Bar(a: Int) {
 
 then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
 
-```scala 
-implicit val scalaCache = ScalaCache(
-  cache = ... ,
+```scala
+implicit val cacheConfig = CacheConfig(
   memoization = MemoizationConfig(MethodCallToStringConverter.includeClassConstructorParams)
 )
 ```
@@ -355,7 +371,7 @@ If there are any parameters (either method arguments or class constructor argume
 For example:
 
 ```scala
-def doSomething(userId: UserId)(implicit @cacheKeyExclude db: DBConnection) = memoize {
+def doSomething(userId: UserId)(implicit @cacheKeyExclude db: DBConnection): String = memoize {
   ...
 }
 ```
@@ -378,20 +394,15 @@ Note that your memoized method must take an implicit parameter of type `Flags`. 
 
 Example:
 
-```scala 
-import scalacache._
-import memoization._
-
-implicit val scalaCache = ScalaCache(new MyCache())
-
-def getUser(id: Int)(implicit flags: Flags): User = memoizeSync {
+```scala
+def getCatWithFlags(id: Int)(implicit flags: Flags): Cat = memoizeSync(None) {
   // Do DB lookup here...
-  User(id, s"user${id}")
+  Cat(id, s"cat ${id}", "black")
 }
 
-def getUser(id: Int, skipCache: Boolean): User = {
+def getCatMaybeSkippingCache(id: Int, skipCache: Boolean): Cat = {
   implicit val flags = Flags(readsEnabled = !skipCache)
-  getUser(id)
+  getCatWithFlags(id)
 }
 ```
 
@@ -590,6 +601,17 @@ def getUser(id: Int) = memoize {
   // Do stuff...
 }
 ```
+
+## About this README
+
+This README is generated using [tut](https://github.com/tpolecat/tut), so all the code samples are known to compile and run.
+
+To make a change to the README:
+
+1. Make sure that memcached is running on localhost:11211
+2. Edit [modules/doc/src/main/tut/README.md](modules/doc/src/main/tut/README.md)
+3. Run `sbt doc/tut`
+4. Commit both the source file `modules/doc/src/main/tut/README.md` and the generated file `./README.md` to git.
 
 
 
