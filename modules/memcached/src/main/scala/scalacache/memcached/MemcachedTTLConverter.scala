@@ -28,19 +28,16 @@ trait MemcachedTTLConverter {
     * @param ttl optional TTL
     * @return corresponding Memcached expiry
     */
-  def toMemcachedExpiry(ttl: Option[Duration])(implicit clock: Clock =
-                                                 Clock.systemUTC()): Int = {
+  def toMemcachedExpiry(ttl: Option[Duration])(implicit clock: Clock = Clock.systemUTC()): Int = {
     ttl.map(durationToExpiry).getOrElse(0)
   }
 
-  private def durationToExpiry(duration: Duration)(
-      implicit clock: Clock): Int = duration match {
+  private def durationToExpiry(duration: Duration)(implicit clock: Clock): Int = duration match {
     case Duration.Zero => 0
 
     case d if d < 1.second => {
       if (logger.isWarnEnabled) {
-        logger.warn(
-          s"Because Memcached does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
+        logger.warn(s"Because Memcached does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
       }
       1
     }

@@ -2,6 +2,7 @@ package sample
 
 import scalacache._
 import memoization._
+import scalacache.modes.scalaFuture._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -12,32 +13,31 @@ import language.postfixOps
 case class User(id: Int, name: String)
 
 /**
- * Sample showing how to use ScalaCache.
- */
+  * Sample showing how to use ScalaCache.
+  */
 object Sample extends App {
 
   class UserRepository {
-    implicit val cacheConfig = ScalaCache(new MockCache())
+    implicit val cache: Cache[User] = new MockCache()
 
-    def getUser(id: Int): Future[User] = memoize {
+    def getUser(id: Int): Future[User] = memoizeF(None) {
       // Do DB lookup here...
       Future { User(id, s"user$id") }
     }
 
-    def withExpiry(id: Int): Future[User] = memoize(60 seconds) {
+    def withExpiry(id: Int): Future[User] = memoizeF(Some(60 seconds)) {
       // Do DB lookup here...
       Future { User(id, s"user$id") }
     }
 
-    def withOptionalExpiry(id: Int): Future[User] = memoize(Option(60 seconds)) {
+    def withOptionalExpiry(id: Int): Future[User] = memoizeF(Some(60 seconds)) {
       Future { User(id, s"user$id") }
     }
 
-    def withOptionalExpiryNone(id: Int): Future[User] = memoize(None) {
+    def withOptionalExpiryNone(id: Int): Future[User] = memoizeF(None) {
       Future { User(id, s"user$id") }
     }
 
   }
 
 }
-

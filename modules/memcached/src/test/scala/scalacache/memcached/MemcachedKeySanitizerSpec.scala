@@ -28,11 +28,7 @@ class ReplaceAndTruncateSanitizerSpec extends FlatSpec with Matchers {
 
 }
 
-class HashingMemcachedKeySanitizerSpec
-    extends FlatSpec
-    with Matchers
-    with ScalaFutures
-    with IntegrationPatience {
+class HashingMemcachedKeySanitizerSpec extends FlatSpec with Matchers with ScalaFutures with IntegrationPatience {
   behavior of "HashingMemcachedKeySanitizer"
 
   val longString = "lolol&%'(%$)$ほげほげ野郎123**+" * 500
@@ -68,8 +64,7 @@ class HashingMemcachedKeySanitizerSpec
       algo <- Seq(MD5, SHA1, SHA256, SHA512)
       hashingSanitizer = HashingMemcachedKeySanitizer(algo)
     } yield {
-      Future.sequence((1 to 300).map(_ =>
-        Future { hashingSanitizer.toValidMemcachedKey(longString) }))
+      Future.sequence((1 to 300).map(_ => Future { hashingSanitizer.toValidMemcachedKey(longString) }))
     }
     val fSeqHashes = Future.sequence(seqFHashes)
     whenReady(fSeqHashes) { hashess =>

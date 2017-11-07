@@ -7,10 +7,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 import scala.concurrent.duration._
 
-class MemcachedTTLConverterSpec
-    extends FlatSpec
-    with Matchers
-    with MemcachedTTLConverter {
+class MemcachedTTLConverterSpec extends FlatSpec with Matchers with MemcachedTTLConverter {
   behavior of "MemcachedTTLConverter"
 
   it should "convert None to 0" in {
@@ -40,8 +37,7 @@ class MemcachedTTLConverterSpec
   it should "convert a duration longer than 30 days to the expiry time expressed as UNIX epoch seconds" in {
     val now = Instant.now()
     val clock = Clock.fixed(now, ZoneOffset.UTC)
-    toMemcachedExpiry(Some(31.days))(clock) should be(
-      now.plus(31, ChronoUnit.DAYS).toEpochMilli / 1000)
+    toMemcachedExpiry(Some(31.days))(clock) should be(now.plus(31, ChronoUnit.DAYS).toEpochMilli / 1000)
   }
 
 }

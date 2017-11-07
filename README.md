@@ -4,8 +4,6 @@
 
 [![Build Status](https://travis-ci.org/cb372/scalacache.png?branch=master)](https://travis-ci.org/cb372/scalacache) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.cb372/scalacache-core_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.cb372/scalacache-core_2.11)
 
-(formerly known as Cacheable)
-
 A facade for the most popular cache implementations, with a simple, idiomatic Scala API.
 
 Use ScalaCache to add caching to any Scala app with the minimum of fuss.
@@ -17,158 +15,279 @@ The following cache implementations are supported, and it's easy to plugin your 
 * Redis
 * [Caffeine](https://github.com/ben-manes/caffeine)
 
-## Versioning
+## Compatibility
 
 ScalaCache is available for Scala 2.11.x and 2.12.x.
 
 The JVM must be Java 8 or newer.
 
-## How to use
+## Getting Started
 
-### ScalaCache instance
+### Imports
 
-To use ScalaCache you must first create a `ScalaCache` instance and ensure it is in implicit scope.
-The `ScalaCache` is a container for the cache itself, as well as a variety of configuration parameters.
-It packages up everything needed for caching into one case class for easy implicit passing.
-
-The simplest way to construct a `ScalaCache` is just to pass a cache instance, like this:
+At the very least you will need to import the ScalaCache API.
 
 ```scala
 import scalacache._
-
-implicit val scalaCache = ScalaCache(new MyCache())
 ```
 
-Note that depending on your cache implementation, the cache may take an `ExecutionContext` in its constructor. By default it will use `ExecutionContext.global`, but you can pass in a custom one if you wish.
+Note that this import also brings a bunch of useful implicit magic into scope.
+
+### Create a cache
+
+You'll need to choose a cache implementation. If you want a high performance in-memory cache, Caffeine is a good choice. For a distributed cache, shared between multiple instances of your application, you might want Redis or Memcached.
+
+Let's go with Memcached for this example, assuming that there is a Memcached server running on localhost.
+
+The constructor takes a type parameter, which is the type of the values you want to store in the cache.
+
+```scala
+import scalacache.memcached._
+
+case class Cat(id: Int, name: String, colour: String)
+
+implicit val catsCache: Cache[Cat] = MemcachedCache("localhost:11211")
+```
+
+Note that we made the cache `implicit` so that the ScalaCache API can find it.
 
 ### Basic cache operations
 
-Assuming you have a `ScalaCache` in implicit scope:
+```scala
+scala> val ericTheCat = Cat(1, "Eric", "tuxedo")
+ericTheCat: Cat = Cat(1,Eric,tuxedo)
+
+scala> val doraemon = Cat(99, "Doraemon", "blue")
+doraemon: Cat = Cat(99,Doraemon,blue)
+
+scala> // Choose the Try mode (more on this later)
+     | import scalacache.modes.try_._
+import scalacache.modes.try_._
+
+scala> // Add an item to the cache
+     | put("eric")(ericTheCat)
+res4: scala.util.Try[Any] = Success(())
+
+scala> // Add an item to the cache with a Time To Live
+     | import scala.concurrent.duration._
+import scala.concurrent.duration._
+
+scala> put("doraemon")(doraemon, ttl = Some(10.seconds))
+res6: scala.util.Try[Any] = Success(())
+
+scala> // Retrieve the added item
+     | get("eric")
+res8: scala.util.Try[Option[Cat]] = Success(Some(Cat(1,Eric,tuxedo)))
+
+scala> // Remove it from the cache
+     | remove("doraemon")
+res10: scala.util.Try[Any] = Success(())
+
+scala> // Flush the cache
+     | removeAll[Cat]()
+res12: scala.util.Try[Any] = Success(())
+
+scala> // Wrap any block with caching: if the key is not present in the cache,
+     | // the block will be executed and the value will be cached and returned
+     | val result = caching("benjamin")(ttl = None) {
+     |   // e.g. call an external API ...
+     |   Cat(2, "Benjamin", "ginger")
+     | }
+result: scala.util.Try[Cat] = Success(Cat(2,Benjamin,ginger))
+
+scala> // If the result of the block is wrapped in an effect, use cachingF
+     | val result = cachingF("benjamin")(ttl = None) {
+     | 	import scala.util.Try
+     |   Try { 
+     |     // e.g. call an external API ...
+     |     Cat(2, "Benjamin", "ginger")
+     |   }
+     | }
+result: scala.util.Try[Cat] = Success(Cat(2,Benjamin,ginger))
+
+scala> // You can also pass multiple parts to be combined into one key
+     | put("foo", 123, "bar")(ericTheCat) // Will be cached with key "foo:123:bar"
+res17: scala.util.Try[Any] = Success(())
+```
+### Modes
+
+Depending on your application, you might want ScalaCache to wrap its operations in a Try, a Future, a Scalaz Task, or some other effect container.
+
+Or maybe you want to keep it simple and just return plain old values, performing the operations on the current thread and throwing exceptions in case of failure.
+
+In order to control ScalaCache's behaviour in this way, you need to choose a "mode".
+
+ScalaCache comes with a few built-in modes.
+
+#### Synchronous mode
 
 ```scala
-import scalacache._
-
-// Add an item to the cache
-put("myKey")("myValue") // returns a Future[Unit]
-
-// Add an item to the cache with a Time To Live
-put("otherKey")("otherValue", ttl = Some(10.seconds))
-
-// Retrieve the added item
-get[String, NoSerialization]("myKey") // returns a Future of an Option
-
-// If you are using a serializing cache implementation (Memcached or Redis), use Array[Byte]
-get[String, Array[Byte]]("myKey") // returns a Future of an Option
-
-// Remove it from the cache
-remove("myKey") // returns a Future[Unit]
-
-// Flush the cache
-removeAll() // returns a Future[Unit]
-
-// Wrap any block with caching
-val future: Future[String] = caching("myKey") {
-  Future { 
-    // e.g. call an external API ...
-    "result of block" 
-  }
-}
-
-// You can specify a Time To Live if you like
-val future: Future[String] = cachingWithTTL("myKey")(10.seconds) {
-  Future {
-    // do stuff...
-    "result of block"
-  }
-}
-
-// You can also pass multiple parts to be combined into one key
-put("foo", 123, "bar")(value) // Will be cached with key "foo:123:bar"
+import scalacache.modes.sync._
 ```
+
+* Blocks the current thread until the operation completes
+* Returns a plain value, not wrapped in any container
+* Throws exceptions in case of failure
+
+Note: If you're using an in-memory cache (e.g. Guava or Caffeine) then it makes sense to use the synchronous mode. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then this mode is not recommended. If the network goes down, your app could hang forever!
+
+#### Try mode
+
+```scala
+import scalacache.modes.try_._
+```
+
+* Blocks the current thread until the operation completes
+* Wraps failures in `scala.util.Failure`
+
+#### Future mode
+
+```scala
+import scalacache.modes.scalaFuture._
+```
+
+* Executes the operation on a separate thread and returns a `scala.util.Future`
+
+You will also need an ExecutionContext in implicit scope:
+
+```scala
+import scala.concurrent.ExecutionContext.Implicits.global
+```
+
+#### cats-effect IO mode
+
+You will need a dependency on the `scalacache-cats-effect` module:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.10.0"
+```
+
+```scala
+import scalacache.CatsEffect.modes._
+```
+
+* Wraps the operation in `IO`, deferring execution until it is explicitly run
+
+#### Monix Task
+
+You will need a dependency on the `scalacache-monix` module:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-monix" % "0.10.0"
+```
+
+```scala
+import scalacache.Monix.modes._
+```
+
+* Wraps the operation in `Task`, deferring execution until it is explicitly run
+
+#### Scalaz Task
+
+You will need a dependency on the `scalacache-scalaz72` module:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.10.0"
+```
+
+```scala
+import scalacache.Scalaz72.modes._
+```
+
+* Wraps the operation in `Task`, deferring execution until it is explicitly run
 
 ### Synchronous API
 
-If you don't want to bother with Futures, you can do a blocking read from the cache using the `getSync` method. This just wraps the `get` method, blocking indefinitely.
+Unfortunately Scala's type inference doesn't play very nicely with ScalaCache's synchronous mode.
+
+If you want to use synchronous mode, the synchronous API is recommended. This works in exactly the same way as the normal API; it is provided merely as a convenience so you don't have to jump through hoops to make your code compile when using the synchronous mode.
 
 ```scala
+scala> import scalacache._
 import scalacache._
 
-val myValue: Option[String] = sync.get("myKey")
+scala> import scalacache.modes.sync._
+import scalacache.modes.sync._
+
+scala> val myValue: Option[Cat] = sync.get("eric")
+myValue: Option[Cat] = None
 ```
 
-If you're using an in-memory cache (e.g. Guava) then this is fine. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then `sync.get` is not recommended. If the network goes down, your app could hang forever!
-
-There are also synchronous versions of the `caching` and `cachingWithTTL` methods available:
+There is also a synchronous version of `caching`:
 
 ```scala
-val result = sync.caching("myKey") {
-  // do stuff...
-  "result of block"
-}
-
-val result = sync.cachingWithTTL("myKey")(10.seconds) {
-  // do stuff...
-  "result of block"
-}
+scala> val result = sync.caching("myKey")(ttl = None) {
+     |   // do stuff...
+     |   ericTheCat
+     | }
+result: Cat = Cat(1,Eric,tuxedo)
 ```
 
 ### Memoization of method results
 
-```scala 
-import scalacache._
-import memoization._
+```scala
+scala> import scalacache.memoization._
+import scalacache.memoization._
 
-implicit val scalaCache = ScalaCache(new MyCache())
+scala> import scalacache.modes.try_._
+import scalacache.modes.try_._
 
-def getUser(id: Int): Future[User] = memoize {
-  Future {
-    // Retrieve data from a remote API here ...
-    User(id, s"user${id}")
-  }
-}
+scala> import scala.util.Try
+import scala.util.Try
+
+scala> // You wouldn't normally need to specify the type params for memoize.
+     | // This is an artifact of the way this README is generated using tut.
+     | def getCat(id: Int): Try[Cat] = memoize[Try, Cat](Some(10.seconds)) {
+     |   // Retrieve data from a remote API here ...
+     |   Cat(id, s"cat ${id}", "black")
+     | }
+getCat: (id: Int)scala.util.Try[Cat]
+
+scala> getCat(123)
+res20: scala.util.Try[Cat] = Success(Cat(123,cat 123,black))
 ```
 
-Did you spot the magic word 'memoize' in the `getUser` method? Just adding this keyword will cause the result of the method to be memoized to a cache.
+Did you spot the magic word 'memoize' in the `getCat` method? Just adding this keyword will cause the result of the method to be memoized to a cache.
 The next time you call the method with the same arguments the result will be retrieved from the cache and returned immediately.
 
-#### Time To Live
+If the result of your block is wrapped in an effect container, use `memoizeF`:
 
-You can optionally specify a Time To Live for the cached result:
+```scala
+scala> def getCatF(id: Int): Try[Cat] = memoizeF[Try, Cat](Some(10.seconds)) {
+     |   Try {
+     |     // Retrieve data from a remote API here ...
+     |     Cat(id, s"cat ${id}", "black")
+     |   }
+     | }
+getCatF: (id: Int)scala.util.Try[Cat]
 
-```scala 
-import concurrent.duration._
-import language.postfixOps
-
-def getUser(id: Int): Future[User] = memoize(60 seconds) {
-  Future {
-    // Retrieve data from a remote API here ...
-    User(id, s"user${id}")
-  }
-}
+scala> getCatF(123)
+res21: scala.util.Try[Cat] = Success(Cat(123,cat 123,black))
 ```
-
-In the above sample, the retrieved User object will be evicted from the cache after 60 seconds.
 
 #### Synchronous memoization API
 
-Again, there are synchronous equivalents available for the case where you don't want to bother with Futures:
+Again, there is a synchronous memoization method for convient use of the synchronous mode:
 
-```scala 
-import scalacache._
-import memoization._
+```scala
+scala> import scalacache.modes.sync._
+import scalacache.modes.sync._
 
-implicit val scalaCache = ScalaCache(new MyCache())
+scala> def getCatSync(id: Int): Cat = memoizeSync(Some(10.seconds)) {
+     |   // Do DB lookup here ...
+     |   Cat(id, s"cat ${id}", "black")
+     | }
+getCatSync: (id: Int)Cat
 
-def getUser(id: Int): User = memoizeSync {
-  // Do DB lookup here...
-  User(id, s"user${id}")
-}
+scala> getCatSync(123)
+res22: Cat = Cat(123,cat 123,black)
 ```
 
 #### How it works
 
-Like Spring Cache and similar frameworks, ScalaCache automatically builds a cache key based on the method being called, and the values of the arguments being passed to that method.
-However, instead of using proxies like Spring, it makes use of Scala macros, so most of the information needed to build the cache key is gathered at compile time. No reflection or AOP magic is required at runtime.
+`memoize` automatically builds a cache key based on the method being called, and the values of the arguments being passed to that method.
+
+Under the hood it makes use of Scala macros, so most of the information needed to build the cache key is gathered at compile time. No reflection or AOP magic is required at runtime.
 
 #### Cache key generation
 
@@ -176,11 +295,11 @@ The cache key is built automatically from the class name, the name of the enclos
 
 For example, given the following method:
 
-```scala 
+```scala
 package foo
 
 object Bar {
-  def baz(a: Int, b: String)(c: String): Int = memoizeSync {
+  def baz(a: Int, b: String)(c: String): Int = memoizeSync(None) {
     // Reticulating splines...   
     123
   }
@@ -188,7 +307,8 @@ object Bar {
 ```
 
 the result of the method call
-```scala 
+
+```scala
 val result = Bar.baz(1, "hello")("world")
 ```
 
@@ -207,7 +327,7 @@ package foo
 
 class Bar(a: Int) {
 
-  def baz(b: Int): Int = memoizeSync {
+  def baz(b: Int): Int = memoizeSync(None) {
     a + b
   }
   
@@ -216,9 +336,8 @@ class Bar(a: Int) {
 
 then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
 
-```scala 
-implicit val scalaCache = ScalaCache(
-  cache = ... ,
+```scala
+implicit val cacheConfig = CacheConfig(
   memoization = MemoizationConfig(MethodCallToStringConverter.includeClassConstructorParams)
 )
 ```
@@ -237,7 +356,7 @@ If there are any parameters (either method arguments or class constructor argume
 For example:
 
 ```scala
-def doSomething(userId: UserId)(implicit @cacheKeyExclude db: DBConnection) = memoize {
+def doSomething(userId: UserId)(implicit @cacheKeyExclude db: DBConnection): String = memoize {
   ...
 }
 ```
@@ -260,43 +379,19 @@ Note that your memoized method must take an implicit parameter of type `Flags`. 
 
 Example:
 
-```scala 
-import scalacache._
-import memoization._
-
-implicit val scalaCache = ScalaCache(new MyCache())
-
-def getUser(id: Int)(implicit flags: Flags): User = memoizeSync {
+```scala
+def getCatWithFlags(id: Int)(implicit flags: Flags): Cat = memoizeSync(None) {
   // Do DB lookup here...
-  User(id, s"user${id}")
+  Cat(id, s"cat ${id}", "black")
 }
 
-def getUser(id: Int, skipCache: Boolean): User = {
+def getCatMaybeSkippingCache(id: Int, skipCache: Boolean): Cat = {
   implicit val flags = Flags(readsEnabled = !skipCache)
-  getUser(id)
+  getCatWithFlags(id)
 }
 ```
 
 Tip: Because the flags are passed as a parameter to your method, they will be included in the generated cache key. This means the cache key will vary depending on the value of the flags, which is probably not what you want. In that case, you should exclude the `implicit flags: Flags` parameter from cache key generation by annotating it with `@cacheKeyExclude`.
-
-### Typed API
-
-If you are only storing one type of object in your cache, and you want to ensure you don't accidentally cache something of the wrong type, you can use the Typed API:
-
-```scala
-import scalacache._
-
-implicit val scalaCache = ScalaCache(new MyCache())
-
-// Use NoSerialization for in-memory caches such as Caffeine, 
-// or Array[Byte] for serializing caches such as Memcached or Redis
-val cache = typed[User, NoSerialization]
-
-cache.put("key", User(123, "Chris")) // OK
-cache.put("key", "wibble") // Compile error!
-
-cache.get("key") // returns Future[Option[User]]
-```
 
 ## Serialization / Deserialization
 
@@ -306,27 +401,18 @@ types, and provide an implementation for objects based on Java serialisation.
 
 ### Custom Codec
 
-If you want to use a custom `Codec` for your object of type `A`, simply implement an instance of `Codec[A, Array[Byte]]` and make sure it
-is in scope at your `set`/`put` call site.
+If you want to use a custom `Codec` for your object of type `A`, simply implement an instance of `Codec[A]` and make sure it
+is in scope at your `get`/`put` call site.
 
-### Compression of `Codec[A, Array[Byte]]`
+### Compression of `Codec[A]`
 
 If you want to compress your serialised data before sending it to your cache, ScalaCache has a built-in `GZippingBinaryCodec[A]` mix-in
 trait that will automatically apply GZip  compression before sending it over the wire if the `Array[Byte]` representation is above a `sizeThreshold`. 
-It also takes care of properly decompressing data upon retrieval. To use it, simply extend your `Codec[A, Array[Byte] with GZippingBinaryCodec[A]` 
+It also takes care of properly decompressing data upon retrieval. To use it, simply extend your `Codec[A]` with `GZippingBinaryCodec[A]` 
 **last** (it should be the right-most extended trait).
 
 Those who want to use GZip compression with standard Java serialisation can `import scalacache.serialization.GZippingJavaAnyBinaryCodec._` or
 provide an implicit `GZippingJavaAnyBinaryCodec` at the cache call site.
-
-### Backwards compatibility
-
-In the interests of keeping backward compatibility with older versions of ScalaCache before serialization was handled by `Codec`,
-`MemcachedCache`, `RedisCache`, `SentinelRedisCache`, and `SharedRedisCache` have a `useLegacySerialization` boolean parameter,
-which allows you to continue using the original ScalaCache serialization/deserialization logic.
-
-Legacy users who want to avoid deserialization errors when uprading should set this parameter to `true` *or* clear your caches
-before deploying code that depends on ScalaCache after version `0.7.5`
 
 ## Cache implementations
 
@@ -342,20 +428,20 @@ Usage:
 
 ```scala
 import scalacache._
-import guava._
+import scalacache.guava._
 
-implicit val scalaCache = ScalaCache(GuavaCache())
+implicit val guavaCache: Cache[String] = GuavaCache[String]
 ```
 
 This will build a Guava cache with all the default settings. If you want to customize your Guava cache, then build it yourself and pass it to `GuavaCache` like this:
 
 ```scala
 import scalacache._
-import guava._
+import scalacache.guava._
 import com.google.common.cache.CacheBuilder
 
-val underlyingGuavaCache = CacheBuilder.newBuilder().maximumSize(10000L).build[String, Object]
-implicit val scalaCache = ScalaCache(GuavaCache(underlyingGuavaCache))
+val underlyingGuavaCache = CacheBuilder.newBuilder().maximumSize(10000L).build[String, Entry[String]]
+implicit val guavaCache: Cache[String] = GuavaCache(underlyingGuavaCache)
 ```
 
 ### Memcached
@@ -370,20 +456,23 @@ Usage:
 
 ```scala
 import scalacache._
-import memcached._
+import scalacache.memcached._
 
-implicit val scalaCache = ScalaCache(MemcachedCache("host:port"))
+implicit val memcachedCache: Cache[String] = MemcachedCache("localhost:11211")
 ```
 
 or provide your own Memcached client, like this:
 
 ```scala
 import scalacache._
-import memcached._
-import net.spy.memcached.MemcachedClient
+import scalacache.memcached._
+import net.spy.memcached._
 
-val memcachedClient = new MemcachedClient(...)
-implicit val scalaCache = ScalaCache(MemcachedCache(memcachedClient))
+val memcachedClient = new MemcachedClient(
+  new BinaryConnectionFactory(), 
+  AddrUtil.getAddresses("localhost:11211")
+)
+implicit val customisedMemcachedCache: Cache[String] = MemcachedCache(memcachedClient)
 ```
 
 #### Keys
@@ -408,14 +497,15 @@ Usage:
 
 ```scala
 import scalacache._
-import ehcache._
+import scalacache.ehcache._
+import net.sf.ehcache.{Cache => UnderlyingCache, _}
 
 // We assume you've already taken care of Ehcache config, 
 // and you have an initialized Ehcache cache.
-val cacheManager: net.sf.ehcache.CacheManager = ...
-val underlying: net.sf.ehcache.Cache = cacheManager.getCache("myCache")
+val cacheManager = new CacheManager
+val underlying: UnderlyingCache = cacheManager.getCache("myCache")
 
-implicit val scalaCache = ScalaCache(EhcacheCache(underlying))
+implicit val ehcacheCache: Cache[String] = EhcacheCache(underlying)
 ```
 
 ### Redis
@@ -430,20 +520,20 @@ Usage:
 
 ```scala
 import scalacache._
-import redis._
+import scalacache.redis._
 
-implicit val scalaCache = ScalaCache(RedisCache("host1", 6379))
+implicit val redisCache: Cache[String] = RedisCache("host1", 6379)
 ```
 
 or provide your own [Jedis](https://github.com/xetorthio/jedis) client, like this:
 
 ```scala
 import scalacache._
-import redis._
-import redis.clients.jedis._
+import scalacache.redis._
+import _root_.redis.clients.jedis._
 
-val jedis = new Jedis(...)
-implicit val scalaCache = ScalaCache(RedisCache(jedis))
+val jedisPool = new JedisPool("localhost", 6379)
+implicit val customisedRedisCache: Cache[String] = RedisCache(jedisPool)
 ```
 
 ScalaCache also supports [sharded Redis](https://github.com/xetorthio/jedis/wiki/AdvancedUsage#shardedjedis) and [Redis Sentinel](http://redis.io/topics/sentinel). Just create a `ShardedRedisCache` or `SentinelRedisCache` respectively.
@@ -460,20 +550,20 @@ Usage:
 
 ```scala
 import scalacache._
-import caffeine._
+import scalacache.caffeine._
 
-implicit val scalaCache = ScalaCache(CaffeineCache())
+implicit val caffeineCache: Cache[String] = CaffeineCache[String]
 ```
 
 This will build a Caffeine cache with all the default settings. If you want to customize your Caffeine cache, then build it yourself and pass it to `CaffeineCache` like this:
 
 ```scala
 import scalacache._
-import caffeine._
+import scalacache.caffeine._
 import com.github.benmanes.caffeine.cache.Caffeine
 
-val underlyingCaffeineCache = Caffeine.newBuilder().maximumSize(10000L).build[String, Object]
-implicit val scalaCache = ScalaCache(CaffeineCache(underlyingCaffeineCache))
+val underlyingCaffeineCache = Caffeine.newBuilder().maximumSize(10000L).build[String, Entry[String]]
+implicit val customisedCaffeineCache: Cache[String] = CaffeineCache(underlyingCaffeineCache)
 ```
 
 ## Troubleshooting/Restrictions
@@ -496,3 +586,17 @@ def getUser(id: Int) = memoize {
   // Do stuff...
 }
 ```
+
+## About this README
+
+This README is generated using [tut](https://github.com/tpolecat/tut), so all the code samples are known to compile and run.
+
+To make a change to the README:
+
+1. Make sure that memcached is running on localhost:11211
+2. Edit [modules/doc/src/main/tut/README.md](modules/doc/src/main/tut/README.md)
+3. Run `sbt doc/tut`
+4. Commit both the source file `modules/doc/src/main/tut/README.md` and the generated file `./README.md` to git.
+
+
+

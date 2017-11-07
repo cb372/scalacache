@@ -1,85 +1,58 @@
 package scalacache.caffeine
 
-import java.time.{Clock, Instant}
 import java.time.temporal.ChronoUnit
+import java.time.{Clock, Instant}
 
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
 import org.slf4j.LoggerFactory
 
-import scalacache.serialization.{Codec, InMemoryRepr}
-import scalacache.{Cache, Entry, LoggingSupport}
+import scalacache.{AbstractCache, CacheConfig, Entry, Flags, LoggingSupport, Mode}
 import scala.concurrent.duration.Duration
-import scala.concurrent.Future
+import scala.language.higherKinds
 
 /*
  * Thin wrapper around Caffeine.
- * Since Caffeine is in-memory and non-blocking,
- * all operations are performed synchronously, i.e. ExecutionContext is not needed.
  *
- * Note: Would be nice to use Any here, but that doesn't conform to CCache's type bounds,
- * because Any does not extend java.lang.Object.
+ * This cache implementation is synchronous.
  */
-class CaffeineCache(underlying: CCache[String, Object])(implicit clock: Clock =
-                                                          Clock.systemUTC())
-    extends Cache[InMemoryRepr]
-    with LoggingSupport {
+class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config: CacheConfig,
+                                                             clock: Clock = Clock.systemUTC())
+    extends AbstractCache[V] {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
 
-  /**
-    * Get the value corresponding to the given key from the cache
-    *
-    * @param key cache key
-    * @tparam V the type of the corresponding value
-    * @return the value, if there is one
-    */
-  override def get[V](key: String)(implicit codec: Codec[V, InMemoryRepr]) = {
-    /*
-    Note: we could delete the entry from the cache if it has expired,
-    but that would lead to nasty race conditions in case of concurrent access.
-    We might end up deleting an entry that another thread has just inserted.
-     */
-    val baseValue = underlying.getIfPresent(key)
-    val result = {
-      if (baseValue != null) {
-        val entry = baseValue.asInstanceOf[Entry[V]]
-        if (entry.isExpired) None else Some(entry.value)
-      } else None
+  def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
+    mode.M.delay {
+      val baseValue = underlying.getIfPresent(key)
+      val result = {
+        if (baseValue != null) {
+          val entry = baseValue.asInstanceOf[Entry[V]]
+          if (entry.isExpired) None else Some(entry.value)
+        } else None
+      }
+      logCacheHitOrMiss(key, result)
+      result
     }
-    logCacheHitOrMiss(key, result)
-    Future.successful(result)
   }
 
-  /**
-    * Insert the given key-value pair into the cache, with an optional Time To Live.
-    *
-    * @param key cache key
-    * @param value corresponding value
-    * @param ttl Time To Live
-    * @tparam V the type of the corresponding value
-    */
-  override def put[V](key: String, value: V, ttl: Option[Duration] = None)(
-      implicit codec: Codec[V, InMemoryRepr]) = {
-    val entry = Entry(value, ttl.map(toExpiryTime))
-    underlying.put(key, entry.asInstanceOf[Object])
-    logCachePut(key, ttl)
-    Future.successful(())
+  def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] = {
+    mode.M.delay {
+      val entry = Entry(value, ttl.map(toExpiryTime))
+      underlying.put(key, entry)
+      logCachePut(key, ttl)
+    }
   }
 
-  /**
-    * Remove the given key and its associated value from the cache, if it exists.
-    * If the key is not in the cache, do nothing.
-    *
-    * @param key cache key
-    */
-  override def remove(key: String) =
-    Future.successful(underlying.invalidate(key))
+  override def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] =
+    mode.M.delay(underlying.invalidate(key))
 
-  override def removeAll() = Future.successful(underlying.invalidateAll())
+  override def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] =
+    mode.M.delay(underlying.invalidateAll())
 
-  override def close(): Unit = {
+  override def close[F[_]]()(implicit mode: Mode[F]): F[Any] = {
     // Nothing to do
+    mode.M.pure(())
   }
 
   private def toExpiryTime(ttl: Duration): Instant =
@@ -92,15 +65,15 @@ object CaffeineCache {
   /**
     * Create a new Caffeine cache
     */
-  def apply(): CaffeineCache =
-    apply(Caffeine.newBuilder().build[String, Object]())
+  def apply[V](implicit config: CacheConfig): CaffeineCache[V] =
+    apply(Caffeine.newBuilder().build[String, Entry[V]]())
 
   /**
     * Create a new cache utilizing the given underlying Caffeine cache.
     *
     * @param underlying a Caffeine cache
     */
-  def apply(underlying: CCache[String, Object]): CaffeineCache =
+  def apply[V](underlying: CCache[String, Entry[V]])(implicit config: CacheConfig): CaffeineCache[V] =
     new CaffeineCache(underlying)
 
 }

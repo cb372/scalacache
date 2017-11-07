@@ -22,8 +22,7 @@ trait MemcachedKeySanitizer {
   * @param replacementChar optional, defaults to an underscore
   * @param maxKeyLength optional, defaults to 250, which is the max length of a Memcached key
   */
-case class ReplaceAndTruncateSanitizer(replacementChar: String = "_",
-                                       maxKeyLength: Int = 250)
+case class ReplaceAndTruncateSanitizer(replacementChar: String = "_", maxKeyLength: Int = 250)
     extends MemcachedKeySanitizer {
 
   val invalidCharsRegex = "[^\u0021-\u007e]".r
@@ -62,8 +61,7 @@ case class ReplaceAndTruncateSanitizer(replacementChar: String = "_",
   * when combined with any additional namespacing that your MemcachedClient or proxy automatically inserts for
   * you.
   */
-case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5)
-    extends MemcachedKeySanitizer {
+case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) extends MemcachedKeySanitizer {
 
   /**
     * Uses the specified hashing algorithm to digest a key and spit out a hexidecimal representation

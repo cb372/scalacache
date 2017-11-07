@@ -4,15 +4,16 @@ import org.scalatest._
 import scalacache._
 import scalacache.memoization.MethodCallToStringConverter._
 
-class CacheKeyIncludingConstructorParamsSpec extends FlatSpec with CacheKeySpecCommon {
+class CacheKeyIncludingConstructorParamsSpec extends FlatSpec with CacheKeySpecCommon { self =>
 
   behavior of "cache key generation for method memoization (when including constructor params in cache key)"
 
-  implicit val scalaCache = ScalaCache(cache, memoization = MemoizationConfig(toStringConverter = includeClassConstructorParams))
+  implicit val config: CacheConfig =
+    CacheConfig(memoization = MemoizationConfig(toStringConverter = includeClassConstructorParams))
 
   it should "include the enclosing class's constructor params in the cache key" in {
     val instance = new ClassWithConstructorParams(50)
-    instance.scalaCache = scalaCache
+    instance.cache = cache
 
     checkCacheKey("scalacache.memoization.ClassWithConstructorParams(50).foo(42)") {
       instance.foo(42)
@@ -21,7 +22,7 @@ class CacheKeyIncludingConstructorParamsSpec extends FlatSpec with CacheKeySpecC
 
   it should "exclude values of constructor params annotated with @cacheKeyExclude" in {
     val instance = new ClassWithExcludedConstructorParam(50, 10)
-    instance.scalaCache = scalaCache
+    instance.cache = cache
 
     checkCacheKey("scalacache.memoization.ClassWithExcludedConstructorParam(50).foo(42)") {
       instance.foo(42)
@@ -53,20 +54,20 @@ class CacheKeyIncludingConstructorParamsSpec extends FlatSpec with CacheKeySpecC
   }
 
   it should "work for a method inside a class" in {
-    // The class's implicit param (the ScalaCache) should be included in the cache key)
-    checkCacheKey(s"scalacache.memoization.AClass()(${scalaCache.toString}).insideClass(1)") {
+    // The class's implicit param (the Cache) should be included in the cache key)
+    checkCacheKey(s"scalacache.memoization.AClass()(${cache.toString}).insideClass(1)") {
       new AClass().insideClass(1)
     }
   }
 
   it should "work for a method inside a trait" in {
     checkCacheKey("scalacache.memoization.ATrait.insideTrait(1)") {
-      new ATrait { val scalaCache = CacheKeyIncludingConstructorParamsSpec.this.scalaCache }.insideTrait(1)
+      new ATrait { val cache = self.cache }.insideTrait(1)
     }
   }
 
   it should "work for a method inside an object" in {
-    AnObject.scalaCache = this.scalaCache
+    AnObject.cache = this.cache
     checkCacheKey("scalacache.memoization.AnObject.insideObject(1)") {
       AnObject.insideObject(1)
     }
@@ -85,10 +86,9 @@ class CacheKeyIncludingConstructorParamsSpec extends FlatSpec with CacheKeySpecC
   }
 
   it should "work for a method inside a package object" in {
-    pkg.scalaCache = this.scalaCache
+    pkg.cache = this.cache
     checkCacheKey("scalacache.memoization.pkg.package.insidePackageObject(1)") {
       pkg.insidePackageObject(1)
     }
   }
 }
-

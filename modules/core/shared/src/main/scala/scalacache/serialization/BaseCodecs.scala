@@ -1,22 +1,14 @@
 package scalacache.serialization
 
 /**
- * Primitive type Codec instances
- *
- * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
- */
+  * Primitive type Codec instances
+  *
+  * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
+  */
 trait BaseCodecs {
 
-  /**
-   * Noop Codec that does nothing when you just want to put stuff into in-memory cache representations
-   */
-  implicit def anyToNoSerialization[A] = new Codec[A, InMemoryRepr] {
-    def serialize(value: A): InMemoryRepr = throw new RuntimeException("Cache using InMemoryRepr trying to serialize data")
-    def deserialize(data: InMemoryRepr): A = throw new RuntimeException("Cache using InMemoryRepr trying to deserialize data")
-  }
-
-  implicit object IntBinaryCodec extends Codec[Int, Array[Byte]] {
-    def serialize(value: Int): Array[Byte] =
+  implicit object IntBinaryCodec extends Codec[Int] {
+    def encode(value: Int): Array[Byte] =
       Array(
         (value >>> 24).asInstanceOf[Byte],
         (value >>> 16).asInstanceOf[Byte],
@@ -24,41 +16,41 @@ trait BaseCodecs {
         value.asInstanceOf[Byte]
       )
 
-    def deserialize(data: Array[Byte]): Int =
+    def decode(data: Array[Byte]): Int =
       (data(0).asInstanceOf[Int] & 255) << 24 |
         (data(1).asInstanceOf[Int] & 255) << 16 |
         (data(2).asInstanceOf[Int] & 255) << 8 |
         data(3).asInstanceOf[Int] & 255
   }
 
-  implicit object DoubleBinaryCodec extends Codec[Double, Array[Byte]] {
-    import java.lang.{ Double => JvmDouble }
-    def serialize(value: Double): Array[Byte] = {
+  implicit object DoubleBinaryCodec extends Codec[Double] {
+    import java.lang.{Double => JvmDouble}
+    def encode(value: Double): Array[Byte] = {
       val l = JvmDouble.doubleToLongBits(value)
-      LongBinaryCodec.serialize(l)
+      LongBinaryCodec.encode(l)
     }
 
-    def deserialize(data: Array[Byte]): Double = {
-      val l = LongBinaryCodec.deserialize(data)
+    def decode(data: Array[Byte]): Double = {
+      val l = LongBinaryCodec.decode(data)
       JvmDouble.longBitsToDouble(l)
     }
   }
 
-  implicit object FloatBinaryCodec extends Codec[Float, Array[Byte]] {
-    import java.lang.{ Float => JvmFloat }
-    def serialize(value: Float): Array[Byte] = {
+  implicit object FloatBinaryCodec extends Codec[Float] {
+    import java.lang.{Float => JvmFloat}
+    def encode(value: Float): Array[Byte] = {
       val i = JvmFloat.floatToIntBits(value)
-      IntBinaryCodec.serialize(i)
+      IntBinaryCodec.encode(i)
     }
 
-    def deserialize(data: Array[Byte]): Float = {
-      val i = IntBinaryCodec.deserialize(data)
+    def decode(data: Array[Byte]): Float = {
+      val i = IntBinaryCodec.decode(data)
       JvmFloat.intBitsToFloat(i)
     }
   }
 
-  implicit object LongBinaryCodec extends Codec[Long, Array[Byte]] {
-    def serialize(value: Long): Array[Byte] =
+  implicit object LongBinaryCodec extends Codec[Long] {
+    def encode(value: Long): Array[Byte] =
       Array(
         (value >>> 56).asInstanceOf[Byte],
         (value >>> 48).asInstanceOf[Byte],
@@ -70,7 +62,7 @@ trait BaseCodecs {
         value.asInstanceOf[Byte]
       )
 
-    def deserialize(data: Array[Byte]): Long =
+    def decode(data: Array[Byte]): Long =
       (data(0).asInstanceOf[Long] & 255) << 56 |
         (data(1).asInstanceOf[Long] & 255) << 48 |
         (data(2).asInstanceOf[Long] & 255) << 40 |
@@ -81,45 +73,45 @@ trait BaseCodecs {
         data(7).asInstanceOf[Long] & 255
   }
 
-  implicit object BooleanBinaryCodec extends Codec[Boolean, Array[Byte]] {
-    def serialize(value: Boolean): Array[Byte] =
+  implicit object BooleanBinaryCodec extends Codec[Boolean] {
+    def encode(value: Boolean): Array[Byte] =
       Array((if (value) 1 else 0).asInstanceOf[Byte])
 
-    def deserialize(data: Array[Byte]): Boolean =
+    def decode(data: Array[Byte]): Boolean =
       data.isDefinedAt(0) && data(0) == 1
   }
 
-  implicit object CharBinaryCodec extends Codec[Char, Array[Byte]] {
-    def serialize(value: Char): Array[Byte] = Array(
+  implicit object CharBinaryCodec extends Codec[Char] {
+    def encode(value: Char): Array[Byte] = Array(
       (value >>> 8).asInstanceOf[Byte],
       value.asInstanceOf[Byte]
     )
 
-    def deserialize(data: Array[Byte]): Char =
+    def decode(data: Array[Byte]): Char =
       ((data(0).asInstanceOf[Int] & 255) << 8 |
         data(1).asInstanceOf[Int] & 255)
         .asInstanceOf[Char]
   }
 
-  implicit object ShortBinaryCodec extends Codec[Short, Array[Byte]] {
-    def serialize(value: Short): Array[Byte] = Array(
+  implicit object ShortBinaryCodec extends Codec[Short] {
+    def encode(value: Short): Array[Byte] = Array(
       (value >>> 8).asInstanceOf[Byte],
       value.asInstanceOf[Byte]
     )
 
-    def deserialize(data: Array[Byte]): Short =
+    def decode(data: Array[Byte]): Short =
       ((data(0).asInstanceOf[Short] & 255) << 8 |
         data(1).asInstanceOf[Short] & 255)
         .asInstanceOf[Short]
   }
 
-  implicit object StringBinaryCodec extends Codec[String, Array[Byte]] {
-    def serialize(value: String): Array[Byte] = value.getBytes("UTF-8")
-    def deserialize(data: Array[Byte]): String = new String(data, "UTF-8")
+  implicit object StringBinaryCodec extends Codec[String] {
+    def encode(value: String): Array[Byte] = value.getBytes("UTF-8")
+    def decode(data: Array[Byte]): String = new String(data, "UTF-8")
   }
 
-  implicit object ArrayByteBinaryCodec extends Codec[Array[Byte], Array[Byte]] {
-    def serialize(value: Array[Byte]): Array[Byte] = value
-    def deserialize(data: Array[Byte]): Array[Byte] = data
+  implicit object ArrayByteBinaryCodec extends Codec[Array[Byte]] {
+    def encode(value: Array[Byte]): Array[Byte] = value
+    def decode(data: Array[Byte]): Array[Byte] = data
   }
 }

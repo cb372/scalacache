@@ -4,20 +4,20 @@ import org.scalatest._
 
 import scalacache._
 import scalacache.memoization.MethodCallToStringConverter.excludeClassConstructorParams
-import scalacache.serialization.InMemoryRepr
 
-class CacheKeyExcludingConstructorParamsSpec extends FlatSpec with CacheKeySpecCommon {
+class CacheKeyExcludingConstructorParamsSpec extends FlatSpec with CacheKeySpecCommon { self =>
 
   behavior of "cache key generation for method memoization (not including constructor params in cache key)"
 
-  implicit val scalaCache: ScalaCache[InMemoryRepr] = ScalaCache(cache, memoization = MemoizationConfig(toStringConverter = excludeClassConstructorParams))
+  implicit val config: CacheConfig =
+    CacheConfig(memoization = MemoizationConfig(toStringConverter = excludeClassConstructorParams))
 
   it should "not include the enclosing class's constructor params in the cache key" in {
     val instance1 = new ClassWithConstructorParams(50)
-    instance1.scalaCache = scalaCache
+    instance1.cache = cache
 
     val instance2 = new ClassWithConstructorParams(100)
-    instance2.scalaCache = scalaCache
+    instance2.cache = cache
 
     checkCacheKey("scalacache.memoization.ClassWithConstructorParams.foo(42)") {
       instance1.foo(42)
@@ -60,12 +60,12 @@ class CacheKeyExcludingConstructorParamsSpec extends FlatSpec with CacheKeySpecC
 
   it should "work for a method inside a trait" in {
     checkCacheKey("scalacache.memoization.ATrait.insideTrait(1)") {
-      new ATrait { val scalaCache = CacheKeyExcludingConstructorParamsSpec.this.scalaCache }.insideTrait(1)
+      new ATrait { val cache = self.cache }.insideTrait(1)
     }
   }
 
   it should "work for a method inside an object" in {
-    AnObject.scalaCache = this.scalaCache
+    AnObject.cache = this.cache
     checkCacheKey("scalacache.memoization.AnObject.insideObject(1)") {
       AnObject.insideObject(1)
     }
@@ -84,7 +84,7 @@ class CacheKeyExcludingConstructorParamsSpec extends FlatSpec with CacheKeySpecC
   }
 
   it should "work for a method inside a package object" in {
-    pkg.scalaCache = this.scalaCache
+    pkg.cache = this.cache
     checkCacheKey("scalacache.memoization.pkg.package.insidePackageObject(1)") {
       pkg.insidePackageObject(1)
     }

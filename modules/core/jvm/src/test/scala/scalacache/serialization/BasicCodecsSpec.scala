@@ -7,16 +7,12 @@ import org.scalatest.prop.GeneratorDrivenPropertyChecks
 /**
   * Inspired by Shade @ https://github.com/alexandru/shade/blob/master/src/test/scala/shade/tests/CodecsSuite.scala
   */
-class BasicCodecsSpec
-    extends FlatSpec
-    with Matchers
-    with GeneratorDrivenPropertyChecks {
+class BasicCodecsSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks {
 
-  private def serdesCheck[A: Arbitrary](
-      implicit codec: Codec[A, Array[Byte]]): Unit = {
+  private def serdesCheck[A: Arbitrary](implicit codec: Codec[A]): Unit = {
     forAll { n: A =>
-      val serialised = codec.serialize(n)
-      val deserialised = codec.deserialize(serialised)
+      val serialised = codec.encode(n)
+      val deserialised = codec.decode(serialised)
       deserialised shouldBe n
     }
   }

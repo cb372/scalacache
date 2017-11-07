@@ -15,7 +15,7 @@ lazy val root = Project(id = "scalacache", base = file("."))
     sonatypeSettings,
     publishArtifact := false
   )
-  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine)
+  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, tests)
 
 lazy val core =
   CrossProject(id = "core", file("modules/core"), CrossType.Full)
@@ -39,7 +39,7 @@ def module(name: String) =
   Project(id = name, base = file(s"modules/$name"))
     .settings(commonSettings)
     .settings(moduleName := s"scalacache-$name")
-    .dependsOn(coreJVM % "test->test;compile->compile")
+    .dependsOn(coreJVM)
 
 lazy val guava = module("guava")
   .settings(
@@ -79,17 +79,48 @@ lazy val caffeine = module("caffeine")
     )
   )
 
+lazy val catsEffect = module("cats-effect")
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-effect" % "0.4"
+    )
+  )
+
+lazy val monix = module("monix")
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.monix" %% "monix" % "3.0.0-M1"
+    )
+  )
+  .dependsOn(catsEffect)
+
+lazy val scalaz72 = module("scalaz72")
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.scalaz" %% "scalaz-concurrent" % "7.2.16"
+    )
+  )
+
+lazy val tests = module("tests")
+  .settings(publishArtifact := false)
+  .dependsOn(caffeine, memcached, redis, catsEffect, monix, scalaz72)
+
+lazy val doc = module("doc")
+  .enablePlugins(TutPlugin)
+  .settings(
+    publishArtifact := false,
+    tutNameFilter := """^README.md$""".r,
+    tutTargetDirectory := (baseDirectory in root).value
+  )
+  .dependsOn(coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72)
+
 lazy val benchmarks = module("benchmarks")
   .enablePlugins(JmhPlugin)
   .settings(
     scalaVersion := ScalaVersion,
     publishArtifact := false,
     fork in (Compile, run) := true,
-    javaOptions in Jmh ++= Seq("-server",
-                               "-Xms2G",
-                               "-Xmx2G",
-                               "-XX:+UseG1GC",
-                               "-XX:-UseBiasedLocking"),
+    javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking"),
     javaOptions in (Test, run) ++= Seq(
       "-XX:+UnlockCommercialFeatures",
       "-XX:+FlightRecorder",
@@ -116,6 +147,7 @@ lazy val commonDeps = slf4j ++ scalaTest
 
 lazy val commonSettings =
   mavenSettings ++
+    scalafmtSettings ++
     Seq(
       organization := "com.github.cb372",
       scalaVersion := ScalaVersion,
@@ -141,8 +173,7 @@ lazy val commonSettings =
         releaseStepCommand("sonatypeReleaseAll"),
         pushChanges
       ),
-      commands += Command.command("update-version-in-readme")(
-        updateVersionInReadme)
+      commands += Command.command("update-version-in-readme")(updateVersionInReadme)
     )
 
 lazy val mavenSettings = Seq(
@@ -186,21 +217,15 @@ lazy val updateVersionInReadme = ReleaseStep(action = st => {
 
   println(s"Updating project version to $projectVersion in the README")
   Process(
-    Seq(
-      "sed",
-      "-i",
-      "",
-      "-E",
-      "-e",
-      s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""",
-      "README.md")).!
+    Seq("sed",
+        "-i",
+        "",
+        "-E",
+        "-e",
+        s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""",
+        "README.md")).!
   println("Committing README.md")
-  Process(
-    Seq("git",
-        "commit",
-        "README.md",
-        "-m",
-        s"Update project version in README to $projectVersion")).!
+  Process(Seq("git", "commit", "README.md", "-m", s"Update project version in README to $projectVersion")).!
 
   st
 })
@@ -210,3 +235,9 @@ def scala211OnlyDeps(moduleIDs: ModuleID*) =
     case "2.11" => moduleIDs
     case other => Nil
   })
+
+lazy val scalafmtSettings = Seq(
+  // work around https://github.com/lucidsoftware/neo-sbt-scalafmt/issues/18
+  sourceDirectories in scalafmt in Compile := (unmanagedSourceDirectories in Compile).value,
+  sourceDirectories in scalafmt in Test := (unmanagedSourceDirectories in Test).value
+)
