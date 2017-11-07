@@ -21,7 +21,7 @@ ScalaCache is available for Scala 2.11.x and 2.12.x.
 
 The JVM must be Java 8 or newer.
 
-## How to use
+## Getting Started
 
 ### Imports
 
@@ -129,6 +129,8 @@ import scalacache.modes.sync._
 * Returns a plain value, not wrapped in any container
 * Throws exceptions in case of failure
 
+Note: If you're using an in-memory cache (e.g. Guava or Caffeine) then it makes sense to use the synchronous mode. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then this mode is not recommended. If the network goes down, your app could hang forever!
+
 #### Try mode
 
 ```scala
@@ -198,7 +200,7 @@ import scalacache.Scalaz72.modes._
 
 Unfortunately Scala's type inference doesn't play very nicely with ScalaCache's synchronous mode.
 
-If you want to use synchronous mode, the synchronous API is recommended.
+If you want to use synchronous mode, the synchronous API is recommended. This works in exactly the same way as the normal API; it is provided merely as a convenience so you don't have to jump through hoops to make your code compile when using the synchronous mode.
 
 ```scala
 scala> import scalacache._
@@ -210,8 +212,6 @@ import scalacache.modes.sync._
 scala> val myValue: Option[Cat] = sync.get("eric")
 myValue: Option[Cat] = None
 ```
-
-If you're using an in-memory cache (e.g. Guava) then this is fine. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then `sync.get` is not recommended. If the network goes down, your app could hang forever!
 
 There is also a synchronous version of `caching`:
 
@@ -226,9 +226,6 @@ result: Cat = Cat(1,Eric,tuxedo)
 ### Memoization of method results
 
 ```scala
-scala> import scalacache._
-import scalacache._
-
 scala> import scalacache.memoization._
 import scalacache.memoization._
 
@@ -256,18 +253,6 @@ The next time you call the method with the same arguments the result will be ret
 If the result of your block is wrapped in an effect container, use `memoizeF`:
 
 ```scala
-scala> import scalacache._
-import scalacache._
-
-scala> import scalacache.memoization._
-import scalacache.memoization._
-
-scala> import scalacache.modes.try_._
-import scalacache.modes.try_._
-
-scala> import scala.util.Try
-import scala.util.Try
-
 scala> def getCatF(id: Int): Try[Cat] = memoizeF[Try, Cat](Some(10.seconds)) {
      |   Try {
      |     // Retrieve data from a remote API here ...
