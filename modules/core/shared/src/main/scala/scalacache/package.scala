@@ -3,13 +3,7 @@ import scala.language.higherKinds
 import scalacache.CacheConfig
 import scalacache.serialization.JavaSerializationCodec
 
-trait ScalaCacheLowPriorityImplicits {
-
-  implicit val defaultCacheConfig: CacheConfig = CacheConfig()
-
-}
-
-package object scalacache extends JavaSerializationCodec with ScalaCacheLowPriorityImplicits {
+package object scalacache extends JavaSerializationCodec {
 
   type Id[X] = X
 
