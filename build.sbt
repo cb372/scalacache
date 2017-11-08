@@ -6,8 +6,6 @@ import sys.process.Process
 
 scalafmtOnCompile in ThisBuild := true
 
-val ScalaVersion = "2.11.11"
-
 lazy val root = Project(id = "scalacache", base = file("."))
   .enablePlugins(ReleasePlugin)
   .settings(
@@ -117,7 +115,6 @@ lazy val doc = module("doc")
 lazy val benchmarks = module("benchmarks")
   .enablePlugins(JmhPlugin)
   .settings(
-    scalaVersion := ScalaVersion,
     publishArtifact := false,
     fork in (Compile, run) := true,
     javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking"),
@@ -150,8 +147,6 @@ lazy val commonSettings =
     scalafmtSettings ++
     Seq(
       organization := "com.github.cb372",
-      scalaVersion := ScalaVersion,
-      crossScalaVersions := Seq(ScalaVersion, "2.12.4"),
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       resolvers += Resolver.typesafeRepo("releases"),
       libraryDependencies ++= commonDeps,
