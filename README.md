@@ -159,7 +159,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 You will need a dependency on the `scalacache-cats-effect` module:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.10.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.20.0"
 ```
 
 ```scala
@@ -173,7 +173,7 @@ import scalacache.CatsEffect.modes._
 You will need a dependency on the `scalacache-monix` module:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-monix" % "0.10.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-monix" % "0.20.0"
 ```
 
 ```scala
@@ -187,7 +187,7 @@ import scalacache.Monix.modes._
 You will need a dependency on the `scalacache-scalaz72` module:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.10.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.20.0"
 ```
 
 ```scala
@@ -421,7 +421,7 @@ provide an implicit `GZippingJavaAnyBinaryCodec` at the cache call site.
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.10.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.20.0"
 ```
 
 Usage:
@@ -449,7 +449,7 @@ implicit val guavaCache: Cache[String] = GuavaCache(underlyingGuavaCache)
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.10.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.20.0"
 ```
 
 Usage:
@@ -490,7 +490,7 @@ ScalaCache provides two `KeySanitizer` implementations that convert your cache k
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.10.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.20.0"
 ```
 
 Usage:
@@ -513,7 +513,7 @@ implicit val ehcacheCache: Cache[String] = EhcacheCache(underlying)
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.10.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.20.0"
 ```
 
 Usage:
@@ -543,7 +543,7 @@ ScalaCache also supports [sharded Redis](https://github.com/xetorthio/jedis/wiki
 SBT:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.10.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.20.0"
 ```
 
 Usage:
