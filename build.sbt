@@ -6,12 +6,30 @@ import sys.process.Process
 
 scalafmtOnCompile in ThisBuild := true
 
-lazy val root = Project(id = "scalacache", base = file("."))
+lazy val root: Project = Project(id = "scalacache", base = file("."))
   .enablePlugins(ReleasePlugin)
   .settings(
     commonSettings,
     sonatypeSettings,
-    publishArtifact := false
+    publishArtifact := false,
+    releaseCrossBuild := true,
+    releaseProcess := Seq[ReleaseStep](
+      checkSnapshotDependencies,
+      inquireVersions,
+      runClean,
+      runTest,
+      setReleaseVersion,
+      updateVersionInTutReadme,
+      releaseStepTask(tut in doc),
+      commitReadmeFiles,
+      commitReleaseVersion,
+      tagRelease,
+      publishArtifacts,
+      setNextVersion,
+      commitNextVersion,
+      releaseStepCommand("sonatypeReleaseAll"),
+      pushChanges
+    )
   )
   .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, tests)
 
@@ -149,26 +167,9 @@ lazy val commonSettings =
       organization := "com.github.cb372",
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       resolvers += Resolver.typesafeRepo("releases"),
-      libraryDependencies ++= commonDeps,
-      parallelExecution in Test := false,
       releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-      releaseCrossBuild := true,
-      releaseProcess := Seq[ReleaseStep](
-        checkSnapshotDependencies,
-        inquireVersions,
-        runClean,
-        runTest,
-        setReleaseVersion,
-        commitReleaseVersion,
-        updateVersionInReadme,
-        tagRelease,
-        publishArtifacts,
-        setNextVersion,
-        commitNextVersion,
-        releaseStepCommand("sonatypeReleaseAll"),
-        pushChanges
-      ),
-      commands += Command.command("update-version-in-readme")(updateVersionInReadme)
+      libraryDependencies ++= commonDeps,
+      parallelExecution in Test := false
     )
 
 lazy val mavenSettings = Seq(
@@ -206,7 +207,7 @@ lazy val mavenSettings = Seq(
   }
 )
 
-lazy val updateVersionInReadme = ReleaseStep(action = st => {
+lazy val updateVersionInTutReadme = ReleaseStep(action = st => {
   val extracted = Project.extract(st)
   val projectVersion = extracted.get(Keys.version)
 
@@ -218,9 +219,23 @@ lazy val updateVersionInReadme = ReleaseStep(action = st => {
         "-E",
         "-e",
         s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""",
-        "README.md")).!
-  println("Committing README.md")
-  Process(Seq("git", "commit", "README.md", "-m", s"Update project version in README to $projectVersion")).!
+        "modules/doc/src/main/tut/README.md")).!
+
+  st
+})
+
+lazy val commitReadmeFiles = ReleaseStep(action = st => {
+  val extracted = Project.extract(st)
+  val projectVersion = extracted.get(Keys.version)
+
+  println("Committing README.md and modules/doc/src/main/tut/README.md")
+  Process(
+    Seq("git",
+        "commit",
+        "README.md",
+        "modules/doc/src/main/tut/README.md",
+        "-m",
+        s"Update project version in README to $projectVersion")).!
 
   st
 })
