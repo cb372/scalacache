@@ -31,7 +31,7 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
       pushChanges
     )
   )
-  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, tests)
+  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, circe, tests)
 
 lazy val core =
   CrossProject(id = "core", file("modules/core"), CrossType.Full)
@@ -127,7 +127,7 @@ lazy val circe = module("circe")
 
 lazy val tests = module("tests")
   .settings(publishArtifact := false)
-  .dependsOn(caffeine, memcached, redis, catsEffect, monix, scalaz72)
+  .dependsOn(caffeine, memcached, redis, catsEffect, monix, scalaz72, circe)
 
 lazy val doc = module("doc")
   .enablePlugins(TutPlugin)
@@ -136,7 +136,7 @@ lazy val doc = module("doc")
     tutNameFilter := """^README.md$""".r,
     tutTargetDirectory := (baseDirectory in root).value
   )
-  .dependsOn(coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72)
+  .dependsOn(coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, circe)
 
 lazy val benchmarks = module("benchmarks")
   .enablePlugins(JmhPlugin)

@@ -44,6 +44,9 @@ The constructor takes a type parameter, which is the type of the values you want
 ```scala
 import scalacache.memcached._
 
+// We'll use the binary serialization codec - more on that later
+import scalacache.serialization.binary._
+
 case class Cat(id: Int, name: String, colour: String)
 
 implicit val catsCache: Cache[Cat] = MemcachedCache("localhost:11211")
@@ -66,26 +69,26 @@ import scalacache.modes.try_._
 
 scala> // Add an item to the cache
      | put("eric")(ericTheCat)
-res4: scala.util.Try[Any] = Success(())
+res6: scala.util.Try[Any] = Success(())
 
 scala> // Add an item to the cache with a Time To Live
      | import scala.concurrent.duration._
 import scala.concurrent.duration._
 
 scala> put("doraemon")(doraemon, ttl = Some(10.seconds))
-res6: scala.util.Try[Any] = Success(())
+res8: scala.util.Try[Any] = Success(())
 
 scala> // Retrieve the added item
      | get("eric")
-res8: scala.util.Try[Option[Cat]] = Success(Some(Cat(1,Eric,tuxedo)))
+res10: scala.util.Try[Option[Cat]] = Success(Some(Cat(1,Eric,tuxedo)))
 
 scala> // Remove it from the cache
      | remove("doraemon")
-res10: scala.util.Try[Any] = Success(())
+res12: scala.util.Try[Any] = Success(())
 
 scala> // Flush the cache
      | removeAll[Cat]()
-res12: scala.util.Try[Any] = Success(())
+res14: scala.util.Try[Any] = Success(())
 
 scala> // Wrap any block with caching: if the key is not present in the cache,
      | // the block will be executed and the value will be cached and returned
@@ -107,7 +110,7 @@ result: scala.util.Try[Cat] = Success(Cat(2,Benjamin,ginger))
 
 scala> // You can also pass multiple parts to be combined into one key
      | put("foo", 123, "bar")(ericTheCat) // Will be cached with key "foo:123:bar"
-res17: scala.util.Try[Any] = Success(())
+res19: scala.util.Try[Any] = Success(())
 ```
 ### Modes
 
@@ -244,7 +247,7 @@ scala> // You wouldn't normally need to specify the type params for memoize.
 getCat: (id: Int)scala.util.Try[Cat]
 
 scala> getCat(123)
-res20: scala.util.Try[Cat] = Success(Cat(123,cat 123,black))
+res22: scala.util.Try[Cat] = Success(Cat(123,cat 123,black))
 ```
 
 Did you spot the magic word 'memoize' in the `getCat` method? Just adding this keyword will cause the result of the method to be memoized to a cache.
@@ -262,7 +265,7 @@ scala> def getCatF(id: Int): Try[Cat] = memoizeF[Try, Cat](Some(10.seconds)) {
 getCatF: (id: Int)scala.util.Try[Cat]
 
 scala> getCatF(123)
-res21: scala.util.Try[Cat] = Success(Cat(123,cat 123,black))
+res23: scala.util.Try[Cat] = Success(Cat(123,cat 123,black))
 ```
 
 #### Synchronous memoization API
@@ -280,7 +283,7 @@ scala> def getCatSync(id: Int): Cat = memoizeSync(Some(10.seconds)) {
 getCatSync: (id: Int)Cat
 
 scala> getCatSync(123)
-res22: Cat = Cat(123,cat 123,black)
+res24: Cat = Cat(123,cat 123,black)
 ```
 
 #### How it works
@@ -393,11 +396,52 @@ def getCatMaybeSkippingCache(id: Int, skipCache: Boolean): Cat = {
 
 Tip: Because the flags are passed as a parameter to your method, they will be included in the generated cache key. This means the cache key will vary depending on the value of the flags, which is probably not what you want. In that case, you should exclude the `implicit flags: Flags` parameter from cache key generation by annotating it with `@cacheKeyExclude`.
 
-## Serialization / Deserialization
+## Serialization
 
-For cache implementations that do not store their data locally (like [Memcached](#memcached) and [Redis](#redis)), serialization and
-deserialization of data to and from `Array[Byte]` is handled by a `Codec` type class. We provide efficient `Codec` instances for all primitive
-types, and provide an implementation for objects based on Java serialisation. 
+If you are using a cache implementation that does not store its data locally (like [Memcached](#memcached) and [Redis](#redis)), you will need to choose a codec in order to serialize your data to bytes.
+
+### Binary codec
+
+ScalaCache provides efficient `Codec` instances for all primitive types, and also an implementation for objects based on Java serialization.
+
+To use this codec, you need one import:
+
+```scala
+import scalacache.serialization.binary._
+```
+
+### JSON codec
+
+If you want to serialize your values as JSON, you can use ScalaCache's [circe](https://circe.github.io/circe/) integration.
+
+You will need to add a dependency on the scalacache-circe module:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-circe" % "0.20.0"
+```
+
+Then import the codec:
+
+```scala
+import scalacache.serialization.circe._
+```
+
+If your cache holds values of type `Cat`, you will also need a Circe `Encoder[Cat]` and `Decoder[Cat]` in implicit scope. The easiest way to do this is to ask circe to automatically derive them:
+
+```scala
+import io.circe.generic.auto._
+```
+
+but if you are worried about performance, it's better to derive them semi-automatically:
+
+```scala
+import io.circe._
+import io.circe.generic.semiauto._
+implicit val catEncoder: Encoder[Cat] = deriveEncoder[Cat]
+implicit val catDecoder: Decoder[Cat] = deriveDecoder[Cat]
+```
+
+For more information, please consult the [circe docs](https://circe.github.io/circe/).
 
 ### Custom Codec
 
@@ -406,13 +450,12 @@ is in scope at your `get`/`put` call site.
 
 ### Compression of `Codec[A]`
 
-If you want to compress your serialised data before sending it to your cache, ScalaCache has a built-in `GZippingBinaryCodec[A]` mix-in
-trait that will automatically apply GZip  compression before sending it over the wire if the `Array[Byte]` representation is above a `sizeThreshold`. 
-It also takes care of properly decompressing data upon retrieval. To use it, simply extend your `Codec[A]` with `GZippingBinaryCodec[A]` 
-**last** (it should be the right-most extended trait).
+If you want to compress your serialized data before sending it to your cache, ScalaCache has a built-in `GZippingBinaryCodec[A]` mix-in
+trait that can be used to decorate another codec. It will automatically apply GZip compression to the encoded value if the `Array[Byte]` representation is above a `sizeThreshold`. It also takes care of properly decompressing data upon retrieval.
 
-Those who want to use GZip compression with standard Java serialisation can `import scalacache.serialization.GZippingJavaAnyBinaryCodec._` or
-provide an implicit `GZippingJavaAnyBinaryCodec` at the cache call site.
+To use it, simply extend your `Codec[A]` with `GZippingBinaryCodec[A]` **last** (it should be the right-most extended trait).
+
+If you want to use GZip compression with the standard ScalaCache binary codec can either `import scalacache.serialization.gzip.GZippingJavaSerializationCodec._` or provide an implicit `GZippingJavaAnyBinaryCodec` at the cache call site.
 
 ## Cache implementations
 

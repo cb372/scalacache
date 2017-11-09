@@ -3,9 +3,8 @@ package scalacache.serialization.gzip
 import java.io.Serializable
 
 import scala.reflect.ClassTag
-import scalacache.serialization.binary.JavaSerializationAnyRefCodec
+import scalacache.serialization.binary.{BinaryPrimitiveCodecs, JavaSerializationAnyRefCodec}
 
-// TODO should this be a package object?
 object GZippingJavaSerializationAnyRefCodec {
 
   /**

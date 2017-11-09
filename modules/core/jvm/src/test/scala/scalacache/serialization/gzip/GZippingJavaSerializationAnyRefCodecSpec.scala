@@ -5,7 +5,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.util.Random
 import scalacache.serialization.{Codec, Phone}
 
-class GZippingJavaAnyBinaryCodecSpec extends FlatSpec with Matchers {
+class GZippingJavaSerializationAnyRefCodecSpec extends FlatSpec with Matchers {
 
   import GZippingJavaSerializationAnyRefCodec._
 
