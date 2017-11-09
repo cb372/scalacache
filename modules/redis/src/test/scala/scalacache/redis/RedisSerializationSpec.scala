@@ -17,7 +17,7 @@ class RedisSerializationSpec extends FlatSpec with Matchers with RedisSerializat
 
   it should "round-trip a byte array" in {
     val bytes = serialize("world".getBytes("UTF-8"))
-    deserialize[Array[Byte]](bytes).map(new String(_, StandardCharsets.UTF_8)) should be(Right("world"))
+    deserialize[Array[Byte]](bytes).right.map(new String(_, StandardCharsets.UTF_8)) should be(Right("world"))
   }
 
   it should "round-trip an Int" in {

@@ -1,6 +1,6 @@
 package scalacache.redis
 
-import org.scalatest.{BeforeAndAfter, Matchers, FlatSpec}
+import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import scalacache.memoization._
 import scalacache.modes.sync._
