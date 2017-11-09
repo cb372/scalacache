@@ -18,7 +18,6 @@ import scalacache._
 import scalacache.caffeine.CaffeineCache
 import scalacache.memcached.MemcachedCache
 import scalacache.redis.RedisCache
-import scalacache.serialization.binary._
 
 class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
@@ -54,27 +53,43 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
   case class CacheBackend(name: String, cache: Cache[String])
 
   private val caffeine = CacheBackend("Caffeine", CaffeineCache[String])
-  private val memcached: Option[CacheBackend] =
-    if (memcachedIsRunning)
-      Some(CacheBackend("Memcached", MemcachedCache[String](memcachedClient)))
-    else {
+  private val memcached: Seq[CacheBackend] =
+    if (memcachedIsRunning) {
+      Seq(
+        {
+          import scalacache.serialization.binary._
+          CacheBackend("(Memcached) ⇔ (binary codec)", MemcachedCache[String](memcachedClient))
+        }, {
+          import scalacache.serialization.circe._
+          CacheBackend("(Memcached) ⇔ (circe codec)", MemcachedCache[String](memcachedClient))
+        }
+      )
+    } else {
       alert("Skipping Memcached integration tests because Memcached does not appear to be running on localhost.")
-      None
+      Nil
     }
 
-  private val redis: Option[CacheBackend] =
+  private val redis: Seq[CacheBackend] =
     if (redisIsRunning)
-      Some(CacheBackend("Redis", RedisCache[String](jedisPool)))
+      Seq(
+        {
+          import scalacache.serialization.binary._
+          CacheBackend("(Redis) ⇔ (binary codec)", RedisCache[String](jedisPool))
+        }, {
+          import scalacache.serialization.circe._
+          CacheBackend("(Redis) ⇔ (circe codec)", RedisCache[String](jedisPool))
+        }
+      )
     else {
       alert("Skipping Redis integration tests because Redis does not appear to be running on localhost.")
-      None
+      Nil
     }
 
-  val backends: List[CacheBackend] = List(Some(caffeine), memcached, redis).flatten
+  val backends: List[CacheBackend] = List(caffeine) ++ memcached ++ redis
 
   for (CacheBackend(name, cache) <- backends) {
 
-    s"($name) ⇔ (cats-effect IO)" should "defer the computation and give the correct result" in {
+    s"$name ⇔ (cats-effect IO)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
       implicit val mode: Mode[CatsIO] = CatsEffect.modes.io
 
@@ -97,7 +112,7 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
       assert(result.contains("prepended " + initialValue))
     }
 
-    s"($name) ⇔ (Monix Task)" should "defer the computation and give the correct result" in {
+    s"$name ⇔ (Monix Task)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
       implicit val mode: Mode[MonixTask] = Monix.modes.task
 
@@ -120,7 +135,7 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
       assert(result.contains("prepended " + initialValue))
     }
 
-    s"($name) ⇔ (Scalaz Task)" should "defer the computation and give the correct result" in {
+    s"$name ⇔ (Scalaz Task)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
       implicit val mode: Mode[ScalazTask] = Scalaz72.modes.task
 
