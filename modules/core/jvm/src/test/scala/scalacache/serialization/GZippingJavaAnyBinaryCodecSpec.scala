@@ -14,7 +14,7 @@ class GZippingJavaAnyBinaryCodecSpec extends FlatSpec with Matchers {
     val serialised = codec.encode(phone)
     serialised.head shouldBe CompressingCodec.Headers.Uncompressed
     val deserialised = codec.decode(serialised)
-    deserialised shouldBe phone
+    deserialised shouldBe Right(phone)
   }
 
   it should "work with compression" in {
@@ -25,7 +25,7 @@ class GZippingJavaAnyBinaryCodecSpec extends FlatSpec with Matchers {
     val serialised = codec.encode(phone)
     serialised.head shouldBe CompressingCodec.Headers.Gzipped
     val deserialised = codec.decode(serialised)
-    deserialised shouldBe phone
+    deserialised shouldBe Right(phone)
   }
 
 }

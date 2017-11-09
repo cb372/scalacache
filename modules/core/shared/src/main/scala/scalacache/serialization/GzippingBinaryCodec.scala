@@ -3,6 +3,9 @@ package scalacache.serialization
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
+import scala.util.Try
+import scalacache.serialization.Codec.DecodingResult
+
 object CompressingCodec {
 
   /**
@@ -42,14 +45,17 @@ trait GZippingBinaryCodec[A] extends Codec[A] {
     }
   }
 
-  abstract override def decode(data: Array[Byte]): A = {
+  abstract override def decode(data: Array[Byte]): DecodingResult[A] = {
     val firstByte = data.headOption
     firstByte match {
-      case Some(Headers.Uncompressed) => super.decode(data.tail)
-      case Some(Headers.Gzipped) => super.decode(decompress(data.tail))
+      case Some(Headers.Uncompressed) =>
+        super.decode(data.tail)
+      case Some(Headers.Gzipped) =>
+        val bytes = Codec.tryDecode(decompress(data.tail))
+        bytes.flatMap(super.decode)
       case unexpected =>
-        throw new RuntimeException(
-          s"Expected either ${Headers.Uncompressed} or ${Headers.Gzipped} but got $unexpected")
+        Left(FailedToDecode(
+          new RuntimeException(s"Expected either ${Headers.Uncompressed} or ${Headers.Gzipped} but got $unexpected")))
     }
   }
 

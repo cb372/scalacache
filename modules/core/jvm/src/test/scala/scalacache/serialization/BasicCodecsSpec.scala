@@ -13,7 +13,7 @@ class BasicCodecsSpec extends FlatSpec with Matchers with GeneratorDrivenPropert
     forAll { n: A =>
       val serialised = codec.encode(n)
       val deserialised = codec.decode(serialised)
-      deserialised shouldBe n
+      deserialised shouldBe Right(n)
     }
   }
 

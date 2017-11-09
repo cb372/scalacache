@@ -4,6 +4,7 @@ import java.io._
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
+import scalacache.serialization.Codec.DecodingResult
 
 /**
   * Holds a Java-serialisation-based Codec[Object <: Serializable] instance
@@ -38,11 +39,13 @@ class JavaSerializationAnyCodec[S <: Serializable](classTag: ClassTag[S]) extend
       }
     }
 
-  def decode(data: Array[Byte]): S =
-    using(new ByteArrayInputStream(data)) { buf =>
-      val in = new GenericCodecObjectInputStream(classTag, buf)
-      using(in) { inp =>
-        inp.readObject().asInstanceOf[S]
+  def decode(data: Array[Byte]): DecodingResult[S] =
+    Codec.tryDecode {
+      using(new ByteArrayInputStream(data)) { buf =>
+        val in = new GenericCodecObjectInputStream(classTag, buf)
+        using(in) { inp =>
+          inp.readObject().asInstanceOf[S]
+        }
       }
     }
 }

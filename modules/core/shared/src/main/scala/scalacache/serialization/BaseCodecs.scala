@@ -1,5 +1,7 @@
 package scalacache.serialization
 
+import scalacache.serialization.Codec._
+
 /**
   * Primitive type Codec instances
   *
@@ -16,11 +18,12 @@ trait BaseCodecs {
         value.asInstanceOf[Byte]
       )
 
-    def decode(data: Array[Byte]): Int =
+    def decode(data: Array[Byte]): DecodingResult[Int] = tryDecode(
       (data(0).asInstanceOf[Int] & 255) << 24 |
         (data(1).asInstanceOf[Int] & 255) << 16 |
         (data(2).asInstanceOf[Int] & 255) << 8 |
         data(3).asInstanceOf[Int] & 255
+    )
   }
 
   implicit object DoubleBinaryCodec extends Codec[Double] {
@@ -30,9 +33,10 @@ trait BaseCodecs {
       LongBinaryCodec.encode(l)
     }
 
-    def decode(data: Array[Byte]): Double = {
-      val l = LongBinaryCodec.decode(data)
-      JvmDouble.longBitsToDouble(l)
+    def decode(data: Array[Byte]): DecodingResult[Double] = {
+      LongBinaryCodec
+        .decode(data)
+        .map(l => JvmDouble.longBitsToDouble(l))
     }
   }
 
@@ -43,9 +47,10 @@ trait BaseCodecs {
       IntBinaryCodec.encode(i)
     }
 
-    def decode(data: Array[Byte]): Float = {
-      val i = IntBinaryCodec.decode(data)
-      JvmFloat.intBitsToFloat(i)
+    def decode(data: Array[Byte]): DecodingResult[Float] = {
+      IntBinaryCodec
+        .decode(data)
+        .map(i => JvmFloat.intBitsToFloat(i))
     }
   }
 
@@ -62,7 +67,7 @@ trait BaseCodecs {
         value.asInstanceOf[Byte]
       )
 
-    def decode(data: Array[Byte]): Long =
+    def decode(data: Array[Byte]): DecodingResult[Long] = tryDecode(
       (data(0).asInstanceOf[Long] & 255) << 56 |
         (data(1).asInstanceOf[Long] & 255) << 48 |
         (data(2).asInstanceOf[Long] & 255) << 40 |
@@ -71,14 +76,15 @@ trait BaseCodecs {
         (data(5).asInstanceOf[Long] & 255) << 16 |
         (data(6).asInstanceOf[Long] & 255) << 8 |
         data(7).asInstanceOf[Long] & 255
+    )
   }
 
   implicit object BooleanBinaryCodec extends Codec[Boolean] {
     def encode(value: Boolean): Array[Byte] =
       Array((if (value) 1 else 0).asInstanceOf[Byte])
 
-    def decode(data: Array[Byte]): Boolean =
-      data.isDefinedAt(0) && data(0) == 1
+    def decode(data: Array[Byte]): DecodingResult[Boolean] =
+      tryDecode(data.isDefinedAt(0) && data(0) == 1)
   }
 
   implicit object CharBinaryCodec extends Codec[Char] {
@@ -87,10 +93,11 @@ trait BaseCodecs {
       value.asInstanceOf[Byte]
     )
 
-    def decode(data: Array[Byte]): Char =
+    def decode(data: Array[Byte]): DecodingResult[Char] = tryDecode(
       ((data(0).asInstanceOf[Int] & 255) << 8 |
         data(1).asInstanceOf[Int] & 255)
         .asInstanceOf[Char]
+    )
   }
 
   implicit object ShortBinaryCodec extends Codec[Short] {
@@ -99,19 +106,20 @@ trait BaseCodecs {
       value.asInstanceOf[Byte]
     )
 
-    def decode(data: Array[Byte]): Short =
+    def decode(data: Array[Byte]): DecodingResult[Short] = tryDecode(
       ((data(0).asInstanceOf[Short] & 255) << 8 |
         data(1).asInstanceOf[Short] & 255)
         .asInstanceOf[Short]
+    )
   }
 
   implicit object StringBinaryCodec extends Codec[String] {
     def encode(value: String): Array[Byte] = value.getBytes("UTF-8")
-    def decode(data: Array[Byte]): String = new String(data, "UTF-8")
+    def decode(data: Array[Byte]): DecodingResult[String] = tryDecode(new String(data, "UTF-8"))
   }
 
   implicit object ArrayByteBinaryCodec extends Codec[Array[Byte]] {
     def encode(value: Array[Byte]): Array[Byte] = value
-    def decode(data: Array[Byte]): Array[Byte] = data
+    def decode(data: Array[Byte]): DecodingResult[Array[Byte]] = Right(data)
   }
 }

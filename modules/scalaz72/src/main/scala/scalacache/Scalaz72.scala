@@ -30,6 +30,8 @@ object Scalaz72 {
 
     def delay[A](thunk: => A): Task[A] = Task.delay(thunk)
 
+    def suspend[A](thunk: => Task[A]): Task[A] = Task.suspend(thunk)
+
     def async[A](register: (Either[Throwable, A] => Unit) => Unit): Task[A] =
       new Task(Future.async(register).map(\/.fromEither))
 

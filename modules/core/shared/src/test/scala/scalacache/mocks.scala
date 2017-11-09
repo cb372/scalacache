@@ -6,7 +6,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
-import scalacache.serialization.{Codec, InMemoryRepr}
+import scalacache.serialization.Codec
 
 class EmptyCache[V](implicit val config: CacheConfig) extends AbstractCache[V] {
 

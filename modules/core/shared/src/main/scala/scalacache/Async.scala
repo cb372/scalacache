@@ -14,7 +14,6 @@ trait MonadError[F[_]] {
 
   def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
 
-  // TODO is this needed?
   def raiseError[A](t: Throwable): F[A]
 
   // Note: the argument is by-name only for the sake of the Id instance.
@@ -27,6 +26,8 @@ trait MonadError[F[_]] {
 trait Sync[F[_]] extends MonadError[F] {
 
   def delay[A](thunk: => A): F[A]
+
+  def suspend[A](thunk: => F[A]): F[A]
 
 }
 
@@ -45,6 +46,8 @@ object AsyncForId extends Async[Id] {
   def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = f(fa)
 
   def delay[A](thunk: => A): Id[A] = thunk
+
+  def suspend[A](thunk: => Id[A]): Id[A] = thunk
 
   def raiseError[A](t: Throwable): Id[A] = throw t
 
@@ -77,6 +80,8 @@ object AsyncForTry extends Async[Try] {
 
   def delay[A](thunk: => A): Try[A] = Try(thunk)
 
+  def suspend[A](thunk: => Try[A]): Try[A] = thunk
+
   def raiseError[A](t: Throwable): Try[A] = Failure(t)
 
   def async[A](register: (Either[Throwable, A] => Unit) => Unit): Try[A] = {
@@ -105,6 +110,8 @@ class AsyncForFuture(implicit ec: ExecutionContext) extends Async[Future] {
   def flatMap[A, B](fa: Future[A])(f: A => Future[B]): Future[B] = fa.flatMap(f)
 
   def delay[A](thunk: => A): Future[A] = Future(thunk)
+
+  def suspend[A](thunk: => Future[A]): Future[A] = thunk
 
   def raiseError[A](t: Throwable): Future[A] = Future.failed(t)
 
