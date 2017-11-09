@@ -8,6 +8,8 @@ class RedisSerializationSpec extends FlatSpec with Matchers with RedisSerializat
 
   behavior of "serialization"
 
+  import scalacache.serialization.binary._
+
   it should "round-trip a String" in {
     val bytes = serialize("hello")
     deserialize[String](bytes) should be(Right("hello"))

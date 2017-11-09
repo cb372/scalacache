@@ -1,13 +1,14 @@
-package scalacache.serialization
+package scalacache.serialization.binary
 
+import scalacache.serialization.Codec
 import scalacache.serialization.Codec._
 
 /**
-  * Primitive type Codec instances
+  * Codecs for all the Java primitive types, plus String and Array[Byte]
   *
   * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
   */
-trait BaseCodecs {
+trait BinaryPrimitiveCodecs {
 
   implicit object IntBinaryCodec extends Codec[Int] {
     def encode(value: Int): Array[Byte] =

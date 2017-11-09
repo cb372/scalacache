@@ -1,12 +1,14 @@
-package scalacache.serialization
+package scalacache.serialization.gzip
 
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.util.Random
+import scalacache.serialization.{Codec, Phone}
 
 class GZippingJavaAnyBinaryCodecSpec extends FlatSpec with Matchers {
 
-  import GZippingJavaAnyBinaryCodec._
+  import GZippingJavaSerializationAnyRefCodec._
+
   val codec = implicitly[Codec[Phone]]
 
   it should "work without compression" in {

@@ -5,7 +5,6 @@ import java.util.UUID
 import org.scalatest._
 import cats.effect.{IO => CatsIO}
 import monix.eval.{Task => MonixTask}
-import monix.execution.Scheduler
 
 import scalaz.concurrent.{Task => ScalazTask}
 import net.spy.memcached.{AddrUtil, MemcachedClient}
@@ -15,11 +14,11 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 import scala.util.control.NonFatal
-
 import scalacache._
 import scalacache.caffeine.CaffeineCache
 import scalacache.memcached.MemcachedCache
 import scalacache.redis.RedisCache
+import scalacache.serialization.binary._
 
 class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 

@@ -1,13 +1,15 @@
-package scalacache.serialization
+package scalacache.serialization.binary
 
 import org.scalacheck._
-import org.scalatest.{Matchers, FlatSpec}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatest.{FlatSpec, Matchers}
+
+import scalacache.serialization.Codec
 
 /**
   * Inspired by Shade @ https://github.com/alexandru/shade/blob/master/src/test/scala/shade/tests/CodecsSuite.scala
   */
-class BasicCodecsSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks {
+class BinaryPrimitiveCodecsSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks {
 
   private def serdesCheck[A: Arbitrary](implicit codec: Codec[A]): Unit = {
     forAll { n: A =>

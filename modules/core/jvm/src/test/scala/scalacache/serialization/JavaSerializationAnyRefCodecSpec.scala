@@ -2,7 +2,9 @@ package scalacache.serialization
 
 import org.scalatest.{Matchers, FlatSpec}
 
-class JavaSerializationCodecSpec extends FlatSpec with Matchers {
+class JavaSerializationAnyRefCodecSpec extends FlatSpec with Matchers {
+
+  import scalacache.serialization.binary._
 
   it should "serialize and deserialize case classes" in {
     val hello = Phone(1, "Apple")

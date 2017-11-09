@@ -2,10 +2,9 @@ package scalacache.redis
 
 import org.scalatest.{BeforeAndAfter, Matchers, FlatSpec}
 
-import scalacache._
-import memoization._
-import redis._
+import scalacache.memoization._
 import scalacache.modes.sync._
+import scalacache.serialization.binary._
 
 case class User(id: Int, name: String)
 

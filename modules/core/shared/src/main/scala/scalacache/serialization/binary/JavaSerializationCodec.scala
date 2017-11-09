@@ -1,27 +1,18 @@
-package scalacache.serialization
+package scalacache.serialization.binary
 
 import java.io._
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scalacache.serialization.Codec.DecodingResult
+import scalacache.serialization.{Codec, GenericCodecObjectInputStream}
 
 /**
-  * Holds a Java-serialisation-based Codec[Object <: Serializable] instance
+  * Codec that uses Java serialization to serialize objects
   *
   * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
   */
-trait JavaSerializationCodec {
-
-  /**
-    * Uses plain Java serialization to deserialize objects
-    */
-  implicit def AnyRefBinaryCodec[S <: Serializable](implicit ev: ClassTag[S]): Codec[S] =
-    new JavaSerializationAnyCodec[S](ev)
-
-}
-
-class JavaSerializationAnyCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S] {
+class JavaSerializationAnyRefCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S] {
 
   def using[T <: Closeable, R](obj: T)(f: T => R): R =
     try f(obj)

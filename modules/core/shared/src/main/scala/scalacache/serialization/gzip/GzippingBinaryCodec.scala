@@ -1,10 +1,10 @@
-package scalacache.serialization
+package scalacache.serialization.gzip
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
-import scala.util.Try
 import scalacache.serialization.Codec.DecodingResult
+import scalacache.serialization.{Codec, FailedToDecode}
 
 object CompressingCodec {
 

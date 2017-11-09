@@ -8,7 +8,20 @@ import scala.util.Try
   * Represents a type class that needs to be implemented
   * for serialization/deserialization to work.
   */
-@implicitNotFound("Could not find any Codecs for type ${A}. Please provide one or import scalacache._")
+@implicitNotFound(msg = """Could not find any Codecs for type ${A}.
+If you would like to serialize values in a binary format, please import the binary codec:
+
+import scalacache.serialization.binary._
+
+If you would like to serialize values as JSON using circe, please import the circe codec
+and provide a circe Encoder[${A}] and Decoder[${A}], e.g.:
+
+import scalacache.serialization.circe._
+import io.circe.generic.auto._
+
+You will need a dependency on the scalacache-circe module.
+
+See the documentation for more details on codecs.""")
 trait Codec[A] {
   def encode(value: A): Array[Byte]
   def decode(bytes: Array[Byte]): Codec.DecodingResult[A]
@@ -17,7 +30,7 @@ trait Codec[A] {
 /**
   * For simple primitives, we provide lightweight Codecs for ease of use.
   */
-object Codec extends BaseCodecs {
+object Codec {
 
   type DecodingResult[A] = Either[FailedToDecode, A]
 

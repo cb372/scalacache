@@ -1,9 +1,7 @@
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
-import scalacache.CacheConfig
-import scalacache.serialization.JavaSerializationCodec
 
-package object scalacache extends JavaSerializationCodec {
+package object scalacache {
 
   type Id[X] = X
 

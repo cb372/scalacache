@@ -7,8 +7,8 @@ import org.scalatest.concurrent.{ScalaFutures, Eventually, IntegrationPatience}
 import org.scalatest.time.{Span, Seconds}
 
 import scala.language.postfixOps
-import scalacache._
 import scalacache.serialization.Codec
+import scalacache.serialization.binary._
 
 class MemcachedCacheSpec
     extends FlatSpec
