@@ -2,7 +2,7 @@ package scalacache.serialization
 
 import scala.annotation.implicitNotFound
 import scala.language.implicitConversions
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents a type class that needs to be implemented
@@ -35,6 +35,9 @@ object Codec {
   type DecodingResult[A] = Either[FailedToDecode, A]
 
   def tryDecode[A](f: => A): DecodingResult[A] =
-    Try(f).toEither.left.map(FailedToDecode)
+    Try(f) match {
+      case Success(a) => Right(a)
+      case Failure(e) => Left(FailedToDecode(e))
+    }
 
 }

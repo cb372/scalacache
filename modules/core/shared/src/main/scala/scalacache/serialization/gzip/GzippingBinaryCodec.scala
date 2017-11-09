@@ -52,7 +52,7 @@ trait GZippingBinaryCodec[A] extends Codec[A] {
         super.decode(data.tail)
       case Some(Headers.Gzipped) =>
         val bytes = Codec.tryDecode(decompress(data))
-        bytes.flatMap(super.decode)
+        bytes.right.flatMap(super.decode)
       case unexpected =>
         Left(FailedToDecode(
           new RuntimeException(s"Expected either ${Headers.Uncompressed} or ${Headers.Gzipped} but got $unexpected")))

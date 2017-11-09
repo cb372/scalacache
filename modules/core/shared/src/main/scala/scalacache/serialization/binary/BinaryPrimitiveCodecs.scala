@@ -37,6 +37,7 @@ trait BinaryPrimitiveCodecs {
     def decode(data: Array[Byte]): DecodingResult[Double] = {
       LongBinaryCodec
         .decode(data)
+        .right
         .map(l => JvmDouble.longBitsToDouble(l))
     }
   }
@@ -51,6 +52,7 @@ trait BinaryPrimitiveCodecs {
     def decode(data: Array[Byte]): DecodingResult[Float] = {
       IntBinaryCodec
         .decode(data)
+        .right
         .map(i => JvmFloat.intBitsToFloat(i))
     }
   }

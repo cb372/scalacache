@@ -35,7 +35,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
       val bytes = jedis.get(key.utf8bytes)
       val result: Codec.DecodingResult[Option[V]] = {
         if (bytes != null)
-          codec.decode(bytes).map(Some(_))
+          codec.decode(bytes).right.map(Some(_))
         else
           Right(None)
       }
