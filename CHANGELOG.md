@@ -1,3 +1,10 @@
+0.20.0 (2017/11/08)
+---
+
+Lots of changes! The headline was a redesign of the API to support different effects such as cats-effect IO and Scalaz Task. There were a lot of breaking changes in the API, hence the jump in version number.
+
+See [#145](https://github.com/cb372/scalacache/pull/145) for details.
+
 0.10.0 (2017/10/02)
 ---
 
