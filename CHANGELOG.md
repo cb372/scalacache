@@ -1,3 +1,12 @@
+0.21.0 (2017/11/09)
+---
+
+New features:
+* A new module `scalacache-circe` for serializing values as JSON using circe.
+
+Breaking changes:
+* Until now the binary serialization codec was automatically made available by importing `scalacache._`. It now needs to be imported separately using `import scalacache.serialization.binary._`. This will affect anybody using Redis or Memcached.
+
 0.20.0 (2017/11/08)
 ---
 
