@@ -9,8 +9,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scalacache.serialization.Codec
 import scalacache._
+import scalacache.serialization.Codec
+import scalacache.serialization.binary._
 
 trait RedisCacheSpecBase
     extends FlatSpec
@@ -54,7 +55,7 @@ trait RedisCacheSpecBase
 
       it should "store the given key-value pair in the underlying cache" in {
         whenReady(cache.put("key2")(123, None)) { _ =>
-          deserialize[Int](client.get(bytes("key2"))) should be(123)
+          deserialize[Int](client.get(bytes("key2"))) should be(Right(123))
         }
       }
 
@@ -62,7 +63,7 @@ trait RedisCacheSpecBase
 
       it should "store the given key-value pair in the underlying cache" in {
         whenReady(cache.put("key3")(123, Some(1 second))) { _ =>
-          deserialize[Int](client.get(bytes("key3"))) should be(123)
+          deserialize[Int](client.get(bytes("key3"))) should be(Right(123))
 
           // Should expire after 1 second
           eventually(timeout(Span(2, Seconds))) {
@@ -75,7 +76,7 @@ trait RedisCacheSpecBase
 
       it should "store the given key-value pair in the underlying cache with no expiry" in {
         whenReady(cache.put("key4")(123, Some(Duration.Zero))) { _ =>
-          deserialize[Int](client.get(bytes("key4"))) should be(123)
+          deserialize[Int](client.get(bytes("key4"))) should be(Right(123))
           client.ttl(bytes("key4")) should be(-1L)
         }
       }
@@ -84,7 +85,7 @@ trait RedisCacheSpecBase
 
       it should "store the given key-value pair in the underlying cache" in {
         whenReady(cache.put("key5")(123, Some(100 milliseconds))) { _ =>
-          deserialize[Int](client.get(bytes("key5"))) should be(123)
+          deserialize[Int](client.get(bytes("key5"))) should be(Right(123))
           client.pttl("key5").toLong should be > 0L
 
           // Should expire after 1 second
@@ -132,7 +133,7 @@ trait RedisCacheSpecBase
 
       it should "delete the given key and its value from the underlying cache" in {
         client.set(bytes("key1"), serialize(123))
-        deserialize[Int](client.get(bytes("key1"))) should be(123)
+        deserialize[Int](client.get(bytes("key1"))) should be(Right(123))
 
         whenReady(cache.remove("key1")) { _ =>
           client.get("key1") should be(null)

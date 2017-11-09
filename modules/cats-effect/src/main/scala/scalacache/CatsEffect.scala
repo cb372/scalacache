@@ -34,6 +34,8 @@ object CatsEffect {
 
     def delay[A](thunk: => A): F[A] = af.delay(thunk)
 
+    def suspend[A](thunk: => F[A]): F[A] = af.suspend(thunk)
+
     def async[A](register: (Either[Throwable, A] => Unit) => Unit): F[A] = af.async(register)
 
   }

@@ -31,7 +31,7 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
       pushChanges
     )
   )
-  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, tests)
+  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, circe, tests)
 
 lazy val core =
   CrossProject(id = "core", file("modules/core"), CrossType.Full)
@@ -39,9 +39,8 @@ lazy val core =
     .settings(
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
-        "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-        "org.scalacheck" %% "scalacheck" % "1.13.4" % Test
-      ),
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      ) ++ scalacheck,
       scala211OnlyDeps(
         "org.squeryl" %% "squeryl" % "0.9.9" % Test,
         "com.h2database" % "h2" % "1.4.196" % Test
@@ -117,9 +116,18 @@ lazy val scalaz72 = module("scalaz72")
     )
   )
 
+lazy val circe = module("circe")
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core" % "0.8.0",
+      "io.circe" %% "circe-parser" % "0.8.0",
+      "io.circe" %% "circe-generic" % "0.8.0" % Test
+    ) ++ scalacheck
+  )
+
 lazy val tests = module("tests")
   .settings(publishArtifact := false)
-  .dependsOn(caffeine, memcached, redis, catsEffect, monix, scalaz72)
+  .dependsOn(caffeine, memcached, redis, catsEffect, monix, scalaz72, circe)
 
 lazy val doc = module("doc")
   .enablePlugins(TutPlugin)
@@ -128,7 +136,7 @@ lazy val doc = module("doc")
     tutNameFilter := """^README.md$""".r,
     tutTargetDirectory := (baseDirectory in root).value
   )
-  .dependsOn(coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72)
+  .dependsOn(coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, circe)
 
 lazy val benchmarks = module("benchmarks")
   .enablePlugins(JmhPlugin)
@@ -155,6 +163,10 @@ lazy val slf4j = Seq(
 
 lazy val scalaTest = Seq(
   "org.scalatest" %% "scalatest" % "3.0.4" % Test
+)
+
+lazy val scalacheck = Seq(
+  "org.scalacheck" %% "scalacheck" % "1.13.4" % Test
 )
 
 // Dependencies common to all projects

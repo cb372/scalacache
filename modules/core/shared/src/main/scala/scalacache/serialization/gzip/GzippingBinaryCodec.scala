@@ -1,7 +1,10 @@
-package scalacache.serialization
+package scalacache.serialization.gzip
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
+
+import scalacache.serialization.Codec.DecodingResult
+import scalacache.serialization.{Codec, FailedToDecode}
 
 object CompressingCodec {
 
@@ -42,14 +45,17 @@ trait GZippingBinaryCodec[A] extends Codec[A] {
     }
   }
 
-  abstract override def decode(data: Array[Byte]): A = {
+  abstract override def decode(data: Array[Byte]): DecodingResult[A] = {
     val firstByte = data.headOption
     firstByte match {
-      case Some(Headers.Uncompressed) => super.decode(data.tail)
-      case Some(Headers.Gzipped) => super.decode(decompress(data.tail))
+      case Some(Headers.Uncompressed) =>
+        super.decode(data.tail)
+      case Some(Headers.Gzipped) =>
+        val bytes = Codec.tryDecode(decompress(data))
+        bytes.right.flatMap(super.decode)
       case unexpected =>
-        throw new RuntimeException(
-          s"Expected either ${Headers.Uncompressed} or ${Headers.Gzipped} but got $unexpected")
+        Left(FailedToDecode(
+          new RuntimeException(s"Expected either ${Headers.Uncompressed} or ${Headers.Gzipped} but got $unexpected")))
     }
   }
 
@@ -68,7 +74,7 @@ trait GZippingBinaryCodec[A] extends Codec[A] {
 
   // Port of decompress in SpyMemcached
   private def decompress(data: Array[Byte]): Array[Byte] = {
-    val bis = new ByteArrayInputStream(data)
+    val bis = new ByteArrayInputStream(data, 1, data.length - 1)
     val gis = new GZIPInputStream(bis)
     val bos = new ByteArrayOutputStream
     val buf = new Array[Byte](4 * 1024)
