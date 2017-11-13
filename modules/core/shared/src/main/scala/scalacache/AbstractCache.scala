@@ -100,7 +100,8 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
     _cachingF(key, ttl, f)
   }
 
-  private def _caching[F[_]](key: String, ttl: Option[Duration], f: => V)(implicit mode: Mode[F], flags: Flags): F[V] = {
+  private def _caching[F[_]](key: String, ttl: Option[Duration], f: => V)(implicit mode: Mode[F],
+                                                                          flags: Flags): F[V] = {
     import mode._
 
     M.flatMap {

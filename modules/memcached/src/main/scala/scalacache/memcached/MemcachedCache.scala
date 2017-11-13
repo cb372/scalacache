@@ -42,7 +42,7 @@ class MemcachedCache[V](client: MemcachedClient, keySanitizer: MemcachedKeySanit
           } else {
             g.getStatus.getStatusCode match {
               case StatusCode.ERR_NOT_FOUND => cb(Right(None))
-              case _ => cb(Left(new MemcachedException(g.getStatus.getMessage)))
+              case _                        => cb(Left(new MemcachedException(g.getStatus.getMessage)))
             }
 
           }

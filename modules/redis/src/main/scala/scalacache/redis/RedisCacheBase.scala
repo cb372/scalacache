@@ -55,7 +55,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
         val keyBytes = key.utf8bytes
         val valueBytes = codec.encode(value)
         ttl match {
-          case None => jedis.set(keyBytes, valueBytes)
+          case None                => jedis.set(keyBytes, valueBytes)
           case Some(Duration.Zero) => jedis.set(keyBytes, valueBytes)
           case Some(d) if d < 1.second =>
             if (logger.isWarnEnabled) {
