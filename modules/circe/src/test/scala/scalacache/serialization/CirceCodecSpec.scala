@@ -4,6 +4,7 @@ import io.circe.{Decoder, Encoder, Json, ObjectEncoder}
 import org.scalacheck.Arbitrary
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, Matchers}
+import io.circe.syntax._
 
 case class Fruit(name: String, tastinessQuotient: Double)
 
@@ -14,7 +15,7 @@ class CirceCodecSpec extends FlatSpec with Matchers with GeneratorDrivenProperty
   import scalacache.serialization.circe._
 
   private def serdesCheck[A: Arbitrary](expectedJson: A => String)(implicit codec: Codec[A]): Unit = {
-    forAll { a: A =>
+    forAll(minSuccessful(10000)) { a: A =>
       val serialised = codec.encode(a)
       new String(serialised, "utf-8") shouldBe expectedJson(a)
       val deserialised = codec.decode(serialised)
@@ -43,7 +44,7 @@ class CirceCodecSpec extends FlatSpec with Matchers with GeneratorDrivenProperty
   }
 
   it should "serialize and deserialize Char" in {
-    serdesCheck[Char](x => s""""$x"""")
+    serdesCheck[Char](x => s"""${x.toString.asJson}""")
   }
 
   it should "serialize and deserialize Short" in {
