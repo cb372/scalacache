@@ -45,7 +45,9 @@ lazy val core =
         "org.squeryl" %% "squeryl" % "0.9.9" % Test,
         "com.h2database" % "h2" % "1.4.196" % Test
       )
-    )
+    ).jsSettings(
+    parallelExecution in Test := false,
+  )
 
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js

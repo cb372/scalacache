@@ -5,10 +5,14 @@ scala:
   - 2.12.4
 jdk:
   - oraclejdk8
+node_js:
+  - "8"
 services:
   - memcached
   - redis
 script:
+  - sbt ++$TRAVIS_SCALA_VERSION coreJVM/test:compile coreJS/test:compile coreJS/fastOptJS
+  - sbt ++$TRAVIS_SCALA_VERSION coreJVM/test coreJS/test
   - sbt +test
 cache:
   directories:
