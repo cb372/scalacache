@@ -44,7 +44,7 @@ class CirceCodecSpec extends FlatSpec with Matchers with GeneratorDrivenProperty
   }
 
   it should "serialize and deserialize Char" in {
-    serdesCheck[Char](x => s"""${x.toString.asJson}""")
+    serdesCheck[Char](x => x.asJson.toString)
   }
 
   it should "serialize and deserialize Short" in {
