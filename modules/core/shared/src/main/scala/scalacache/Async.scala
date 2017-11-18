@@ -62,7 +62,7 @@ object AsyncForId extends Async[Id] {
   def async[A](register: (Either[Throwable, A] => Unit) => Unit): Id[A] = {
     val promise = Promise[A]()
     register {
-      case Left(e) => promise.failure(e)
+      case Left(e)  => promise.failure(e)
       case Right(x) => promise.success(x)
     }
     Await.result(promise.future, Duration.Inf)
@@ -87,7 +87,7 @@ object AsyncForTry extends Async[Try] {
   def async[A](register: (Either[Throwable, A] => Unit) => Unit): Try[A] = {
     val promise = Promise[A]()
     register {
-      case Left(e) => promise.failure(e)
+      case Left(e)  => promise.failure(e)
       case Right(x) => promise.success(x)
     }
     Try(Await.result(promise.future, Duration.Inf))
@@ -118,7 +118,7 @@ class AsyncForFuture(implicit ec: ExecutionContext) extends Async[Future] {
   def async[A](register: (Either[Throwable, A] => Unit) => Unit): Future[A] = {
     val promise = Promise[A]()
     register {
-      case Left(e) => promise.failure(e)
+      case Left(e)  => promise.failure(e)
       case Right(x) => promise.success(x)
     }
     promise.future

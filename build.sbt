@@ -89,7 +89,7 @@ lazy val redis = module("redis")
 lazy val caffeine = module("caffeine")
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.5.6",
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.6.0",
       "com.google.code.findbugs" % "jsr305" % "3.0.0" % Provided
     )
   )
@@ -97,14 +97,14 @@ lazy val caffeine = module("caffeine")
 lazy val catsEffect = module("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "0.4"
+      "org.typelevel" %% "cats-effect" % "0.5"
     )
   )
 
 lazy val monix = module("monix")
   .settings(
     libraryDependencies ++= Seq(
-      "io.monix" %% "monix" % "3.0.0-M1"
+      "io.monix" %% "monix" % "3.0.0-M2"
     )
   )
   .dependsOn(catsEffect)
@@ -119,9 +119,9 @@ lazy val scalaz72 = module("scalaz72")
 lazy val circe = module("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core" % "0.8.0",
-      "io.circe" %% "circe-parser" % "0.8.0",
-      "io.circe" %% "circe-generic" % "0.8.0" % Test
+      "io.circe" %% "circe-core" % "0.9.0-M2",
+      "io.circe" %% "circe-parser" % "0.9.0-M2",
+      "io.circe" %% "circe-generic" % "0.9.0-M2" % Test
     ) ++ scalacheck
   )
 
@@ -166,7 +166,7 @@ lazy val scalaTest = Seq(
 )
 
 lazy val scalacheck = Seq(
-  "org.scalacheck" %% "scalacheck" % "1.13.4" % Test
+  "org.scalacheck" %% "scalacheck" % "1.13.5" % Test
 )
 
 // Dependencies common to all projects
@@ -255,7 +255,7 @@ lazy val commitReadmeFiles = ReleaseStep(action = st => {
 def scala211OnlyDeps(moduleIDs: ModuleID*) =
   libraryDependencies ++= (scalaBinaryVersion.value match {
     case "2.11" => moduleIDs
-    case other => Nil
+    case other  => Nil
   })
 
 lazy val scalafmtSettings = Seq(
