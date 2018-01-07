@@ -59,7 +59,7 @@ def module(name: String) =
 lazy val guava = module("guava")
   .settings(
     libraryDependencies ++= Seq(
-      "com.google.guava" % "guava" % "19.0",
+      "com.google.guava" % "guava" % "23.6-jre",
       "com.google.code.findbugs" % "jsr305" % "1.3.9"
     )
   )
