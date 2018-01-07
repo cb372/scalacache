@@ -97,14 +97,14 @@ lazy val caffeine = module("caffeine")
 lazy val catsEffect = module("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "0.5"
+      "org.typelevel" %% "cats-effect" % "0.8"
     )
   )
 
 lazy val monix = module("monix")
   .settings(
     libraryDependencies ++= Seq(
-      "io.monix" %% "monix" % "3.0.0-M2"
+      "io.monix" %% "monix" % "3.0.0-M3"
     )
   )
   .dependsOn(catsEffect)
