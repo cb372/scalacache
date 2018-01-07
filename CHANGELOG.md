@@ -1,3 +1,19 @@
+0.22.0 (2018/01/07)
+---
+
+Bump dependencies:
+
+* sbt 1.0.3
+* scalajs 0.6.21
+* cats-effect 0.8
+* Circe 0.9.0
+* Monix 3.0.0-M3
+* Guava 23.6-jre
+
+Thanks to @golem131 and @jleider for some of those.
+
+Note that this means all modules that transitively depend on Cats now consistently depend on Cats 1.0.1. No more `NoSuchMethodError`s!
+
 0.21.0 (2017/11/09)
 ---
 
