@@ -1,0 +1,24 @@
+options:
+  - title: Getting started
+    url: docs/index.html
+
+  - title: Modes
+    url: docs/modes.html
+
+  - title: Synchronous API
+    url: docs/sync-api.html
+
+  - title: Memoization
+    url: docs/memoization.html
+
+  - title: Flags
+    url: docs/flags.html
+
+  - title: Serialization
+    url: docs/serialization.html
+
+  - title: Cache implementations
+    url: docs/cache-implementations.html
+
+  - title: Troubleshooting/Restrictions
+    url: docs/restrictions.html

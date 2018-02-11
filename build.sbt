@@ -130,11 +130,21 @@ lazy val tests = module("tests")
   .dependsOn(caffeine, memcached, redis, catsEffect, monix, scalaz72, circe)
 
 lazy val doc = module("doc")
-  .enablePlugins(TutPlugin)
+  .enablePlugins(MicrositesPlugin)
   .settings(
     publishArtifact := false,
-    tutNameFilter := """^README.md$""".r,
-    tutTargetDirectory := (baseDirectory in root).value
+    micrositeName := "ScalaCache",
+    micrositeAuthor := "Chris Birchall",
+    micrositeDescription := "A facade for the most popular cache implementations, with a simple, idiomatic Scala API.",
+    micrositeDocumentationUrl := "/docs",
+    micrositeHomepage := "https://github.com/cb372/scalacache",
+    micrositeGithubOwner := "cb372",
+    micrositeGithubRepo := "scalacache",
+    micrositeGitterChannel := true,
+    micrositeTwitterCreator := "@cbirchall",
+    micrositeShareOnSocial := true,
+    micrositePushSiteWith := GitHub4s
+    //micrositeGithubToken := getEnvVar("GITHUB_TOKEN")
   )
   .dependsOn(coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, circe)
 

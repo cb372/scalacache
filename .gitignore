@@ -8,3 +8,6 @@ coveralls-token.txt
 /*.html
 dump.rdb
 logs
+.ensime
+.ensime_lucene
+.ensime_cache
