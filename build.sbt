@@ -136,15 +136,14 @@ lazy val doc = module("doc")
     micrositeName := "ScalaCache",
     micrositeAuthor := "Chris Birchall",
     micrositeDescription := "A facade for the most popular cache implementations, with a simple, idiomatic Scala API.",
-    micrositeDocumentationUrl := "/docs",
+    micrositeBaseUrl := "/scalacache",
+    micrositeDocumentationUrl := "/scalacache/docs",
     micrositeHomepage := "https://github.com/cb372/scalacache",
     micrositeGithubOwner := "cb372",
     micrositeGithubRepo := "scalacache",
     micrositeGitterChannel := true,
     micrositeTwitterCreator := "@cbirchall",
-    micrositeShareOnSocial := true,
-    micrositePushSiteWith := GitHub4s
-    //micrositeGithubToken := getEnvVar("GITHUB_TOKEN")
+    micrositeShareOnSocial := true
   )
   .dependsOn(coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, circe)
 
