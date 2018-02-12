@@ -1,0 +1,153 @@
+<html><head><title>ScalaCache: Cache implementations</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Chris Birchall" /><meta name="description" content="A facade for the most popular cache implementations, with a simple, idiomatic Scala API." /><meta name="og:image" content="/img/poster.png" /><meta name="og:title" content="ScalaCache: Cache implementations" /><meta name="og:site_name" content="ScalaCache" /><meta name="og:url" content="https://github.com/cb372/scalacache" /><meta name="og:type" content="website" /><meta name="og:description" content="A facade for the most popular cache implementations, with a simple, idiomatic Scala API." /><link rel="icon" type="image/png" href="/img/favicon.png" /><meta name="twitter:title" content="ScalaCache: Cache implementations" /><meta name="twitter:image" content="https://github.com/cb372/scalacacheimg/poster.png" /><meta name="twitter:description" content="A facade for the most popular cache implementations, with a simple, idiomatic Scala API." /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:creator" content="@cbirchall" /><link rel="icon" type="image/png" sizes="16x16" href="/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/highlight/styles/default.css" /><link rel="stylesheet" href="/css/style.css" /><link rel="stylesheet" href="/css/palette.css" /><link rel="stylesheet" href="/css/codemirror.css" /></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><ul id="sidebar" class="sidebar-nav"><li class="sidebar-brand"><a href="/" class="brand"><div class="brand-wrapper"><span>ScalaCache</span></div></a></li> <li><a href="/docs/index.html" class="">Getting started</a></li> <li><a href="/docs/modes.html" class="">Modes</a></li> <li><a href="/docs/sync-api.html" class="">Synchronous API</a></li> <li><a href="/docs/memoization.html" class="">Memoization</a></li> <li><a href="/docs/flags.html" class="">Flags</a></li> <li><a href="/docs/serialization.html" class="">Serialization</a></li> <li><a href="/docs/cache-implementations.html" class=" active ">Cache implementations</a></li> <li><a href="/docs/restrictions.html" class="">Troubleshooting/Restrictions</a></li></ul></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/cb372/scalacache"><i class="fa fa-eye"></i><span>WATCH<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/cb372/scalacache"><i class="fa fa-star-o"></i><span>STARS<span id="stars" class="label label-default">--</span></span></a></li><li><a href="#" onclick="shareSiteTwitter('ScalaCache A facade for the most popular cache implementations, with a simple, idiomatic Scala API.');"><i class="fa fa-twitter"></i></a></li><li><a href="#" onclick="shareSiteFacebook('ScalaCache A facade for the most popular cache implementations, with a simple, idiomatic Scala API.');"><i class="fa fa-facebook"></i></a></li><li><a href="#" onclick="shareSiteGoogle();"><i class="fa fa-google-plus"></i></a></li></ul></div></div></div></div><div id="content" data-github-owner="cb372" data-github-repo="scalacache"><div class="content-wrapper"><section><h2 id="cache-implementations">Cache implementations</h2>
+
+<h3 id="google-guava">Google Guava</h3>
+
+<p>SBT:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.22.0"
+</code></pre></div></div>
+
+<p>Usage:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache._</span>
+<span class="k">import</span> <span class="nn">scalacache.guava._</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">guavaCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">GuavaCache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+</code></pre></div></div>
+
+<p>This will build a Guava cache with all the default settings. If you want to customize your Guava cache, then build it yourself and pass it to <code class="highlighter-rouge">GuavaCache</code> like this:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache._</span>
+<span class="k">import</span> <span class="nn">scalacache.guava._</span>
+<span class="k">import</span> <span class="nn">com.google.common.cache.CacheBuilder</span>
+
+<span class="k">val</span> <span class="n">underlyingGuavaCache</span> <span class="k">=</span> <span class="nc">CacheBuilder</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">maximumSize</span><span class="o">(</span><span class="mi">10000L</span><span class="o">).</span><span class="n">build</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Entry</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">guavaCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">GuavaCache</span><span class="o">(</span><span class="n">underlyingGuavaCache</span><span class="o">)</span>
+</code></pre></div></div>
+
+<h3 id="memcached">Memcached</h3>
+
+<p>SBT:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.22.0"
+</code></pre></div></div>
+
+<p>Usage:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache._</span>
+<span class="k">import</span> <span class="nn">scalacache.memcached._</span>
+<span class="k">import</span> <span class="nn">scalacache.serialization.binary._</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">memcachedCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">MemcachedCache</span><span class="o">(</span><span class="s">"localhost:11211"</span><span class="o">)</span>
+</code></pre></div></div>
+
+<p>or provide your own Memcached client, like this:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache._</span>
+<span class="k">import</span> <span class="nn">scalacache.memcached._</span>
+<span class="k">import</span> <span class="nn">scalacache.serialization.binary._</span>
+<span class="k">import</span> <span class="nn">net.spy.memcached._</span>
+
+<span class="k">val</span> <span class="n">memcachedClient</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MemcachedClient</span><span class="o">(</span>
+  <span class="k">new</span> <span class="nc">BinaryConnectionFactory</span><span class="o">(),</span> 
+  <span class="nc">AddrUtil</span><span class="o">.</span><span class="n">getAddresses</span><span class="o">(</span><span class="s">"localhost:11211"</span><span class="o">)</span>
+<span class="o">)</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">customisedMemcachedCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">MemcachedCache</span><span class="o">(</span><span class="n">memcachedClient</span><span class="o">)</span>
+</code></pre></div></div>
+
+<h4 id="keys">Keys</h4>
+
+<p>Memcached only accepts ASCII keys with length &lt;= 250 characters (see the <a href="https://github.com/memcached/memcached/blob/1.4.20/doc/protocol.txt#L41">spec</a> for more details).</p>
+
+<p>ScalaCache provides two <code class="highlighter-rouge">KeySanitizer</code> implementations that convert your cache keys into valid Memcached keys.</p>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">ReplaceAndTruncateSanitizer</code> simply replaces non-ASCII characters with underscores and truncates long keys to 250 chars. This sanitizer is convenient because it keeps your keys human-readable. Use it if you only expect ASCII characters to appear in cache keys and you don’t use any massively long keys.</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">HashingMemcachedKeySanitizer</code> uses a hash of your cache key, so it can turn any string into a valid Memcached key. The only downside is that it turns your keys into gobbledigook, which can make debugging a pain.</p>
+  </li>
+</ul>
+
+<h3 id="ehcache">Ehcache</h3>
+
+<p>SBT:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.22.0"
+</code></pre></div></div>
+
+<p>Usage:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache._</span>
+<span class="k">import</span> <span class="nn">scalacache.ehcache._</span>
+<span class="k">import</span> <span class="nn">net.sf.ehcache.</span><span class="o">{</span><span class="nc">Cache</span> <span class="k">=&gt;</span> <span class="nc">UnderlyingCache</span><span class="o">,</span> <span class="k">_</span><span class="o">}</span>
+
+<span class="c1">// We assume you've already taken care of Ehcache config, 
+// and you have an initialized Ehcache cache.
+</span><span class="k">val</span> <span class="n">cacheManager</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CacheManager</span>
+<span class="k">val</span> <span class="n">underlying</span><span class="k">:</span> <span class="kt">UnderlyingCache</span> <span class="o">=</span> <span class="n">cacheManager</span><span class="o">.</span><span class="n">getCache</span><span class="o">(</span><span class="s">"myCache"</span><span class="o">)</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">ehcacheCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">EhcacheCache</span><span class="o">(</span><span class="n">underlying</span><span class="o">)</span>
+</code></pre></div></div>
+
+<h3 id="redis">Redis</h3>
+
+<p>SBT:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.22.0"
+</code></pre></div></div>
+
+<p>Usage:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache._</span>
+<span class="k">import</span> <span class="nn">scalacache.redis._</span>
+<span class="k">import</span> <span class="nn">scalacache.serialization.binary._</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">redisCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">RedisCache</span><span class="o">(</span><span class="s">"host1"</span><span class="o">,</span> <span class="mi">6379</span><span class="o">)</span>
+</code></pre></div></div>
+
+<p>or provide your own <a href="https://github.com/xetorthio/jedis">Jedis</a> client, like this:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache._</span>
+<span class="k">import</span> <span class="nn">scalacache.redis._</span>
+<span class="k">import</span> <span class="nn">scalacache.serialization.binary._</span>
+<span class="k">import</span> <span class="nn">_root_.redis.clients.jedis._</span>
+
+<span class="k">val</span> <span class="n">jedisPool</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">JedisPool</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span> <span class="mi">6379</span><span class="o">)</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">customisedRedisCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">RedisCache</span><span class="o">(</span><span class="n">jedisPool</span><span class="o">)</span>
+</code></pre></div></div>
+
+<p>ScalaCache also supports <a href="https://github.com/xetorthio/jedis/wiki/AdvancedUsage#shardedjedis">sharded Redis</a> and <a href="http://redis.io/topics/sentinel">Redis Sentinel</a>. Just create a <code class="highlighter-rouge">ShardedRedisCache</code> or <code class="highlighter-rouge">SentinelRedisCache</code> respectively.</p>
+
+<h3 id="caffeine">Caffeine</h3>
+
+<p>SBT:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.22.0"
+</code></pre></div></div>
+
+<p>Usage:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache._</span>
+<span class="k">import</span> <span class="nn">scalacache.caffeine._</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">caffeineCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">CaffeineCache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+</code></pre></div></div>
+
+<p>This will build a Caffeine cache with all the default settings. If you want to customize your Caffeine cache, then build it yourself and pass it to <code class="highlighter-rouge">CaffeineCache</code> like this:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache._</span>
+<span class="k">import</span> <span class="nn">scalacache.caffeine._</span>
+<span class="k">import</span> <span class="nn">com.github.benmanes.caffeine.cache.Caffeine</span>
+
+<span class="k">val</span> <span class="n">underlyingCaffeineCache</span> <span class="k">=</span> <span class="nc">Caffeine</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">maximumSize</span><span class="o">(</span><span class="mi">10000L</span><span class="o">).</span><span class="n">build</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Entry</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">customisedCaffeineCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">CaffeineCache</span><span class="o">(</span><span class="n">underlyingCaffeineCache</span><span class="o">)</span>
+</code></pre></div></div>
+
+</section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/highlight/highlight.pack.js"></script><script>hljs.configure({
+languages:['scala','java','bash']
+});
+hljs.initHighlighting();
+             </script><script>((window.gitter = {}).chat = {}).options = {
+room: 'cb372/scalacache'};</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js"></script><script src="/js/main.js"></script></body></html>

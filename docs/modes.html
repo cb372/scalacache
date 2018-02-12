@@ -1,0 +1,94 @@
+<html><head><title>ScalaCache: Modes</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Chris Birchall" /><meta name="description" content="A facade for the most popular cache implementations, with a simple, idiomatic Scala API." /><meta name="og:image" content="/img/poster.png" /><meta name="og:title" content="ScalaCache: Modes" /><meta name="og:site_name" content="ScalaCache" /><meta name="og:url" content="https://github.com/cb372/scalacache" /><meta name="og:type" content="website" /><meta name="og:description" content="A facade for the most popular cache implementations, with a simple, idiomatic Scala API." /><link rel="icon" type="image/png" href="/img/favicon.png" /><meta name="twitter:title" content="ScalaCache: Modes" /><meta name="twitter:image" content="https://github.com/cb372/scalacacheimg/poster.png" /><meta name="twitter:description" content="A facade for the most popular cache implementations, with a simple, idiomatic Scala API." /><meta name="twitter:card" content="summary_large_image" /><meta name="twitter:creator" content="@cbirchall" /><link rel="icon" type="image/png" sizes="16x16" href="/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/img/favicon310x150.png" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/highlight/styles/default.css" /><link rel="stylesheet" href="/css/style.css" /><link rel="stylesheet" href="/css/palette.css" /><link rel="stylesheet" href="/css/codemirror.css" /></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><ul id="sidebar" class="sidebar-nav"><li class="sidebar-brand"><a href="/" class="brand"><div class="brand-wrapper"><span>ScalaCache</span></div></a></li> <li><a href="/docs/index.html" class="">Getting started</a></li> <li><a href="/docs/modes.html" class=" active ">Modes</a></li> <li><a href="/docs/sync-api.html" class="">Synchronous API</a></li> <li><a href="/docs/memoization.html" class="">Memoization</a></li> <li><a href="/docs/flags.html" class="">Flags</a></li> <li><a href="/docs/serialization.html" class="">Serialization</a></li> <li><a href="/docs/cache-implementations.html" class="">Cache implementations</a></li> <li><a href="/docs/restrictions.html" class="">Troubleshooting/Restrictions</a></li></ul></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/cb372/scalacache"><i class="fa fa-eye"></i><span>WATCH<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/cb372/scalacache"><i class="fa fa-star-o"></i><span>STARS<span id="stars" class="label label-default">--</span></span></a></li><li><a href="#" onclick="shareSiteTwitter('ScalaCache A facade for the most popular cache implementations, with a simple, idiomatic Scala API.');"><i class="fa fa-twitter"></i></a></li><li><a href="#" onclick="shareSiteFacebook('ScalaCache A facade for the most popular cache implementations, with a simple, idiomatic Scala API.');"><i class="fa fa-facebook"></i></a></li><li><a href="#" onclick="shareSiteGoogle();"><i class="fa fa-google-plus"></i></a></li></ul></div></div></div></div><div id="content" data-github-owner="cb372" data-github-repo="scalacache"><div class="content-wrapper"><section><h3 id="modes">Modes</h3>
+
+<p>Depending on your application, you might want ScalaCache to wrap its operations in a Try, a Future, a Scalaz Task, or some other effect container.</p>
+
+<p>Or maybe you want to keep it simple and just return plain old values, performing the operations on the current thread and throwing exceptions in case of failure.</p>
+
+<p>In order to control ScalaCache’s behaviour in this way, you need to choose a “mode”.</p>
+
+<p>ScalaCache comes with a few built-in modes.</p>
+
+<h4 id="synchronous-mode">Synchronous mode</h4>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache.modes.sync._</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Blocks the current thread until the operation completes</li>
+  <li>Returns a plain value, not wrapped in any container</li>
+  <li>Throws exceptions in case of failure</li>
+</ul>
+
+<p>Note: If you’re using an in-memory cache (e.g. Guava or Caffeine) then it makes sense to use the synchronous mode. But if you’re communicating with a cache over a network (e.g. Redis, Memcached) then this mode is not recommended. If the network goes down, your app could hang forever!</p>
+
+<h4 id="try-mode">Try mode</h4>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache.modes.try_._</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Blocks the current thread until the operation completes</li>
+  <li>Wraps failures in <code class="highlighter-rouge">scala.util.Failure</code></li>
+</ul>
+
+<h4 id="future-mode">Future mode</h4>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache.modes.scalaFuture._</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Executes the operation on a separate thread and returns a <code class="highlighter-rouge">scala.util.Future</code></li>
+</ul>
+
+<p>You will also need an ExecutionContext in implicit scope:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scala.concurrent.ExecutionContext.Implicits.global</span>
+</code></pre></div></div>
+
+<h4 id="cats-effect-io-mode">cats-effect IO mode</h4>
+
+<p>You will need a dependency on the <code class="highlighter-rouge">scalacache-cats-effect</code> module:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.22.0"
+</code></pre></div></div>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache.CatsEffect.modes._</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Wraps the operation in <code class="highlighter-rouge">IO</code>, deferring execution until it is explicitly run</li>
+</ul>
+
+<h4 id="monix-task">Monix Task</h4>
+
+<p>You will need a dependency on the <code class="highlighter-rouge">scalacache-monix</code> module:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-monix" % "0.22.0"
+</code></pre></div></div>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache.Monix.modes._</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Wraps the operation in <code class="highlighter-rouge">Task</code>, deferring execution until it is explicitly run</li>
+</ul>
+
+<h4 id="scalaz-task">Scalaz Task</h4>
+
+<p>You will need a dependency on the <code class="highlighter-rouge">scalacache-scalaz72</code> module:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.22.0"
+</code></pre></div></div>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache.Scalaz72.modes._</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Wraps the operation in <code class="highlighter-rouge">Task</code>, deferring execution until it is explicitly run</li>
+</ul>
+</section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/highlight/highlight.pack.js"></script><script>hljs.configure({
+languages:['scala','java','bash']
+});
+hljs.initHighlighting();
+             </script><script>((window.gitter = {}).chat = {}).options = {
+room: 'cb372/scalacache'};</script><script src="https://sidecar.gitter.im/dist/sidecar.v1.js"></script><script src="/js/main.js"></script></body></html>
