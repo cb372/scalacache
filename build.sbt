@@ -171,7 +171,7 @@ lazy val slf4j = Seq(
 )
 
 lazy val scalaTest = Seq(
-  "org.scalatest" %% "scalatest" % "3.0.4" % Test
+  "org.scalatest" %% "scalatest" % "3.0.5" % Test
 )
 
 lazy val scalacheck = Seq(
