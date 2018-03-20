@@ -112,7 +112,7 @@ lazy val monix = module("monix")
 lazy val scalaz72 = module("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-concurrent" % "7.2.16"
+      "org.scalaz" %% "scalaz-concurrent" % "7.2.20"
     )
   )
 
