@@ -59,7 +59,7 @@ def module(name: String) =
 lazy val guava = module("guava")
   .settings(
     libraryDependencies ++= Seq(
-      "com.google.guava" % "guava" % "23.6-jre",
+      "com.google.guava" % "guava" % "24.1-jre",
       "com.google.code.findbugs" % "jsr305" % "1.3.9"
     )
   )
@@ -89,7 +89,7 @@ lazy val redis = module("redis")
 lazy val caffeine = module("caffeine")
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.6.0",
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.6.2",
       "com.google.code.findbugs" % "jsr305" % "3.0.0" % Provided
     )
   )
@@ -97,7 +97,7 @@ lazy val caffeine = module("caffeine")
 lazy val catsEffect = module("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "0.9"
+      "org.typelevel" %% "cats-effect" % "0.10"
     )
   )
 
@@ -112,16 +112,16 @@ lazy val monix = module("monix")
 lazy val scalaz72 = module("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-concurrent" % "7.2.16"
+      "org.scalaz" %% "scalaz-concurrent" % "7.2.20"
     )
   )
 
 lazy val circe = module("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core" % "0.9.0",
-      "io.circe" %% "circe-parser" % "0.9.0",
-      "io.circe" %% "circe-generic" % "0.9.0" % Test
+      "io.circe" %% "circe-core" % "0.9.3",
+      "io.circe" %% "circe-parser" % "0.9.3",
+      "io.circe" %% "circe-generic" % "0.9.3" % Test
     ) ++ scalacheck
   )
 
@@ -171,7 +171,7 @@ lazy val slf4j = Seq(
 )
 
 lazy val scalaTest = Seq(
-  "org.scalatest" %% "scalatest" % "3.0.4" % Test
+  "org.scalatest" %% "scalatest" % "3.0.5" % Test
 )
 
 lazy val scalacheck = Seq(
