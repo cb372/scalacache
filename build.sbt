@@ -19,9 +19,9 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
       runClean,
       runTest,
       setReleaseVersion,
-      updateVersionInTutReadme,
+      updateVersionInDocs,
       releaseStepTask(tut in doc),
-      commitReadmeFiles,
+      commitUpdatedDocFiles,
       commitReleaseVersion,
       tagRelease,
       publishArtifacts,
@@ -228,35 +228,30 @@ lazy val mavenSettings = Seq(
   }
 )
 
-lazy val updateVersionInTutReadme = ReleaseStep(action = st => {
+lazy val updateVersionInDocs = ReleaseStep(action = st => {
   val extracted = Project.extract(st)
   val projectVersion = extracted.get(Keys.version)
 
-  println(s"Updating project version to $projectVersion in the README")
-  Process(
-    Seq("sed",
-        "-i",
-        "",
-        "-E",
-        "-e",
-        s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""",
-        "modules/doc/src/main/tut/README.md")).!
+  println(s"Updating project version to $projectVersion in the docs")
+
+  val find = Process(Seq("find", "modules/doc/src/main/tut", "-name", "*.md"))
+
+  val sed = Process(
+    Seq("xargs", "sed", "-i", "", "-E", "-e", s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g"""))
+
+  (find #| sed).!
 
   st
 })
 
-lazy val commitReadmeFiles = ReleaseStep(action = st => {
+lazy val commitUpdatedDocFiles = ReleaseStep(action = st => {
   val extracted = Project.extract(st)
   val projectVersion = extracted.get(Keys.version)
 
-  println("Committing README.md and modules/doc/src/main/tut/README.md")
+  println("Committing docs")
+
   Process(
-    Seq("git",
-        "commit",
-        "README.md",
-        "modules/doc/src/main/tut/README.md",
-        "-m",
-        s"Update project version in README to $projectVersion")).!
+    Seq("git", "commit", "modules/doc/src/main/tut/*", "-m", s"Update project version in docs to $projectVersion")).!
 
   st
 })
