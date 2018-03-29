@@ -2,7 +2,7 @@
 
 [![Join the chat at https://gitter.im/cb372/scalacache](https://badges.gitter.im/cb372/scalacache.svg)](https://gitter.im/cb372/scalacache?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[![Build Status](https://travis-ci.org/cb372/scalacache.png?branch=master)](https://travis-ci.org/cb372/scalacache) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.cb372/scalacache-core_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.cb372/scalacache-core_2.11)
+[![Build Status](https://travis-ci.org/cb372/scalacache.png?branch=master)](https://travis-ci.org/cb372/scalacache) [![Maven Central](https://img.shields.io/maven-central/v/com.github.cb372/scalacache-core_2.12.svg)](http://search.maven.org/#search%7Cga%7C1%7Cscalacache)
 
 A facade for the most popular cache implementations, with a simple, idiomatic Scala API.
 
@@ -14,6 +14,10 @@ The following cache implementations are supported, and it's easy to plugin your 
 * Ehcache
 * Redis
 * [Caffeine](https://github.com/ben-manes/caffeine)
+
+## Documentation
+
+Documentation is available on [the ScalaCache website](https://cb372.github.io/scalacache/).
 
 ## Compatibility
 
@@ -29,8 +33,3 @@ To make a change to the documentation:
 2. Perform the desired changes
 3. Run `sbt doc/makeMicrosite`
 
-```tut:invisible
-for (cache <- List(catsCache, ehcacheCache, redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache)) {
-  cache.close()(scalacache.modes.sync.mode)
-} 
-```
