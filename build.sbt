@@ -104,7 +104,7 @@ lazy val catsEffect = module("cats-effect")
 lazy val monix = module("monix")
   .settings(
     libraryDependencies ++= Seq(
-      "io.monix" %% "monix" % "3.0.0-M3"
+      "io.monix" %% "monix" % "3.0.0-RC1"
     )
   )
   .dependsOn(catsEffect)
