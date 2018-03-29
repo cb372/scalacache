@@ -203,10 +203,6 @@ lazy val mavenSettings = Seq(
         <distribution>repo</distribution>
       </license>
     </licenses>
-    <scm>
-      <url>git@github.com:cb372/scalacache.git</url>
-      <connection>scm:git:git@github.com:cb372/scalacache.git</connection>
-    </scm>
     <developers>
       <developer>
         <id>cb372</id>
