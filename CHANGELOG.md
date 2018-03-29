@@ -1,3 +1,18 @@
+0.23.0 (2018/03/29)
+---
+
+Bump dependencies:
+
+* cats-effect 0.10
+* Monix 3.0.0-RC1
+* Circe 0.9.3
+* Caffeine 2.6.2
+* Guava 24.1-jre
+* Scalaz 7.2.20
+* Scala, sbt
+
+Other news: we now have a microsite!
+
 0.22.0 (2018/01/07)
 ---
 
