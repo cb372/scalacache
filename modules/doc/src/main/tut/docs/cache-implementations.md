@@ -159,6 +159,34 @@ val underlyingCaffeineCache = Caffeine.newBuilder().maximumSize(10000L).build[St
 implicit val customisedCaffeineCache: Cache[String] = CaffeineCache(underlyingCaffeineCache)
 ```
 
+### cache2k
+
+SBT:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-cache2k" % "0.23.0"
+```
+
+Usage:
+
+```tut:silent
+import scalacache._
+import scalacache.cache2k._
+
+implicit val cache2kCache: Cache[String] = Cache2kCache[String]
+```
+
+This will build a cache2k cache with all the default settings. If you want to customize your cache2k cache, then build it yourself and pass it to `Cache2kCache` like this:
+
+```tut:silent
+import scalacache._
+import scalacache.cache2k._
+import org.cache2k.Cache2kBuilder
+
+val underlyingCache2kCache = Cache2kBuilder.of(classOf[String], classOf[Entry[String]]).entryCapacity(1000L).build
+implicit val customisedCaffeineCache: Cache[String] = Cache2kCache(underlyingCache2kCache)
+```
+
 ```tut:invisible
 for (cache <- List(ehcacheCache, redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache)) {
   cache.close()(scalacache.modes.sync.mode)
