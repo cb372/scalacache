@@ -31,7 +31,7 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
       pushChanges
     )
   )
-  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, circe, tests)
+  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, cache2k, caffeine, catsEffect, monix, scalaz72, circe, tests)
 
 lazy val core =
   CrossProject(id = "core", file("modules/core"), CrossType.Full)
@@ -86,6 +86,14 @@ lazy val redis = module("redis")
     )
   )
 
+lazy val cache2k = module("cache2k")
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.cache2k" % "cache2k-api" % "1.0.2.Final",
+      "org.cache2k" % "cache2k-all" % "1.0.2.Final" % Runtime
+    )
+  )
+
 lazy val caffeine = module("caffeine")
   .settings(
     libraryDependencies ++= Seq(
@@ -127,7 +135,7 @@ lazy val circe = module("circe")
 
 lazy val tests = module("tests")
   .settings(publishArtifact := false)
-  .dependsOn(caffeine, memcached, redis, catsEffect, monix, scalaz72, circe)
+  .dependsOn(cache2k, caffeine, memcached, redis, catsEffect, monix, scalaz72, circe)
 
 lazy val doc = module("doc")
   .enablePlugins(MicrositesPlugin)
@@ -145,7 +153,7 @@ lazy val doc = module("doc")
     micrositeTwitterCreator := "@cbirchall",
     micrositeShareOnSocial := true
   )
-  .dependsOn(coreJVM, guava, memcached, ehcache, redis, caffeine, catsEffect, monix, scalaz72, circe)
+  .dependsOn(coreJVM, guava, memcached, ehcache, redis, cache2k, caffeine, catsEffect, monix, scalaz72, circe)
 
 lazy val benchmarks = module("benchmarks")
   .enablePlugins(JmhPlugin)
