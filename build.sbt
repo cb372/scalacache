@@ -89,8 +89,8 @@ lazy val redis = module("redis")
 lazy val cache2k = module("cache2k")
   .settings(
     libraryDependencies ++= Seq(
-      "org.cache2k" % "cache2k-api" % "1.0.2.Final",
-      "org.cache2k" % "cache2k-all" % "1.0.2.Final" % Runtime
+      "org.cache2k" % "cache2k-core" % "1.0.2.Final",
+      "org.cache2k" % "cache2k-api" % "1.0.2.Final"
     )
   )
 
@@ -172,6 +172,7 @@ lazy val benchmarks = module("benchmarks")
       "-XX:-UseBiasedLocking"
     )
   )
+  .dependsOn(cache2k)
   .dependsOn(caffeine)
 
 lazy val slf4j = Seq(
