@@ -1,36 +1,25 @@
 package scalacache.cache2k
 
-import java.time.temporal.ChronoUnit
-import java.time.{Clock, Instant}
-
-import org.cache2k.{Cache2kBuilder, Cache => CCache}
+import org.cache2k.{Cache => CCache}
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.language.higherKinds
-import scalacache.{AbstractCache, CacheConfig, Entry, Mode}
+import scalacache.{AbstractCache, CacheConfig, Mode}
 
 /*
  * Thin wrapper around cache2k.
  *
  * This cache implementation is synchronous.
  */
-class Cache2kCache[V](underlying: CCache[String, Entry[V]])(implicit val config: CacheConfig,
-                                                            clock: Clock = Clock.systemUTC())
-    extends AbstractCache[V] {
+class Cache2kCache[V](underlying: CCache[String, V])(implicit val config: CacheConfig) extends AbstractCache[V] {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
 
   def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     mode.M.delay {
-      val baseValue = underlying.peek(key)
-      val result = {
-        if (baseValue != null) {
-          val entry = baseValue.asInstanceOf[Entry[V]]
-          if (entry.isExpired) None else Some(entry.value)
-        } else None
-      }
+      val result = Option(underlying.peek(key))
       logCacheHitOrMiss(key, result)
       result
     }
@@ -38,8 +27,8 @@ class Cache2kCache[V](underlying: CCache[String, Entry[V]])(implicit val config:
 
   def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] = {
     mode.M.delay {
-      val entry = Entry(value, ttl.map(toExpiryTime))
-      underlying.put(key, entry)
+      underlying.put(key, value)
+      ttl.foreach(x => underlying.expireAt(key, toExpiryTime(x)))
       logCachePut(key, ttl)
     }
   }
@@ -55,25 +44,19 @@ class Cache2kCache[V](underlying: CCache[String, Entry[V]])(implicit val config:
     mode.M.pure(())
   }
 
-  private def toExpiryTime(ttl: Duration): Instant =
-    Instant.now(clock).plus(ttl.toMillis, ChronoUnit.MILLIS)
+  private def toExpiryTime(ttl: Duration): Long =
+    System.currentTimeMillis + ttl.toMillis
 
 }
 
 object Cache2kCache {
 
   /**
-    * Create a new cache2k cache
-    */
-  def apply[V](implicit config: CacheConfig): Cache2kCache[V] =
-    apply(new Cache2kBuilder[String, Entry[V]]() {}.build)
-
-  /**
     * Create a new cache utilizing the given underlying cache2k cache.
     *
-    * @param underlying a cache2k cache
+    * @param underlying a cache2k cache configured with a ExpiryPolicy or Cache2kBuilder.expireAfterWrite(long, TimeUnit)
     */
-  def apply[V](underlying: CCache[String, Entry[V]])(implicit config: CacheConfig): Cache2kCache[V] =
+  def apply[V](underlying: CCache[String, V])(implicit config: CacheConfig): Cache2kCache[V] =
     new Cache2kCache(underlying)
 
 }

@@ -6,6 +6,7 @@ import org.cache2k.Cache2kBuilder
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
 
+import scala.concurrent.duration._
 import scalacache._
 import scalacache.cache2k.Cache2kCache
 import scalacache.memoization._
@@ -14,7 +15,10 @@ import scalacache.modes.sync._
 @State(Scope.Thread)
 class Cache2kBenchmark {
 
-  val underlyingCache = new Cache2kBuilder[String, Entry[String]]() {}.build
+  val underlyingCache =
+    new Cache2kBuilder[String, String]() {}
+      .expireAfterWrite(1, DAYS)
+      .build
   implicit val cache: Cache[String] = Cache2kCache(underlyingCache)
 
   val key = "key"

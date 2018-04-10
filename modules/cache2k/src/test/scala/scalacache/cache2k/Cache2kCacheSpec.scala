@@ -1,6 +1,6 @@
 package scalacache.cache2k
 
-import java.time.{Clock, Instant, ZoneOffset}
+import java.time.Instant
 
 import org.cache2k.Cache2kBuilder
 import org.scalatest.concurrent.ScalaFutures
@@ -11,7 +11,10 @@ import scalacache._
 
 class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
-  private def newCCache = new Cache2kBuilder[String, Entry[String]]() {}.build
+  private def newCCache =
+    new Cache2kBuilder[String, String]() {}
+      .expireAfterWrite(1, DAYS)
+      .build
 
   import scalacache.modes.sync._
 
@@ -19,8 +22,7 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
 
   it should "return the value stored in the underlying cache" in {
     val underlying = newCCache
-    val entry = Entry("hello", expiresAt = None)
-    underlying.put("key1", entry)
+    underlying.put("key1", "hello")
     Cache2kCache(underlying).get("key1") should be(Some("hello"))
   }
 
@@ -29,11 +31,10 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
     Cache2kCache(underlying).get("non-existent key") should be(None)
   }
 
-  it should "return None if the given key exists but the value has expired" in {
+  it should "return None if the given key has expired" in {
     val underlying = newCCache
-    val expiredEntry =
-      Entry("hello", expiresAt = Some(Instant.now.minusSeconds(1)))
-    underlying.put("key1", expiredEntry)
+    underlying.put("key1", "hello")
+    underlying.expireAt("key1", Instant.now.minusSeconds(1).toEpochMilli)
     Cache2kCache(underlying).get("key1") should be(None)
   }
 
@@ -42,36 +43,25 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
   it should "store the given key-value pair in the underlying cache with no TTL" in {
     val underlying = newCCache
     Cache2kCache(underlying).put("key1")("hello", None)
-    underlying.peek("key1") should be(Entry("hello", None))
+    underlying.peek("key1") should be("hello")
   }
 
   behavior of "put with TTL"
 
   it should "store the given key-value pair in the underlying cache with the given TTL" in {
-    val now = Instant.now()
-    val clock = Clock.fixed(now, ZoneOffset.UTC)
-
     val underlying = newCCache
-    new Cache2kCache(underlying)(implicitly[CacheConfig], clock).put("key1")("hello", Some(10.seconds))
-    underlying.peek("key1") should be(Entry("hello", expiresAt = Some(now.plusSeconds(10))))
-  }
-
-  it should "support a TTL greater than Int.MaxValue millis" in {
-    val now = Instant.parse("2015-10-01T00:00:00Z")
-    val clock = Clock.fixed(now, ZoneOffset.UTC)
-
-    val underlying = newCCache
-    new Cache2kCache(underlying)(implicitly[CacheConfig], clock).put("key1")("hello", Some(30.days))
-    underlying.peek("key1") should be(Entry("hello", expiresAt = Some(Instant.parse("2015-10-31T00:00:00Z"))))
+    val cache2kCache = new Cache2kCache(underlying)(implicitly[CacheConfig])
+    cache2kCache.put("key1")("hello", Some(1.nanosecond))
+    Thread.sleep(100)
+    underlying.peek("key1") should be(null)
   }
 
   behavior of "remove"
 
   it should "delete the given key and its value from the underlying cache" in {
     val underlying = newCCache
-    val entry = Entry("hello", expiresAt = None)
-    underlying.put("key1", entry)
-    underlying.peek("key1") should be(entry)
+    underlying.put("key1", "hello")
+    underlying.peek("key1") should be("hello")
 
     Cache2kCache(underlying).remove("key1")
     underlying.peek("key1") should be(null)
