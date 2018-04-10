@@ -183,7 +183,7 @@ import scalacache._
 import scalacache.cache2k._
 import org.cache2k.Cache2kBuilder
 
-val underlyingCache2kCache = Cache2kBuilder.of(classOf[String], classOf[Entry[String]]).entryCapacity(1000L).build
+val underlyingCache2kCache = new Cache2kBuilder[String, Entry[String]]() {}.entryCapacity(1000L).build
 implicit val customisedCaffeineCache: Cache[String] = Cache2kCache(underlyingCache2kCache)
 ```
 

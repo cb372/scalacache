@@ -11,7 +11,7 @@ import scalacache._
 
 class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
-  private def newCCache = Cache2kBuilder.of(classOf[String], classOf[Entry[String]]).build
+  private def newCCache = new Cache2kBuilder[String, Entry[String]]() {}.build
 
   import scalacache.modes.sync._
 

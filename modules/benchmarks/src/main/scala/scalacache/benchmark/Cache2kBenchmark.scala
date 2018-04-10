@@ -14,7 +14,7 @@ import scalacache.modes.sync._
 @State(Scope.Thread)
 class Cache2kBenchmark {
 
-  val underlyingCache = Cache2kBuilder.of(classOf[String], classOf[Entry[String]]).build
+  val underlyingCache = new Cache2kBuilder[String, Entry[String]]() {}.build
   implicit val cache: Cache[String] = Cache2kCache(underlyingCache)
 
   val key = "key"

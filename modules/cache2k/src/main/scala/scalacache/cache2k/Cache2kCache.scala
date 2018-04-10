@@ -66,7 +66,7 @@ object Cache2kCache {
     * Create a new cache2k cache
     */
   def apply[V](implicit config: CacheConfig): Cache2kCache[V] =
-    apply(Cache2kBuilder.of(classOf[String], classOf[Entry[V]]).build)
+    apply(new Cache2kBuilder[String, Entry[V]]() {}.build)
 
   /**
     * Create a new cache utilizing the given underlying cache2k cache.
