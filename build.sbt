@@ -48,7 +48,7 @@ lazy val core =
     )
 
 lazy val coreJVM = core.jvm
-lazy val coreJS = core.js
+lazy val coreJS = core.js.settings(coverageEnabled := false)
 
 def module(name: String) =
   Project(id = name, base = file(s"modules/$name"))
