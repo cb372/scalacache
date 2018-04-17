@@ -1,3 +1,15 @@
+0.24.0 (2018/04/17)
+---
+
+New features:
+
+* Support for cache2k as a backend (thanks to @rider-yi)
+
+Other stuff:
+
+* Test coverage is now being measured again (thanks to @mrvisser)
+* Improved support for cats-effect (#173)
+
 0.23.0 (2018/03/29)
 ---
 
