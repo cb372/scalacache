@@ -31,7 +31,19 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
       pushChanges
     )
   )
-  .aggregate(coreJS, coreJVM, guava, memcached, ehcache, redis, cache2k, caffeine, catsEffect, monix, scalaz72, circe, tests)
+  .aggregate(coreJS,
+             coreJVM,
+             guava,
+             memcached,
+             ehcache,
+             redis,
+             cache2k,
+             caffeine,
+             catsEffect,
+             monix,
+             scalaz72,
+             circe,
+             tests)
 
 lazy val core =
   CrossProject(id = "core", file("modules/core"), CrossType.Full)
