@@ -44,7 +44,9 @@ lazy val core =
       scala211OnlyDeps(
         "org.squeryl" %% "squeryl" % "0.9.9" % Test,
         "com.h2database" % "h2" % "1.4.196" % Test
-      )
+      ),
+      coverageMinimum := 79,
+      coverageFailOnMinimum := true
     )
 
 lazy val coreJVM = core.jvm
@@ -76,14 +78,18 @@ lazy val ehcache = module("ehcache")
     libraryDependencies ++= Seq(
       "net.sf.ehcache" % "ehcache" % "2.10.4",
       "javax.transaction" % "jta" % "1.1"
-    )
+    ),
+    coverageMinimum := 80,
+    coverageFailOnMinimum := true
   )
 
 lazy val redis = module("redis")
   .settings(
     libraryDependencies ++= Seq(
       "redis.clients" % "jedis" % "2.9.0"
-    )
+    ),
+    coverageMinimum := 56,
+    coverageFailOnMinimum := true
   )
 
 lazy val caffeine = module("caffeine")
@@ -91,21 +97,27 @@ lazy val caffeine = module("caffeine")
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine" % "2.6.2",
       "com.google.code.findbugs" % "jsr305" % "3.0.0" % Provided
-    )
+    ),
+    coverageMinimum := 80,
+    coverageFailOnMinimum := true
   )
 
 lazy val catsEffect = module("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-effect" % "0.10"
-    )
+    ),
+    coverageMinimum := 50,
+    coverageFailOnMinimum := true
   )
 
 lazy val monix = module("monix")
   .settings(
     libraryDependencies ++= Seq(
       "io.monix" %% "monix" % "3.0.0-RC1"
-    )
+    ),
+    coverageMinimum := 80,
+    coverageFailOnMinimum := true
   )
   .dependsOn(catsEffect)
 
@@ -113,7 +125,9 @@ lazy val scalaz72 = module("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
       "org.scalaz" %% "scalaz-concurrent" % "7.2.20"
-    )
+    ),
+    coverageMinimum := 40,
+    coverageFailOnMinimum := true
   )
 
 lazy val circe = module("circe")
@@ -122,7 +136,9 @@ lazy val circe = module("circe")
       "io.circe" %% "circe-core" % "0.9.3",
       "io.circe" %% "circe-parser" % "0.9.3",
       "io.circe" %% "circe-generic" % "0.9.3" % Test
-    ) ++ scalacheck
+    ) ++ scalacheck,
+    coverageMinimum := 80,
+    coverageFailOnMinimum := true
   )
 
 lazy val tests = module("tests")

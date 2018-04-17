@@ -9,7 +9,8 @@ services:
   - memcached
   - redis
 script:
-  - sbt +test
+  - sbt +coverage +test
+  - sbt +coverageReport
 cache:
   directories:
   - $HOME/.sbt
