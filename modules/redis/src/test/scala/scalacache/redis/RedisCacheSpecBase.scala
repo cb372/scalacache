@@ -2,7 +2,7 @@ package scalacache.redis
 
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Seconds, Span}
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import org.scalatest.{BeforeAndAfter, FlatSpec, Inside, Matchers}
 import redis.clients.jedis.{BinaryJedisCommands, JedisCommands}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -10,13 +10,15 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scalacache._
-import scalacache.serialization.Codec
+import scalacache.serialization.{Codec, FailedToDecode}
+import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.binary._
 
 trait RedisCacheSpecBase
     extends FlatSpec
     with Matchers
     with Eventually
+    with Inside
     with BeforeAndAfter
     with RedisSerialization
     with ScalaFutures
@@ -24,6 +26,13 @@ trait RedisCacheSpecBase
 
   type JPool
   type JClient <: JedisCommands with BinaryJedisCommands
+
+  case object AlwaysFailing
+  implicit val alwaysFailingCodec: Codec[AlwaysFailing.type] = new Codec[AlwaysFailing.type] {
+    override def encode(value: AlwaysFailing.type): Array[Byte] = Array(0)
+    override def decode(bytes: Array[Byte]): DecodingResult[AlwaysFailing.type] =
+      Left(FailedToDecode(new Exception("Failed to decode")))
+  }
 
   def withJedis: ((JPool, JClient) => Unit) => Unit
   def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[V]
@@ -35,6 +44,7 @@ trait RedisCacheSpecBase
 
     withJedis { (pool, client) =>
       val cache = constructCache[Int](pool)
+      val failingCache = constructCache[AlwaysFailing.type](pool)
 
       before {
         flushRedis(client)
@@ -49,6 +59,13 @@ trait RedisCacheSpecBase
 
       it should "return None if the given key does not exist in the underlying cache" in {
         whenReady(cache.get("non-existent-key")) { _ should be(None) }
+      }
+
+      it should "raise an error if decoding fails" in {
+        client.set(bytes("key1"), serialize(123))
+        whenReady(failingCache.get("key1").failed) { t =>
+          inside(t) { case FailedToDecode(e) => e.getMessage should be("Failed to decode") }
+        }
       }
 
       behavior of "put"
