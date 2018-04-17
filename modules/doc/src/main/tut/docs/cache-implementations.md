@@ -159,6 +159,28 @@ val underlyingCaffeineCache = Caffeine.newBuilder().maximumSize(10000L).build[St
 implicit val customisedCaffeineCache: Cache[String] = CaffeineCache(underlyingCaffeineCache)
 ```
 
+### cache2k
+
+SBT:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-cache2k" % "0.23.0"
+```
+
+Usage:
+
+```tut:silent
+import java.util.concurrent.TimeUnit
+import scalacache._
+import scalacache.cache2k._
+import org.cache2k.Cache2kBuilder
+
+// You have to configure the cache with a ExpiryPolicy or Cache2kBuilder.expireAfterWrite
+// if you want to set expiry on individual values.
+val underlyingCache2kCache = new Cache2kBuilder[String, String]() {}.expireAfterWrite(1L, TimeUnit.MINUTES).build
+implicit val customisedCache2kCache: Cache[String] = Cache2kCache(underlyingCache2kCache)
+```
+
 ```tut:invisible
 for (cache <- List(ehcacheCache, redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache)) {
   cache.close()(scalacache.modes.sync.mode)
