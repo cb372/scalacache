@@ -1,6 +1,6 @@
 package scalacache.memcached
 
-import org.scalatest.{BeforeAndAfter, Matchers, FlatSpec}
+import org.scalatest._
 import net.spy.memcached._
 import scala.concurrent.duration._
 import org.scalatest.concurrent.{ScalaFutures, Eventually, IntegrationPatience}
@@ -15,10 +15,15 @@ class MemcachedCacheSpec
     with Matchers
     with Eventually
     with BeforeAndAfter
+    with BeforeAndAfterAll
     with ScalaFutures
     with IntegrationPatience {
 
   val client = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
+
+  override def afterAll() = {
+    client.shutdown()
+  }
 
   import scala.concurrent.ExecutionContext.Implicits.global
   import scalacache.modes.scalaFuture._
