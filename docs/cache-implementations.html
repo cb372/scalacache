@@ -4,7 +4,7 @@
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.23.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.24.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -29,7 +29,7 @@
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.23.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.24.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -74,7 +74,7 @@
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.23.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.24.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -95,7 +95,7 @@
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.23.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.24.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -124,7 +124,7 @@
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.23.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.24.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -143,6 +143,26 @@
 
 <span class="k">val</span> <span class="n">underlyingCaffeineCache</span> <span class="k">=</span> <span class="nc">Caffeine</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">maximumSize</span><span class="o">(</span><span class="mi">10000L</span><span class="o">).</span><span class="n">build</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Entry</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span>
 <span class="k">implicit</span> <span class="k">val</span> <span class="n">customisedCaffeineCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">CaffeineCache</span><span class="o">(</span><span class="n">underlyingCaffeineCache</span><span class="o">)</span>
+</code></pre></div></div>
+
+<h3 id="cache2k">cache2k</h3>
+
+<p>SBT:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-cache2k" % "0.24.0"
+</code></pre></div></div>
+
+<p>Usage:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.util.concurrent.TimeUnit</span>
+<span class="k">import</span> <span class="nn">scalacache._</span>
+<span class="k">import</span> <span class="nn">scalacache.cache2k._</span>
+<span class="k">import</span> <span class="nn">org.cache2k.Cache2kBuilder</span>
+
+<span class="c1">// You have to configure the cache with a ExpiryPolicy or Cache2kBuilder.expireAfterWrite
+// if you want to set expiry on individual values.
+</span><span class="k">val</span> <span class="n">underlyingCache2kCache</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Cache2kBuilder</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">]()</span> <span class="o">{}.</span><span class="n">expireAfterWrite</span><span class="o">(</span><span class="mi">1L</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">MINUTES</span><span class="o">).</span><span class="n">build</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">customisedCache2kCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Cache2kCache</span><span class="o">(</span><span class="n">underlyingCache2kCache</span><span class="o">)</span>
 </code></pre></div></div>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/scalacache/highlight/highlight.pack.js"></script><script>hljs.configure({
