@@ -16,6 +16,14 @@ object CatsEffect {
       val M: Async[IO] = asyncForCatsEffectAsync[IO]
     }
 
+    /**
+      * A mode that wraps computations in F[_],
+      * where there is an instance of cats-effect Async available for F.
+      */
+    implicit def async[F[_]](implicit F: CatsAsync[F]): Mode[F] = new Mode[F] {
+      val M: Async[F] = asyncForCatsEffectAsync[F]
+    }
+
   }
 
   def asyncForCatsEffectAsync[F[_]](implicit af: CatsAsync[F]): Async[F] = new Async[F] {
