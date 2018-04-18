@@ -22,36 +22,21 @@ class CaffeineBenchmark {
   val key = "key"
   val value: String = "value"
 
-  def itemCachedNoMemoize(key: String): Id[Option[String]] = {
-    cache.get(key)
-  }
-
-  def itemCachedMemoize(key: String): String = memoizeSync(None) {
-    value
-  }
-
   // populate the cache
   cache.put(key)(value)
 
   @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.NANOSECONDS)
-  def scalacacheGetNoMemoize(bh: Blackhole) = {
-    bh.consume(itemCachedNoMemoize(key))
+  def scalacacheGetPresent(bh: Blackhole) = {
+    bh.consume(sync.get(key))
   }
 
   @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.NANOSECONDS)
-  def scalacacheGetWithMemoize(bh: Blackhole) = {
-    bh.consume(itemCachedMemoize(key))
-  }
-
-  @Benchmark
-  @BenchmarkMode(Array(Mode.AverageTime))
-  @OutputTimeUnit(TimeUnit.NANOSECONDS)
-  def caffeineGet(bh: Blackhole) = {
-    bh.consume(underlyingCache.getIfPresent(key))
+  def scalacacheGetNotPresent(bh: Blackhole) = {
+    bh.consume(sync.get("not-present"))
   }
 
 }
