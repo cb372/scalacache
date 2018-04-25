@@ -39,6 +39,7 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
              redis,
              cache2k,
              caffeine,
+             ohc,
              catsEffect,
              monix,
              scalaz72,
@@ -122,6 +123,13 @@ lazy val caffeine = module("caffeine")
     coverageFailOnMinimum := true
   )
 
+lazy val ohc = module("ohc")
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.caffinitas.ohc" % "ohc-core-j8" % "0.6.1",
+    )
+  )
+
 lazy val catsEffect = module("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
@@ -163,7 +171,7 @@ lazy val circe = module("circe")
 
 lazy val tests = module("tests")
   .settings(publishArtifact := false)
-  .dependsOn(cache2k, caffeine, memcached, redis, catsEffect, monix, scalaz72, circe)
+  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, monix, scalaz72, circe)
 
 lazy val doc = module("doc")
   .enablePlugins(MicrositesPlugin)
@@ -181,7 +189,7 @@ lazy val doc = module("doc")
     micrositeTwitterCreator := "@cbirchall",
     micrositeShareOnSocial := true
   )
-  .dependsOn(coreJVM, guava, memcached, ehcache, redis, cache2k, caffeine, catsEffect, monix, scalaz72, circe)
+  .dependsOn(coreJVM, guava, memcached, ehcache, redis, cache2k, caffeine, ohc, catsEffect, monix, scalaz72, circe)
 
 lazy val benchmarks = module("benchmarks")
   .enablePlugins(JmhPlugin)
