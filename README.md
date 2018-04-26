@@ -15,6 +15,7 @@ The following cache implementations are supported, and it's easy to plugin your 
 * Redis
 * [Caffeine](https://github.com/ben-manes/caffeine)
 * [cache2k](https://github.com/cache2k/cache2k)
+* [OHC](https://github.com/snazy/ohc)
 
 ## Documentation
 
