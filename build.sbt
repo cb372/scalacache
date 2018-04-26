@@ -210,6 +210,7 @@ lazy val benchmarks = module("benchmarks")
   )
   .dependsOn(cache2k)
   .dependsOn(caffeine)
+  .dependsOn(ohc)
 
 lazy val slf4j = Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25"
