@@ -60,6 +60,8 @@ class OhcCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Scala
     ohcCache.put("key1")("hello", Some(1.nanosecond))
     Thread.sleep(100)
     underlying.get("key1") should be(null)
+    ohcCache.put("key2")("hello", Some(1.day))
+    underlying.get("key2") should be("hello")
     underlying.close()
   }
 

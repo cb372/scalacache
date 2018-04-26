@@ -54,6 +54,8 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
     cache2kCache.put("key1")("hello", Some(1.nanosecond))
     Thread.sleep(100)
     underlying.peek("key1") should be(null)
+    cache2kCache.put("key2")("hello", Some(1.day))
+    underlying.peek("key2") should be("hello")
   }
 
   behavior of "remove"
