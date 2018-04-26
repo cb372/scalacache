@@ -1,10 +1,8 @@
 package scalacache.ohc
 
-import java.nio.ByteBuffer
 import java.time.Instant
 
-import com.google.common.base.Charsets
-import org.caffinitas.ohc.{CacheSerializer, OHCache, OHCacheBuilder}
+import org.caffinitas.ohc.{OHCache, OHCacheBuilder}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
@@ -13,30 +11,11 @@ import scalacache._
 
 class OhcCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
-  private val stringSerializer = new CacheSerializer[String]() {
-    def serialize(s: String, buf: ByteBuffer): Unit = {
-      val bytes = s.getBytes(Charsets.UTF_8)
-      buf.put(((bytes.length >>> 8) & 0xFF).toByte)
-      buf.put(((bytes.length >>> 0) & 0xFF).toByte)
-      buf.put(bytes)
-    }
-
-    def deserialize(buf: ByteBuffer): String = {
-      val length = ((buf.get & 0xff) << 8) + ((buf.get & 0xff) << 0)
-      val bytes = new Array[Byte](length)
-      buf.get(bytes)
-      new String(bytes, Charsets.UTF_8)
-    }
-
-    def serializedSize(s: String): Int =
-      s.getBytes(Charsets.UTF_8).length + 2
-  }
-
   private def newOHCache: OHCache[String, String] =
     OHCacheBuilder
       .newBuilder()
-      .keySerializer(stringSerializer)
-      .valueSerializer(stringSerializer)
+      .keySerializer(OhcCache.stringSerializer)
+      .valueSerializer(OhcCache.stringSerializer)
       .timeouts(true)
       .build()
 
