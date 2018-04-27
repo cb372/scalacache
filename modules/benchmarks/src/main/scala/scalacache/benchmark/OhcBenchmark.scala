@@ -54,7 +54,7 @@ class OhcBenchmark {
   @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.NANOSECONDS)
-  def cache2kGet(bh: Blackhole) = {
+  def ohcGet(bh: Blackhole) = {
     bh.consume(underlyingCache.get(key))
   }
 
