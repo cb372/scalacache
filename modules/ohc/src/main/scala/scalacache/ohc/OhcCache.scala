@@ -86,7 +86,7 @@ object OhcCache {
   /**
     * Create a new cache utilizing the given underlying OHC cache.
     *
-    * @param underlying a OHC cache
+    * @param underlying a OHC cache configured with OHCacheBuilder.timeouts(true)
     */
   def apply[V](underlying: OHCache[String, V])(implicit config: CacheConfig): OhcCache[V] =
     new OhcCache(underlying)
