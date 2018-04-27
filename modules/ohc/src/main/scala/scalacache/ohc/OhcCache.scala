@@ -1,8 +1,8 @@
 package scalacache.ohc
 
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
-import com.google.common.base.Charsets
 import org.caffinitas.ohc.{CacheSerializer, OHCache, OHCacheBuilder}
 import org.slf4j.LoggerFactory
 
@@ -54,7 +54,7 @@ object OhcCache {
   val stringSerializer: CacheSerializer[String] = new CacheSerializer[String]() {
 
     def serialize(s: String, buf: ByteBuffer): Unit = {
-      val bytes = s.getBytes(Charsets.UTF_8)
+      val bytes = s.getBytes(StandardCharsets.UTF_8)
       buf.putInt(bytes.length)
       buf.put(bytes)
     }
@@ -62,11 +62,11 @@ object OhcCache {
     def deserialize(buf: ByteBuffer): String = {
       val bytes = new Array[Byte](buf.getInt)
       buf.get(bytes)
-      new String(bytes, Charsets.UTF_8)
+      new String(bytes, StandardCharsets.UTF_8)
     }
 
     def serializedSize(s: String): Int =
-      s.getBytes(Charsets.UTF_8).length + 4
+      s.getBytes(StandardCharsets.UTF_8).length + 4
 
   }
 
