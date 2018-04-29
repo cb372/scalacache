@@ -182,7 +182,7 @@ implicit val customisedCache2kCache: Cache[String] = Cache2kCache(underlyingCach
 ```
 
 ```tut:invisible
-for (cache <- List(ehcacheCache, redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache)) {
+for (cache <- List(ehcacheCache, redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache, underlyingCache2kCache)) {
   cache.close()(scalacache.modes.sync.mode)
 } 
 ```
