@@ -181,8 +181,46 @@ val underlyingCache2kCache = new Cache2kBuilder[String, String]() {}.expireAfter
 implicit val customisedCache2kCache: Cache[String] = Cache2kCache(underlyingCache2kCache)
 ```
 
+### OHC
+
+SBT:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-ohc" % "0.24.0"
+```
+
+Usage:
+
+```tut:silent
+import scalacache._
+import scalacache.ohc._
+import org.caffinitas.ohc.CacheSerializer
+
+implicit val valueSerializer: CacheSerializer[String] = OhcCache.stringSerializer
+implicit val ohcCache: Cache[String] = OhcCache[String]
+```
+
+This will build a OHC cache with almost default settings. If you want to customize your OHC cache, then build it yourself and pass it to `OhcCache` like this:
+
+```tut:silent
+import scalacache._
+import scalacache.ohc._
+import org.caffinitas.ohc.OHCacheBuilder
+
+// You have to configure the cache with OHCacheBuilder.timeouts(true)
+// if you want to set expiry on individual values.
+val underlyingOhcCache =
+  OHCacheBuilder
+    .newBuilder()
+    .keySerializer(OhcCache.stringSerializer)
+    .valueSerializer(OhcCache.stringSerializer)
+    .timeouts(true)
+    .build()
+implicit val customisedOhcCache: Cache[String] = OhcCache(underlyingOhcCache)
+```
+
 ```tut:invisible
-for (cache <- List(ehcacheCache, redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache, underlyingCache2kCache)) {
+for (cache <- List(ehcacheCache, redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache, underlyingCache2kCache, ohcCache, customisedOhcCache)) {
   cache.close()(scalacache.modes.sync.mode)
 } 
 ```
