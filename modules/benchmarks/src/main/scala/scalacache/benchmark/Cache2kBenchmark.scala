@@ -56,4 +56,7 @@ class Cache2kBenchmark {
     bh.consume(underlyingCache.peek(key))
   }
 
+  @TearDown
+  def close(): Unit = cache.close()
+
 }

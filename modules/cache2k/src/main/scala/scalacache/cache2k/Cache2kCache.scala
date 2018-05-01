@@ -39,10 +39,8 @@ class Cache2kCache[V](underlying: CCache[String, V])(implicit val config: CacheC
   override def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] =
     mode.M.delay(underlying.clear())
 
-  override def close[F[_]]()(implicit mode: Mode[F]): F[Any] = {
-    // Nothing to do
-    mode.M.pure(())
-  }
+  override def close[F[_]]()(implicit mode: Mode[F]): F[Any] =
+    mode.M.delay(underlying.close())
 
   private def toExpiryTime(ttl: Duration): Long =
     System.currentTimeMillis + ttl.toMillis
