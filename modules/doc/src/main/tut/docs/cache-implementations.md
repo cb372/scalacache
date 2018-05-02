@@ -210,17 +210,17 @@ import org.caffinitas.ohc.OHCacheBuilder
 // You have to configure the cache with OHCacheBuilder.timeouts(true)
 // if you want to set expiry on individual values.
 val underlyingOhcCache =
-  OHCacheBuilder
-    .newBuilder()
-    .keySerializer(OhcCache.stringSerializer)
-    .valueSerializer(OhcCache.stringSerializer)
-    .timeouts(true)
-    .build()
+  OHCacheBuilder.
+    newBuilder().
+    keySerializer(OhcCache.stringSerializer).
+    valueSerializer(OhcCache.stringSerializer).
+    timeouts(true).
+    build()
 implicit val customisedOhcCache: Cache[String] = OhcCache(underlyingOhcCache)
 ```
 
 ```tut:invisible
-for (cache <- List(ehcacheCache, redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache, underlyingCache2kCache, ohcCache, customisedOhcCache)) {
+for (cache <- List(ehcacheCache, redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache, customisedCache2kCache, ohcCache, customisedOhcCache)) {
   cache.close()(scalacache.modes.sync.mode)
 } 
 ```
