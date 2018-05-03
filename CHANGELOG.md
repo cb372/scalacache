@@ -1,3 +1,18 @@
+0.24.1 (2018/05/03)
+---
+
+New features:
+
+* Support for OHC (Off Heap Cache) as a backend (thanks to @rider-yi)
+
+Bugfixes:
+
+* `Cache2kCache`'s `close()` method was not closing the underlying cache (thanks to @rider-yi)
+
+Other stuff:
+
+* Bump Scalaz to 7.2.22
+
 0.24.0 (2018/04/17)
 ---
 
