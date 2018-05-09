@@ -221,7 +221,7 @@ lazy val scalaTest = Seq(
 )
 
 lazy val scalacheck = Seq(
-  "org.scalacheck" %% "scalacheck" % "1.13.5" % Test
+  "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
 )
 
 // Dependencies common to all projects
