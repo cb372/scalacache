@@ -67,6 +67,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
             jedis.setex(keyBytes, d.toSeconds.toInt, valueBytes)
         }
       }
+      logCachePut(key, ttl)
     }
 
   protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] = mode.M.delay {
