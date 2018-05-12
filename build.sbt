@@ -74,7 +74,7 @@ def module(name: String) =
 lazy val guava = module("guava")
   .settings(
     libraryDependencies ++= Seq(
-      "com.google.guava" % "guava" % "24.1-jre",
+      "com.google.guava" % "guava" % "25.0-jre",
       "com.google.code.findbugs" % "jsr305" % "1.3.9"
     )
   )
@@ -221,7 +221,7 @@ lazy val scalaTest = Seq(
 )
 
 lazy val scalacheck = Seq(
-  "org.scalacheck" %% "scalacheck" % "1.13.5" % Test
+  "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
 )
 
 // Dependencies common to all projects
