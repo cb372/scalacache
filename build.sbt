@@ -133,7 +133,7 @@ lazy val ohc = module("ohc")
 lazy val catsEffect = module("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "0.10"
+      "org.typelevel" %% "cats-effect" % "1.0.0-RC"
     ),
     coverageMinimum := 50,
     coverageFailOnMinimum := true
