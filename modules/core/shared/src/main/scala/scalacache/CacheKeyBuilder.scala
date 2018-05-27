@@ -14,7 +14,8 @@ trait CacheKeyBuilder {
 
 }
 
-case class DefaultCacheKeyBuilder(keyPrefix: Option[String] = None, separator: String = ":") extends CacheKeyBuilder {
+final case class DefaultCacheKeyBuilder(keyPrefix: Option[String] = None, separator: String = ":")
+    extends CacheKeyBuilder {
 
   /**
     * Build a String from the given parts, separating them using the configured separator string.

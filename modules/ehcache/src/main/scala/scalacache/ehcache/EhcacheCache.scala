@@ -30,7 +30,7 @@ class EhcacheCache[F[_]](underlying: Ehcache)(implicit val config: CacheConfig, 
     }
   }
 
-  override protected def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Any] = {
+  override protected def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Unit] = {
     mode.M.delay {
       val element = new Element(key, value)
       ttl.foreach(t => element.setTimeToLive(t.toSeconds.toInt))

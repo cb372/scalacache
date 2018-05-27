@@ -47,7 +47,7 @@ abstract class RedisCacheBase[F[_]](implicit mode: Mode[F]) extends AbstractCach
     }
   }
 
-  override protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Any] =
+  override protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Unit] =
     mode.M.delay {
       withJedisCommands { jedis =>
         val keyBytes = key.utf8bytes

@@ -30,7 +30,7 @@ class OhcCache[F[_]](underlying: OHCache[String, Any])(implicit val config: Cach
     }
   }
 
-  def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Any] = {
+  def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Unit] = {
     mode.M.delay {
       ttl.fold(underlying.put(key, value))(x => underlying.put(key, value, toExpiryTime(x)))
       logCachePut(key, ttl)

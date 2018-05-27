@@ -107,7 +107,7 @@ trait LoggingCache[F[_]] extends AbstractCache[F] {
     super.doGet(key)
   }
 
-  protected abstract override def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Any] = {
+  protected abstract override def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Unit] = {
     putCalledWithArgs.append((key, value, ttl))
     super.doPut(key, value, ttl)
   }

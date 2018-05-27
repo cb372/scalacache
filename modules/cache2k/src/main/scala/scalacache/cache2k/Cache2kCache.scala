@@ -27,7 +27,7 @@ class Cache2kCache[F[_]](underlying: CCache[String, Any])(implicit val config: C
     }
   }
 
-  def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Any] = {
+  def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Unit] = {
     mode.M.delay {
       underlying.put(key, value)
       ttl.foreach(x => underlying.expireAt(key, toExpiryTime(x)))

@@ -51,7 +51,7 @@ class MemcachedCache[F[_]](client: MemcachedClient, keySanitizer: MemcachedKeySa
     }
   }
 
-  override protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Any] = {
+  override protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Unit] = {
     mode.M.async { cb =>
       val valueToSend = codec.encode(value)
       val f = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)

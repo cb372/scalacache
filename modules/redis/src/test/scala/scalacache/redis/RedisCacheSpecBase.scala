@@ -60,7 +60,7 @@ trait RedisCacheSpecBase
           Future.failed(new Exception("always failing cache"))
 
         override def put[V: Codec](keyParts: Any*)(value: V,
-                                                   ttl: Option[Duration])(implicit flags: Flags): Future[Any] =
+                                                   ttl: Option[Duration])(implicit flags: Flags): Future[Unit] =
           Future.failed(new Exception("always failing cache"))
 
         override def remove(keyParts: Any*): Future[Any] = Future.failed(new Exception("always failing cache"))

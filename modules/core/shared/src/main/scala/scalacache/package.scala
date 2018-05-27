@@ -38,7 +38,7 @@ package object scalacache {
     * @tparam V The type of the corresponding value
     */
   def put[F[_], V: Codec](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[F],
-                                                                                  flags: Flags): F[Any] =
+                                                                                  flags: Flags): F[Unit] =
     cache.put(keyParts: _*)(value, ttl)
 
   /**

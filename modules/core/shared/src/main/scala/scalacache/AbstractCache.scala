@@ -20,17 +20,6 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
 
   protected def doGet[V](key: String)(implicit codec: Codec[V]): F[Option[V]]
 
-  private def checkFlagsAndGet[V: Codec](key: String)(implicit flags: Flags): F[Option[V]] = {
-    if (flags.readsEnabled) {
-      doGet(key)
-    } else {
-      if (logger.isDebugEnabled) {
-        logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
-      }
-      mode.M.pure(None)
-    }
-  }
-
   final override def get[V: Codec](keyParts: Any*)(implicit flags: Flags): F[Option[V]] = {
     val key = toKey(keyParts: _*)
     checkFlagsAndGet(key)
@@ -38,21 +27,9 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
 
   // PUT
 
-  protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Any]
+  protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Unit]
 
-  private def checkFlagsAndPut[V](key: String, value: V, ttl: Option[Duration])(implicit flags: Flags,
-                                                                                codec: Codec[V]): F[Any] = {
-    if (flags.writesEnabled) {
-      doPut(key, value, ttl)
-    } else {
-      if (logger.isDebugEnabled) {
-        logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
-      }
-      mode.M.pure(())
-    }
-  }
-
-  final override def put[V: Codec](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit flags: Flags): F[Any] = {
+  final override def put[V: Codec](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit flags: Flags): F[Unit] = {
     val key = toKey(keyParts: _*)
     val finiteTtl = ttl.filter(_.isFinite()) // discard Duration.Inf, Duration.Undefined
     checkFlagsAndPut(key, value, finiteTtl)
@@ -78,7 +55,7 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
     _caching(key, ttl, f)
   }
 
-  override def cachingF[V: Codec](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(
+  final override def cachingF[V: Codec](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(
       implicit flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
     _cachingF(key, ttl, f)
@@ -86,19 +63,19 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
 
   // MEMOIZE
 
-  override def cachingForMemoize[V: Codec](baseKey: String)(ttl: Option[Duration] = None)(f: => V)(
+  final override def cachingForMemoize[V: Codec](baseKey: String)(ttl: Option[Duration] = None)(f: => V)(
       implicit flags: Flags): F[V] = {
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     _caching(key, ttl, f)
   }
 
-  override def cachingForMemoizeF[V: Codec](baseKey: String)(ttl: Option[Duration])(f: => F[V])(
+  final override def cachingForMemoizeF[V: Codec](baseKey: String)(ttl: Option[Duration])(f: => F[V])(
       implicit flags: Flags): F[V] = {
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     _cachingF(key, ttl, f)
   }
 
-  private def _caching[V: Codec](key: String, ttl: Option[Duration], f: => V)(implicit flags: Flags): F[V] = {
+  private final def _caching[V: Codec](key: String, ttl: Option[Duration], f: => V)(implicit flags: Flags): F[V] = {
     import mode._
 
     M.flatMap {
@@ -125,7 +102,7 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
     }
   }
 
-  private def _cachingF[V: Codec](key: String, ttl: Option[Duration], f: => F[V])(implicit flags: Flags): F[V] = {
+  private final def _cachingF[V: Codec](key: String, ttl: Option[Duration], f: => F[V])(implicit flags: Flags): F[V] = {
     import mode._
 
     M.flatMap {
@@ -153,7 +130,28 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
     }
   }
 
-  private def toKey(keyParts: Any*): String =
-    config.cacheKeyBuilder.toCacheKey(keyParts)
+  private final def toKey(keyParts: Any*): String = config.cacheKeyBuilder.toCacheKey(keyParts)
+
+  private final def checkFlagsAndGet[V: Codec](key: String)(implicit flags: Flags): F[Option[V]] =
+    if (flags.readsEnabled) doGet(key)
+    else {
+      if (logger.isDebugEnabled) {
+        logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
+      }
+      mode.M.pure(None)
+    }
+
+  private def checkFlagsAndPut[V](
+      key: String,
+      value: V,
+      ttl: Option[Duration]
+  )(implicit flags: Flags, codec: Codec[V]): F[Unit] =
+    if (flags.writesEnabled) doPut(key, value, ttl)
+    else {
+      if (logger.isDebugEnabled) {
+        logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
+      }
+      mode.M.pure(())
+    }
 
 }

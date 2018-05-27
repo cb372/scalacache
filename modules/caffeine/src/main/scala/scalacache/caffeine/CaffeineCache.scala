@@ -38,7 +38,7 @@ class CaffeineCache[F[_]](underlying: CCache[String, Entry[Any]])(implicit val c
     }
   }
 
-  def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Any] = {
+  def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Unit] = {
     mode.M.delay {
       val entry = Entry(value, ttl.map(toExpiryTime))
       underlying.put(key, entry)

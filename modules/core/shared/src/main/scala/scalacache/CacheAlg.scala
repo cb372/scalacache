@@ -32,7 +32,7 @@ abstract class CacheAlg[F[_]: Mode] {
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam V The value of types stored in the cache.
     */
-  def put[V: Codec](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit flags: Flags): F[Any]
+  def put[V: Codec](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit flags: Flags): F[Unit]
 
   /**
     * Remove the given key and its associated value from the cache, if it exists.
