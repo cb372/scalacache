@@ -15,7 +15,7 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
   import scalacache.serialization.binary._
 
   private def newCCache =
-    new Cache2kBuilder[String, Any]() {}
+    new Cache2kBuilder[String, Array[Byte]]() {}
       .expireAfterWrite(1, DAYS)
       .build
 
@@ -23,7 +23,7 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
 
   it should "return the value stored in the underlying cache" in {
     val underlying = newCCache
-    underlying.put("key1", "hello")
+    underlying.put("key1", "hello".getBytes)
     Cache2kCache(underlying).get("key1") should be(Some("hello"))
   }
 
@@ -34,7 +34,7 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
 
   it should "return None if the given key has expired" in {
     val underlying = newCCache
-    underlying.put("key1", "hello")
+    underlying.put("key1", "hello".getBytes)
     underlying.expireAt("key1", Instant.now.minusSeconds(1).toEpochMilli)
     Cache2kCache(underlying).get("key1") should be(None)
   }
@@ -63,7 +63,7 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
 
   it should "delete the given key and its value from the underlying cache" in {
     val underlying = newCCache
-    underlying.put("key1", "hello")
+    underlying.put("key1", "hello".getBytes)
     underlying.peek("key1") should be("hello")
 
     Cache2kCache(underlying).remove("key1")
