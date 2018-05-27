@@ -1,5 +1,7 @@
 package scalacache.redis
 
+import java.nio.charset.StandardCharsets
+
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Inside, Matchers}
@@ -9,10 +11,9 @@ import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.binary._
 import scalacache.serialization.{Codec, FailedToDecode}
 
-import scala.concurrent.{CanAwait, ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.{higherKinds, postfixOps}
-import scala.util.Try
 
 trait RedisCacheSpecBase
     extends FlatSpec
@@ -25,6 +26,7 @@ trait RedisCacheSpecBase
     with IntegrationPatience {
 
   import scalacache.modes.scalaFuture._
+
   import scala.concurrent.ExecutionContext.Implicits.global
 
   type JPool
@@ -151,7 +153,7 @@ trait RedisCacheSpecBase
 
       it should "round-trip a byte array" in {
         whenReady(roundTrip("bytearray", bytes("world"))) { result =>
-          new String(result.get, "UTF-8") should be("world")
+          new String(result.get, StandardCharsets.UTF_8) should be("world")
         }
       }
 
@@ -187,6 +189,6 @@ trait RedisCacheSpecBase
 
   }
 
-  def bytes(s: String) = s.getBytes("utf-8")
+  def bytes(s: String) = s.getBytes(StandardCharsets.UTF_8)
 
 }

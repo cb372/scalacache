@@ -1,5 +1,7 @@
 package scalacache.memcached
 
+import java.nio.charset.StandardCharsets
+
 import scalacache._
 
 /**
@@ -22,10 +24,10 @@ trait MemcachedKeySanitizer {
   * @param replacementChar optional, defaults to an underscore
   * @param maxKeyLength optional, defaults to 250, which is the max length of a Memcached key
   */
-case class ReplaceAndTruncateSanitizer(replacementChar: String = "_", maxKeyLength: Int = 250)
+final case class ReplaceAndTruncateSanitizer(replacementChar: String = "_", maxKeyLength: Int = 250)
     extends MemcachedKeySanitizer {
 
-  val invalidCharsRegex = "[^\u0021-\u007e]".r
+  private val invalidCharsRegex = "[^\u0021-\u007e]".r
 
   /**
     * Convert the given string to a valid Memcached key by:
@@ -46,8 +48,8 @@ case class ReplaceAndTruncateSanitizer(replacementChar: String = "_", maxKeyLeng
     */
   def toValidMemcachedKey(key: String): String = {
     val replacedKey = invalidCharsRegex.replaceAllIn(key, replacementChar)
-    if (replacedKey.size <= maxKeyLength) replacedKey
-    else replacedKey.substring(replacedKey.size - maxKeyLength)
+    if (replacedKey.length <= maxKeyLength) replacedKey
+    else replacedKey.substring(replacedKey.length - maxKeyLength)
   }
 
 }
@@ -61,7 +63,7 @@ case class ReplaceAndTruncateSanitizer(replacementChar: String = "_", maxKeyLeng
   * when combined with any additional namespacing that your MemcachedClient or proxy automatically inserts for
   * you.
   */
-case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) extends MemcachedKeySanitizer {
+final case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) extends MemcachedKeySanitizer {
 
   /**
     * Uses the specified hashing algorithm to digest a key and spit out a hexidecimal representation
@@ -69,7 +71,7 @@ case class HashingMemcachedKeySanitizer(algorithm: HashingAlgorithm = MD5) exten
     */
   def toValidMemcachedKey(key: String): String =
     algorithm.messageDigest
-      .digest(key.getBytes("UTF-8"))
+      .digest(key.getBytes(StandardCharsets.UTF_8))
       .map("%02x".format(_))
       .mkString
 }

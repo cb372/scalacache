@@ -1,16 +1,14 @@
 package scalacache.redis
 
-import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 
 object StringEnrichment {
-
-  private val utf8 = Charset.forName("UTF-8")
 
   /**
     * Enrichment class to convert String to UTF-8 byte array
     */
-  implicit class StringWithUtf8Bytes(val string: String) extends AnyVal {
-    def utf8bytes = string.getBytes(utf8)
+  implicit final class StringWithUtf8Bytes(val string: String) extends AnyVal {
+    def utf8bytes: Array[Byte] = string.getBytes(StandardCharsets.UTF_8)
   }
 
 }

@@ -1,10 +1,12 @@
 package scalacache.serialization
 
-import io.circe.{Decoder, Encoder, Json, ObjectEncoder}
+import java.nio.charset.StandardCharsets
+
+import io.circe.Json
+import io.circe.syntax._
 import org.scalacheck.Arbitrary
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, Matchers}
-import io.circe.syntax._
 
 case class Fruit(name: String, tastinessQuotient: Double)
 
@@ -17,7 +19,7 @@ class CirceCodecSpec extends FlatSpec with Matchers with GeneratorDrivenProperty
   private def serdesCheck[A: Arbitrary](expectedJson: A => String)(implicit codec: Codec[A]): Unit = {
     forAll(minSuccessful(10000)) { a: A =>
       val serialised = codec.encode(a)
-      new String(serialised, "utf-8") shouldBe expectedJson(a)
+      new String(serialised, StandardCharsets.UTF_8) shouldBe expectedJson(a)
       val deserialised = codec.decode(serialised)
       deserialised.right.get shouldBe a
     }
@@ -65,7 +67,7 @@ class CirceCodecSpec extends FlatSpec with Matchers with GeneratorDrivenProperty
 
     val banana = Fruit("banana", 0.7)
     val serialised = fruitCodec.encode(banana)
-    new String(serialised, "utf-8") shouldBe """{"name":"banana","tastinessQuotient":0.7}"""
+    new String(serialised, StandardCharsets.UTF_8) shouldBe """{"name":"banana","tastinessQuotient":0.7}"""
     val deserialised = fruitCodec.decode(serialised)
     deserialised.right.get shouldBe banana
   }

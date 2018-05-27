@@ -1,5 +1,7 @@
 package scalacache.serialization.binary
 
+import java.nio.charset.StandardCharsets
+
 import scalacache.serialization.Codec
 import scalacache.serialization.Codec._
 
@@ -123,8 +125,8 @@ trait LowPriorityBinaryPrimitiveCodecs extends LowerPriorityBinaryAnyRefCodecs {
   }
 
   implicit object StringBinaryCodec extends Codec[String] {
-    def encode(value: String): Array[Byte] = value.getBytes("UTF-8")
-    def decode(data: Array[Byte]): DecodingResult[String] = tryDecode(new String(data, "UTF-8"))
+    def encode(value: String): Array[Byte] = value.getBytes(StandardCharsets.UTF_8)
+    def decode(data: Array[Byte]): DecodingResult[String] = tryDecode(new String(data, StandardCharsets.UTF_8))
   }
 
   implicit object ArrayByteBinaryCodec extends Codec[Array[Byte]] {
