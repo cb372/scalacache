@@ -6,7 +6,7 @@ package scalacache
   * @param readsEnabled if false, cache GETs will be skipped (and will return `None`)
   * @param writesEnabled if false, cache PUTs will be skipped
   */
-case class Flags(readsEnabled: Boolean = true, writesEnabled: Boolean = true)
+final case class Flags(readsEnabled: Boolean = true, writesEnabled: Boolean = true)
 
 object Flags {
 
@@ -21,6 +21,6 @@ object Flags {
     *   }
     * }}}
     */
-  implicit val defaultFlags = Flags()
+  implicit val defaultFlags: Flags = Flags()
 
 }
