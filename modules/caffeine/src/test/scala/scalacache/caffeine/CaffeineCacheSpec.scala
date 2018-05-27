@@ -14,7 +14,7 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
   import scalacache.modes.sync._
   import scalacache.serialization.binary._
 
-  private def newCCache = Caffeine.newBuilder.build[String, Entry[Any]]
+  private def newCCache = Caffeine.newBuilder.build[String, Entry]
 
   behavior of "get"
 

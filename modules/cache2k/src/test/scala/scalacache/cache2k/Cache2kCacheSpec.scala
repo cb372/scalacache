@@ -1,5 +1,6 @@
 package scalacache.cache2k
 
+import java.nio.charset.StandardCharsets
 import java.time.Instant
 
 import org.cache2k.Cache2kBuilder
@@ -8,6 +9,8 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import scala.concurrent.duration._
 import scalacache._
+
+import scala.language.implicitConversions
 
 class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
@@ -19,11 +22,14 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
       .expireAfterWrite(1, DAYS)
       .build
 
+  // Ugly but convenient. Do not abuse of that.
+  private[this] implicit def getBytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
+
   behavior of "get"
 
   it should "return the value stored in the underlying cache" in {
     val underlying = newCCache
-    underlying.put("key1", "hello".getBytes)
+    underlying.put("key1", "hello")
     Cache2kCache(underlying).get("key1") should be(Some("hello"))
   }
 
@@ -34,7 +40,7 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
 
   it should "return None if the given key has expired" in {
     val underlying = newCCache
-    underlying.put("key1", "hello".getBytes)
+    underlying.put("key1", "hello")
     underlying.expireAt("key1", Instant.now.minusSeconds(1).toEpochMilli)
     Cache2kCache(underlying).get("key1") should be(None)
   }
@@ -63,7 +69,7 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
 
   it should "delete the given key and its value from the underlying cache" in {
     val underlying = newCCache
-    underlying.put("key1", "hello".getBytes)
+    underlying.put("key1", "hello")
     underlying.peek("key1") should be("hello")
 
     Cache2kCache(underlying).remove("key1")
