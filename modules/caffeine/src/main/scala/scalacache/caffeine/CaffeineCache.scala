@@ -6,6 +6,7 @@ import java.time.{Clock, Instant}
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
 import org.slf4j.LoggerFactory
 import scalacache.serialization.Codec
+import scalacache.serialization.Codec.DecodingResult
 import scalacache.{AbstractCache, CacheConfig, Entry, Mode}
 
 import scala.concurrent.duration.Duration
@@ -27,7 +28,8 @@ class CaffeineCache[F[_]](underlying: CCache[String, Entry])(
   def doGet[V](key: String)(implicit codec: Codec[V]): F[Option[V]] = {
     mode.M.delay {
       val baseValue = underlying.getIfPresent(key)
-      val result = if (baseValue == null || baseValue.isExpired) None else codec.decode(baseValue.value).toOption
+      val result =
+        if (baseValue == null || baseValue.isExpired) None else DecodingResult.toOption(codec.decode(baseValue.value))
       logCacheHitOrMiss(key, result)
       result
     }

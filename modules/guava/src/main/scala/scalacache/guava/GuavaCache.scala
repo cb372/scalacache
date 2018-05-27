@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 import scalacache.{AbstractCache, CacheConfig, Entry, Mode}
 import com.google.common.cache.{Cache => GCache, CacheBuilder => GCacheBuilder}
 import scalacache.serialization.Codec
+import scalacache.serialization.Codec.DecodingResult
 
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
@@ -25,7 +26,8 @@ final class GuavaCache[F[_]](underlying: GCache[String, Entry])(
   def doGet[V](key: String)(implicit codec: Codec[V]): F[Option[V]] =
     mode.M.delay {
       val baseValue = underlying.getIfPresent(key)
-      val result = if (baseValue == null || baseValue.isExpired) None else codec.decode(baseValue.value).toOption
+      val result =
+        if (baseValue == null || baseValue.isExpired) None else DecodingResult.toOption(codec.decode(baseValue.value))
       logCacheHitOrMiss(key, result)
       result
     }

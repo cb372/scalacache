@@ -3,6 +3,7 @@ package scalacache.cache2k
 import org.cache2k.{Cache => CCache}
 import org.slf4j.LoggerFactory
 import scalacache.serialization.Codec
+import scalacache.serialization.Codec.DecodingResult
 import scalacache.{AbstractCache, CacheConfig, Mode}
 
 import scala.concurrent.duration._
@@ -22,7 +23,7 @@ final class Cache2kCache[F[_]](underlying: CCache[String, Array[Byte]])(implicit
     mode.M.delay {
       val result = Option(underlying.peek(key))
       logCacheHitOrMiss(key, result)
-      result.flatMap(codec.decode(_).toOption) // TODO Jules: Can we do better than `.toOption` as error management ?
+      result.flatMap(r => DecodingResult.toOption(codec.decode(r))) // TODO Jules: Can we do better than `.toOption` as error management ?
     }
   }
 

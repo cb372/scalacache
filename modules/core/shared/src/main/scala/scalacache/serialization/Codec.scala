@@ -34,6 +34,10 @@ object Codec {
 
   type DecodingResult[A] = Either[FailedToDecode, A]
 
+  object DecodingResult {
+    def toOption[A](decodingResult: DecodingResult[A]): Option[A] = decodingResult.fold(_ => None, Some.apply)
+  }
+
   def tryDecode[A](f: => A): DecodingResult[A] =
     Try(f) match {
       case Success(a) => Right(a)

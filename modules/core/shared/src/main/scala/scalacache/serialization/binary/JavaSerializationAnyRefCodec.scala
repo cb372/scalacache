@@ -2,10 +2,11 @@ package scalacache.serialization.binary
 
 import java.io._
 
-import scala.reflect.ClassTag
-import scala.util.control.NonFatal
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.{Codec, GenericCodecObjectInputStream}
+
+import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 /**
   * Codec that uses Java serialization to serialize objects
