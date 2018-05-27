@@ -17,7 +17,7 @@ import scalacache.caffeine.CaffeineCache
 import scalacache.memcached.MemcachedCache
 import scalacache.redis.RedisCache
 
-class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
+class IntegrationTests extends WordSpec with Matchers with BeforeAndAfterAll {
 
   import scalacache.serialization.binary._
 
@@ -29,14 +29,13 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
     jedisPool.close()
   }
 
-  private def memcachedIsRunning: Boolean = {
+  private def memcachedIsRunning: Boolean =
     try {
       memcachedClient.get("foo")
       true
     } catch { case _: Exception => false }
-  }
 
-  private def redisIsRunning: Boolean = {
+  private def redisIsRunning: Boolean =
     try {
       val jedis = jedisPool.getResource()
       try {
@@ -48,7 +47,6 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
     } catch {
       case NonFatal(_) => false
     }
-  }
 
   case class CacheBackend[F[_]: Mode](name: String, cache: Cache[F])
 
@@ -90,7 +88,7 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
     }
 
     backends[F].foreach { cacheBackend =>
-      s"${cacheBackend.name} ⇔ ($fName)" should "defer the computation and give the correct result" in {
+      s"${cacheBackend.name} ⇔ ($fName) should defer the computation and give the correct result" in {
         val key: String = UUID.randomUUID().toString
         val initialValue: String = UUID.randomUUID().toString
         val cache = cacheBackend.cache
@@ -114,18 +112,18 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
     }
   }
 
-  it should "work with cats-effect IO" in {
+  "with cats-effect IO" should {
     import CatsEffect.modes.io
     passTests[CatsIO]("cats-effect IO")(_.unsafeRunSync())
   }
 
-  it should "with Monix Task" in {
+  "with Monix Task" should {
     import Monix.modes.task
     import monix.execution.Scheduler.Implicits.global
     passTests[MonixTask]("Monix Task")(_.runSyncUnsafe(Duration.Inf))
   }
 
-  it should "with Scalaz Task" in {
+  "with Scalaz Task" should {
     import Scalaz72.modes.task
     passTests[ScalazTask]("Scalaz Task")(_.unsafePerformSync)
   }
