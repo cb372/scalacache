@@ -4,9 +4,10 @@ import org.slf4j.LoggerFactory
 import net.spy.memcached.internal.{GetCompletionListener, GetFuture, OperationCompletionListener, OperationFuture}
 import net.spy.memcached.ops.StatusCode
 import net.spy.memcached.{AddrUtil, BinaryConnectionFactory, MemcachedClient}
-
 import scalacache.serialization.Codec
 import scalacache.{AbstractCache, CacheConfig, Mode}
+import scodec.bits.ByteVector
+
 import scala.concurrent.duration.Duration
 import scala.util.Success
 import scala.language.higherKinds
@@ -34,7 +35,7 @@ class MemcachedCache[F[_]](client: MemcachedClient, keySanitizer: MemcachedKeySa
           if (g.getStatus.isSuccess) {
             try {
               val bytes = g.get()
-              val value = codec.decode(bytes.asInstanceOf[Array[Byte]]).right.map(Some(_))
+              val value = codec.decode(bytes.asInstanceOf[ByteVector]).right.map(Some(_))
               cb(value)
             } catch {
               case NonFatal(e) => cb(Left(e))
