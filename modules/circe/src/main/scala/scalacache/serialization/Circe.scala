@@ -1,10 +1,8 @@
 package scalacache.serialization
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import io.circe.jawn.JawnParser
 import io.circe.{Decoder, Encoder}
+import scodec.bits.ByteVector
 
 package object circe {
 
@@ -12,10 +10,10 @@ package object circe {
 
   implicit def codec[A](implicit encoder: Encoder[A], decoder: Decoder[A]): Codec[A] = new Codec[A] {
 
-    override def encode(value: A): Array[Byte] = encoder.apply(value).noSpaces.getBytes(StandardCharsets.UTF_8)
+    override def encode(value: A): ByteVector = ByteVector.encodeUtf8(encoder.apply(value).noSpaces).right.get
 
-    override def decode(bytes: Array[Byte]): Codec.DecodingResult[A] =
-      parser.decodeByteBuffer(ByteBuffer.wrap(bytes)).left.map(FailedToDecode)
+    override def decode(bytes: ByteVector): Codec.DecodingResult[A] =
+      parser.decodeByteBuffer(bytes.toByteBuffer).left.map(FailedToDecode)
 
   }
 
