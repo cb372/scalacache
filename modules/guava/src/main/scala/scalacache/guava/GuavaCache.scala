@@ -11,52 +11,38 @@ import scalacache.serialization.Codec
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 
-/*
- * Thin wrapper around Google Guava.
- */
-class GuavaCache[F[_]](underlying: GCache[String, Entry[Any]])(implicit val config: CacheConfig,
-                                                               mode: Mode[F],
-                                                               clock: Clock = Clock.systemUTC())
-    extends AbstractCache[F] {
+/**
+  * Thin wrapper around Google Guava.
+  */
+final class GuavaCache[F[_]](underlying: GCache[String, Entry])(
+    implicit val config: CacheConfig,
+    mode: Mode[F],
+    clock: Clock = Clock.systemUTC()
+) extends AbstractCache[F] {
 
-  override protected final val logger =
-    LoggerFactory.getLogger(getClass.getName)
+  override protected final val logger = LoggerFactory.getLogger(getClass.getName)
 
-  def doGet[V: Codec](key: String): F[Option[V]] = {
+  def doGet[V](key: String)(implicit codec: Codec[V]): F[Option[V]] =
     mode.M.delay {
       val baseValue = underlying.getIfPresent(key)
-      val result = {
-        if (baseValue != null) {
-          val entry = baseValue.asInstanceOf[Entry[V]]
-          if (entry.isExpired) None else Some(entry.value)
-        } else None
-      }
+      val result = if (baseValue == null || baseValue.isExpired) None else codec.decode(baseValue.value).toOption
       logCacheHitOrMiss(key, result)
       result
     }
-  }
 
-  def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Unit] = {
+  def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Unit] = {
+    @inline def toExpiryTime(ttl: Duration): Instant = Instant.now(clock).plus(ttl.toMillis, ChronoUnit.MILLIS)
+
     mode.M.delay {
-      val entry = Entry(value, ttl.map(toExpiryTime))
+      val entry = Entry(codec.encode(value), ttl.map(toExpiryTime))
       underlying.put(key, entry)
       logCachePut(key, ttl)
     }
   }
 
-  override def doRemove(key: String): F[Any] =
-    mode.M.delay(underlying.invalidate(key))
-
-  override def doRemoveAll(): F[Any] =
-    mode.M.delay(underlying.invalidateAll())
-
-  override def close(): F[Any] = {
-    // Nothing to do
-    mode.M.pure(())
-  }
-
-  private def toExpiryTime(ttl: Duration): Instant =
-    Instant.now(clock).plus(ttl.toMillis, ChronoUnit.MILLIS)
+  override def doRemove(key: String): F[Any] = mode.M.delay(underlying.invalidate(key))
+  override def doRemoveAll(): F[Any] = mode.M.delay(underlying.invalidateAll())
+  override def close(): F[Any] = mode.M.pure(()) // Nothing to do
 
 }
 
@@ -66,14 +52,14 @@ object GuavaCache {
     * Create a new Guava cache
     */
   def apply[F[_]: Mode](implicit config: CacheConfig): GuavaCache[F] =
-    apply(GCacheBuilder.newBuilder().build[String, Entry[Any]]())
+    apply(GCacheBuilder.newBuilder().build[String, Entry]())
 
   /**
     * Create a new cache utilizing the given underlying Guava cache.
     *
     * @param underlying a Guava cache
     */
-  def apply[F[_]: Mode](underlying: GCache[String, Entry[Any]])(implicit config: CacheConfig): GuavaCache[F] =
+  def apply[F[_]: Mode](underlying: GCache[String, Entry])(implicit config: CacheConfig): GuavaCache[F] =
     new GuavaCache(underlying)
 
 }
