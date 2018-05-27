@@ -180,10 +180,12 @@ class AbstractCacheSpec
       "result of block"
     }
 
-    cache.getCalledWithArgs(0) should be("myKey")
-    cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
-    called should be(true)
-    result should be("result of block")
+    whenReady(result) { r =>
+      cache.getCalledWithArgs(0) should be("myKey")
+      cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
+      called should be(true)
+      r should be("result of block")
+    }
   }
 
   it should "not run the block if the value is found in the cache" in {
@@ -195,9 +197,11 @@ class AbstractCacheSpec
       "result of block"
     }
 
-    cache.getCalledWithArgs(0) should be("myKey")
-    called should be(false)
-    result should be("value from cache")
+    whenReady(result) { r =>
+      cache.getCalledWithArgs(0) should be("myKey")
+      called should be(false)
+      r should be("value from cache")
+    }
   }
 
   behavior of "#caching and flags"
