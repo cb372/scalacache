@@ -1,14 +1,11 @@
 package sample
 
 import scalacache._
-import memoization._
-import scalacache.modes.scalaFuture._
+import scalacache.memoization._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
-
-import language.postfixOps
+import scala.language.postfixOps
 
 case class User(id: Int, name: String)
 
@@ -20,6 +17,8 @@ object Sample extends App {
   class UserRepository {
 
     import scalacache.serialization.binary._
+    import scalacache.modes.scalaFuture._
+    import scala.concurrent.ExecutionContext.Implicits.global
 
     implicit val cache: Cache[Future] = new MockCache()
 
