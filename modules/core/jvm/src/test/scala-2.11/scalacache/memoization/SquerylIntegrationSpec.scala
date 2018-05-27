@@ -21,6 +21,7 @@ class SquerylIntegrationSpec
     with BeforeAndAfterAll
     with Eventually
     with IntegrationPatience {
+
   var theUserId: Int = -1
 
   override def beforeAll() = {
@@ -43,7 +44,7 @@ class SquerylIntegrationSpec
 
   it should "work with Squeryl" in {
     import FooDb.users
-    implicit val cache = new MockCache[Option[User]] with LoggingCache[Option[User]]
+    implicit val cache = new MockCache[Id] with LoggingCache[Id]
 
     def findUser(userId: Int): Option[User] = memoizeSync(None) {
       inTransaction {
