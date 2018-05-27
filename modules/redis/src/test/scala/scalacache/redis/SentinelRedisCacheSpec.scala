@@ -13,7 +13,7 @@ class SentinelRedisCacheSpec extends RedisCacheSpecBase {
   override type JClient = Jedis
   override type JPool = JedisSentinelPool
 
-  override val withJedis = assumingRedisSentinelIsRunning
+  override def withJedis = assumingRedisSentinelIsRunning
 
   override def constructCache[F[_]: Mode](pool: JPool): CacheAlg[F] = SentinelRedisCache[F](pool)
 

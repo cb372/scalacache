@@ -12,7 +12,7 @@ class ShardedRedisCacheSpec extends RedisCacheSpecBase {
   override type JClient = ShardedJedis
   override type JPool = ShardedJedisPool
 
-  override val withJedis = assumingMultipleRedisAreRunning
+  override def withJedis = assumingMultipleRedisAreRunning
 
   override def constructCache[F[_]: Mode](pool: JPool): CacheAlg[F] = ShardedRedisCache[F](pool)
 
