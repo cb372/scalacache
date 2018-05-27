@@ -23,14 +23,8 @@ trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with Befo
 
   def checkCacheKey(expectedKey: String)(call: => Future[Int]) {
     // Run the memoize block, putting some value into the cache
-    val future = call
-
-    whenReady(future) { value =>
-      // Check that the value is in the cache, with the expected key
-      eventually {
-        cache.get(expectedKey) should be(Some(value))
-      }
-    }
+    val value = call.futureValue
+    cache.get(expectedKey).futureValue should be(Some(value))
   }
 
   def multipleArgLists(a: Int, b: String)(c: String, d: Int): Future[Int] = memoize(None) {
