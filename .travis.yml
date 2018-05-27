@@ -5,6 +5,9 @@ scala:
   - 2.12.6
 jdk:
   - oraclejdk8
+addons:
+  apt:
+    update: true
 services:
   - memcached
   - redis
