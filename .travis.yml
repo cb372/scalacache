@@ -12,8 +12,8 @@ services:
   - memcached
   - redis
 script:
-  - sbt +coverage +test +doc/tut
-  - sbt +coverageReport
+  - sbt coverage test doc/tut
+  - sbt coverageReport
 cache:
   directories:
   - $HOME/.sbt
