@@ -2,23 +2,22 @@ package scalacache.redis
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import redis.clients.jedis._
+import scalacache._
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
-import scalacache._
-import scalacache.serialization.Codec
+import scala.language.higherKinds
 
 class SentinelRedisCacheSpec extends RedisCacheSpecBase {
 
-  type JClient = Jedis
-  type JPool = JedisSentinelPool
+  override type JClient = Jedis
+  override type JPool = JedisSentinelPool
 
-  val withJedis = assumingRedisSentinelIsRunning _
+  override val withJedis = assumingRedisSentinelIsRunning
 
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[V] =
-    new SentinelRedisCache[V](jedisPool = pool)
+  override def constructCache[F[_]: Mode](pool: JPool): CacheAlg[F] = SentinelRedisCache[F](pool)
 
-  def flushRedis(client: JClient): Unit = client.flushDB()
+  override def flushRedis(client: JClient): Unit = client.flushDB()
 
   /**
     * This assumes that Redis master with name "master" and password "master-local" is running,

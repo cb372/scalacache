@@ -1,7 +1,8 @@
 package scalacache
 
-import scala.concurrent.duration.Duration
+import scalacache.serialization.Codec
 
+import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 
 /**
@@ -11,15 +12,15 @@ import scala.language.higherKinds
   * If you are writing a cache implementation, you probably want to
   * extend this trait rather than extending [[CacheAlg]] directly.
   *
-  * @tparam V The value of types stored in the cache.
+  * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
   */
-trait AbstractCache[V] extends Cache[V] with LoggingSupport {
+abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with LoggingSupport {
 
   // GET
 
-  protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]]
+  protected def doGet[V](key: String)(implicit codec: Codec[V]): F[Option[V]]
 
-  private def checkFlagsAndGet[F[_]](key: String)(implicit mode: Mode[F], flags: Flags): F[Option[V]] = {
+  private def checkFlagsAndGet[V: Codec](key: String)(implicit flags: Flags): F[Option[V]] = {
     if (flags.readsEnabled) {
       doGet(key)
     } else {
@@ -30,17 +31,17 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
     }
   }
 
-  final override def get[F[_]](keyParts: Any*)(implicit mode: Mode[F], flags: Flags): F[Option[V]] = {
+  final override def get[V: Codec](keyParts: Any*)(implicit flags: Flags): F[Option[V]] = {
     val key = toKey(keyParts: _*)
     checkFlagsAndGet(key)
   }
 
   // PUT
 
-  protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any]
+  protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Any]
 
-  private def checkFlagsAndPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F],
-                                                                                   flags: Flags): F[Any] = {
+  private def checkFlagsAndPut[V](key: String, value: V, ttl: Option[Duration])(implicit flags: Flags,
+                                                                                codec: Codec[V]): F[Any] = {
     if (flags.writesEnabled) {
       doPut(key, value, ttl)
     } else {
@@ -51,8 +52,7 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
     }
   }
 
-  final override def put[F[_]](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit mode: Mode[F],
-                                                                                flags: Flags): F[Any] = {
+  final override def put[V: Codec](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit flags: Flags): F[Any] = {
     val key = toKey(keyParts: _*)
     val finiteTtl = ttl.filter(_.isFinite()) // discard Duration.Inf, Duration.Undefined
     checkFlagsAndPut(key, value, finiteTtl)
@@ -60,48 +60,45 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
 
   // REMOVE
 
-  protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any]
+  protected def doRemove(key: String): F[Any]
 
-  final override def remove[F[_]](keyParts: Any*)(implicit mode: Mode[F]): F[Any] =
-    doRemove(toKey(keyParts: _*))
+  final override def remove(keyParts: Any*): F[Any] = doRemove(toKey(keyParts: _*))
 
   // REMOVE ALL
 
-  protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any]
+  protected def doRemoveAll(): F[Any]
 
-  final override def removeAll[F[_]]()(implicit mode: Mode[F]): F[Any] =
-    doRemoveAll()
+  final override def removeAll(): F[Any] = doRemoveAll()
 
   // CACHING
 
-  final override def caching[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F],
-                                                                                          flags: Flags): F[V] = {
+  final override def caching[V: Codec](keyParts: Any*)(ttl: Option[Duration] = None)(f: => V)(
+      implicit flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
     _caching(key, ttl, f)
   }
 
-  override def cachingF[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F],
-                                                                                        flags: Flags): F[V] = {
+  override def cachingF[V: Codec](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(
+      implicit flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
     _cachingF(key, ttl, f)
   }
 
   // MEMOIZE
 
-  override def cachingForMemoize[F[_]](baseKey: String)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F],
-                                                                                               flags: Flags): F[V] = {
+  override def cachingForMemoize[V: Codec](baseKey: String)(ttl: Option[Duration] = None)(f: => V)(
+      implicit flags: Flags): F[V] = {
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     _caching(key, ttl, f)
   }
 
-  override def cachingForMemoizeF[F[_]](baseKey: String)(ttl: Option[Duration])(f: => F[V])(implicit mode: Mode[F],
-                                                                                            flags: Flags): F[V] = {
+  override def cachingForMemoizeF[V: Codec](baseKey: String)(ttl: Option[Duration])(f: => F[V])(
+      implicit flags: Flags): F[V] = {
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     _cachingF(key, ttl, f)
   }
 
-  private def _caching[F[_]](key: String, ttl: Option[Duration], f: => V)(implicit mode: Mode[F],
-                                                                          flags: Flags): F[V] = {
+  private def _caching[V: Codec](key: String, ttl: Option[Duration], f: => V)(implicit flags: Flags): F[V] = {
     import mode._
 
     M.flatMap {
@@ -128,8 +125,7 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
     }
   }
 
-  private def _cachingF[F[_]](key: String, ttl: Option[Duration], f: => F[V])(implicit mode: Mode[F],
-                                                                              flags: Flags): F[V] = {
+  private def _cachingF[V: Codec](key: String, ttl: Option[Duration], f: => F[V])(implicit flags: Flags): F[V] = {
     import mode._
 
     M.flatMap {

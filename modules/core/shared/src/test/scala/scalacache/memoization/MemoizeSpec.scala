@@ -13,12 +13,14 @@ import scalacache.modes.sync._
 
 class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventually {
 
+  import scalacache.serialization.binary._
+
   behavior of "memoize block"
 
   val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClass.myLongRunningMethod(123, abc)"
 
   it should "execute the block and cache the result, if there is a cache miss" in {
-    implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
+    implicit val emptyCache = new EmptyCache[Id] with LoggingCache[Id]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -39,7 +41,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
   }
 
   it should "not execute the block if there is a cache hit" in {
-    implicit val fullCache = new FullCache[String]("cache hit") with LoggingCache[String]
+    implicit val fullCache = new FullCache[Id]("cache hit") with LoggingCache[Id]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -58,7 +60,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
   }
 
   it should "execute the block if cache reads are disabled" in {
-    implicit val fullCache = new FullCache[String]("cache hit") with LoggingCache[String]
+    implicit val fullCache = new FullCache[Id]("cache hit") with LoggingCache[Id]
     implicit val flags = Flags(readsEnabled = false)
 
     val mockDbCall = new MockDbCall("hello")
@@ -80,7 +82,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
   }
 
   it should "not cache the result if cache writes are disabled" in {
-    implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
+    implicit val emptyCache = new EmptyCache[Id] with LoggingCache[Id]
     implicit val flags = Flags(writesEnabled = false)
 
     val mockDbCall = new MockDbCall("hello")
@@ -110,7 +112,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
   }
 
   it should "catch exceptions thrown by the cache" in {
-    implicit val dodgyCache = new ErrorRaisingCache[String] with LoggingCache[String]
+    implicit val dodgyCache = new ErrorRaisingCache[Id] with LoggingCache[Id]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -135,7 +137,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
   it should "pass the TTL parameter to the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClass.withTTL(123, abc)"
 
-    implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
+    implicit val emptyCache = new EmptyCache[Id] with LoggingCache[Id]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -160,8 +162,8 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
   it should "execute the block and cache the result, if there is a cache miss" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithFutures.myLongRunningMethod(123, abc)"
 
-    implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
     implicit val mode = scalacache.modes.scalaFuture.mode
+    implicit val emptyCache = new EmptyCache[Future] with LoggingCache[Future]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -187,8 +189,8 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
   it should "not execute the block if there is a cache hit" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithFutures.myLongRunningMethod(123, abc)"
 
-    implicit val fullCache = new FullCache[String]("cache hit") with LoggingCache[String]
     implicit val mode = scalacache.modes.scalaFuture.mode
+    implicit val fullCache = new FullCache[Future]("cache hit") with LoggingCache[Future]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -212,8 +214,8 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
   it should "catch exceptions thrown by the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithFutures.myLongRunningMethod(123, abc)"
 
-    implicit val dodgyCache = new ErrorRaisingCache[String] with LoggingCache[String]
     implicit val mode = scalacache.modes.scalaFuture.mode
+    implicit val dodgyCache = new ErrorRaisingCache[Future] with LoggingCache[Future]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -238,8 +240,8 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
   it should "pass the TTL parameter to the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithFutures.withTTL(123, abc)"
 
-    implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
-    implicit val mode = scalacache.modes.scalaFuture.mode
+    import scalacache.modes.scalaFuture.mode
+    implicit val emptyCache = new EmptyCache[Future] with LoggingCache[Future]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -270,7 +272,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
     }
   }
 
-  class MyMockClass(dbCall: Int => String)(implicit val cache: Cache[String], mode: Mode[Id], flags: Flags) {
+  class MyMockClass(dbCall: Int => String)(implicit val cache: Cache[Id], mode: Mode[Id], flags: Flags) {
 
     def myLongRunningMethod(a: Int, b: String): String = memoizeSync(None) {
       dbCall(a)
@@ -282,7 +284,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
 
   }
 
-  class MyMockClassWithFutures(dbCall: Int => String)(implicit cache: Cache[String], mode: Mode[Future], flags: Flags) {
+  class MyMockClassWithFutures(dbCall: Int => String)(implicit cache: Cache[Future], flags: Flags) {
 
     def myLongRunningMethod(a: Int, b: String): Future[String] = memoizeF(None) {
       Future { dbCall(a) }

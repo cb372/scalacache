@@ -3,12 +3,14 @@ package scalacache.serialization.binary
 import scalacache.serialization.Codec
 import scalacache.serialization.Codec._
 
+import scala.reflect.ClassTag
+
 /**
   * Codecs for all the Java primitive types, plus String and Array[Byte]
   *
   * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
   */
-trait BinaryPrimitiveCodecs {
+trait BinaryPrimitiveCodecs extends LowPriorityBinaryPrimitiveCodecs {
 
   implicit object IntBinaryCodec extends Codec[Int] {
     def encode(value: Int): Array[Byte] =
@@ -26,6 +28,10 @@ trait BinaryPrimitiveCodecs {
         data(3).asInstanceOf[Int] & 255
     )
   }
+
+}
+
+trait LowPriorityBinaryPrimitiveCodecs extends LowerPriorityBinaryAnyRefCodecs {
 
   implicit object DoubleBinaryCodec extends Codec[Double] {
     import java.lang.{Double => JvmDouble}
@@ -125,4 +131,15 @@ trait BinaryPrimitiveCodecs {
     def encode(value: Array[Byte]): Array[Byte] = value
     def decode(data: Array[Byte]): DecodingResult[Array[Byte]] = Right(data)
   }
+}
+
+trait LowerPriorityBinaryAnyRefCodecs {
+
+  /*
+  String and Array[Byte] extend java.io.Serializable,
+  so this implicit needs to be lower priority than those in BinaryPrimitiveCodecs
+   */
+  implicit def anyRefBinaryCodec[S <: java.io.Serializable](implicit ev: ClassTag[S]): Codec[S] =
+    new JavaSerializationAnyRefCodec[S](ev)
+
 }

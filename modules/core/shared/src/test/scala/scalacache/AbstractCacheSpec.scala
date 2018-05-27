@@ -15,10 +15,12 @@ class AbstractCacheSpec
     with Eventually
     with IntegrationPatience {
 
-  val cache = new LoggingMockCache[String]
+  import scalacache.serialization.binary._
+  import scalacache.modes.scalaFuture._
 
   import scala.concurrent.ExecutionContext.Implicits.global
-  import scalacache.modes.scalaFuture._
+
+  val cache = new LoggingMockCache[Future]
 
   before {
     cache.mmap.clear()
@@ -57,17 +59,23 @@ class AbstractCacheSpec
   behavior of "#put"
 
   it should "call doPut on the concrete cache" in {
+    import scalacache.serialization.binary._
+
     cache.put("foo")("bar", Some(1 second))
     cache.putCalledWithArgs(0) should be(("foo", "bar", Some(1 second)))
   }
 
   it should "not call doPut on the concrete cache if cache writes are disabled" in {
+    import scalacache.serialization.binary._
+
     implicit val flags = Flags(writesEnabled = false)
     cache.put("foo")("bar", Some(1 second))
     cache.putCalledWithArgs should be('empty)
   }
 
   it should "call doPut with no TTL if the provided TTL is not finite" in {
+    import scalacache.serialization.binary._
+
     cache.put("foo")("bar", Some(Duration.Inf))
     cache.putCalledWithArgs(0) should be(("foo", "bar", None))
   }
@@ -87,6 +95,8 @@ class AbstractCacheSpec
   behavior of "#caching (Scala Futures mode)"
 
   it should "run the block and cache its result with no TTL if the value is not found in the cache" in {
+    import scalacache.serialization.binary._
+
     var called = false
     val fResult = cache.caching("myKey")(None) {
       called = true
@@ -102,6 +112,8 @@ class AbstractCacheSpec
   }
 
   it should "run the block and cache its result with a TTL if the value is not found in the cache" in {
+    import scalacache.serialization.binary._
+
     var called = false
     val fResult = cache.caching("myKey")(Some(5 seconds)) {
       called = true
@@ -117,6 +129,8 @@ class AbstractCacheSpec
   }
 
   it should "not run the block if the value is found in the cache" in {
+    import scalacache.serialization.binary._
+
     cache.mmap.put("myKey", "value from cache")
 
     var called = false
@@ -135,6 +149,8 @@ class AbstractCacheSpec
   behavior of "#cachingF (Scala Futures mode)"
 
   it should "run the block and cache its result with no TTL if the value is not found in the cache" in {
+    import scalacache.serialization.binary._
+
     var called = false
     val fResult = cache.cachingF("myKey")(None) {
       Future {
@@ -152,6 +168,8 @@ class AbstractCacheSpec
   }
 
   it should "not run the block if the value is found in the cache" in {
+    import scalacache.serialization.binary._
+
     cache.mmap.put("myKey", "value from cache")
 
     var called = false
@@ -172,7 +190,7 @@ class AbstractCacheSpec
   behavior of "#caching (sync mode)"
 
   it should "run the block and cache its result if the value is not found in the cache" in {
-    implicit val mode: Mode[Id] = scalacache.modes.sync.mode
+    import scalacache.serialization.binary._
 
     var called = false
     val result = cache.caching("myKey")(None) {
@@ -187,7 +205,7 @@ class AbstractCacheSpec
   }
 
   it should "not run the block if the value is found in the cache" in {
-    implicit val mode: Mode[Id] = scalacache.modes.sync.mode
+    import scalacache.serialization.binary._
 
     cache.mmap.put("myKey", "value from cache")
 
@@ -205,6 +223,8 @@ class AbstractCacheSpec
   behavior of "#caching and flags"
 
   it should "run the block and cache its result if cache reads are disabled" in {
+    import scalacache.serialization.binary._
+
     cache.mmap.put("myKey", "value from cache")
     implicit val flags = Flags(readsEnabled = false)
 
@@ -226,6 +246,8 @@ class AbstractCacheSpec
   }
 
   it should "run the block but not cache its result if cache writes are disabled" in {
+    import scalacache.serialization.binary._
+
     implicit val flags = Flags(writesEnabled = false)
 
     var called = false
@@ -245,6 +267,8 @@ class AbstractCacheSpec
   behavior of "#cachingF and flags"
 
   it should "run the block and cache its result if cache reads are disabled" in {
+    import scalacache.serialization.binary._
+
     cache.mmap.put("myKey", "value from cache")
     implicit val flags = Flags(readsEnabled = false)
 
@@ -268,6 +292,8 @@ class AbstractCacheSpec
   }
 
   it should "run the block but not cache its result if cache writes are disabled" in {
+    import scalacache.serialization.binary._
+
     implicit val flags = Flags(writesEnabled = false)
 
     var called = false

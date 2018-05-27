@@ -11,9 +11,10 @@ import org.scalatest.concurrent.ScalaFutures
 
 class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
 
-  private def newGCache = CacheBuilder.newBuilder.build[String, Entry[String]]
-
   import scalacache.modes.sync._
+  import scalacache.serialization.binary._
+
+  private def newGCache = CacheBuilder.newBuilder.build[String, Entry[Any]]
 
   behavior of "get"
 
@@ -49,19 +50,19 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
 
   it should "store the given key-value pair in the underlying cache with the given TTL" in {
     val now = Instant.now()
-    val clock = Clock.fixed(now, ZoneOffset.UTC)
+    implicit val clock: Clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newGCache
-    new GuavaCache(underlying)(implicitly[CacheConfig], clock).put("key1")("hello", Some(10.seconds))
+    new GuavaCache(underlying).put("key1")("hello", Some(10.seconds))
     underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(Instant.from(now.plusSeconds(10)))))
   }
 
   it should "support a TTL greater than Int.MaxValue millis" in {
     val now = Instant.parse("2015-10-01T00:00:00Z")
-    val clock = Clock.fixed(now, ZoneOffset.UTC)
+    implicit val clock: Clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newGCache
-    new GuavaCache(underlying)(implicitly[CacheConfig], clock).put("key1")("hello", Some(30.days))
+    new GuavaCache(underlying).put("key1")("hello", Some(30.days))
     underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(Instant.parse("2015-10-31T00:00:00Z"))))
   }
 

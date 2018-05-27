@@ -17,16 +17,16 @@ class MemcachedException(message: String) extends Exception(message)
 /**
   * Wrapper around spymemcached
   */
-class MemcachedCache[V](client: MemcachedClient, keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(
+class MemcachedCache[F[_]](client: MemcachedClient, keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(
     implicit val config: CacheConfig,
-    codec: Codec[V])
-    extends AbstractCache[V]
+    mode: Mode[F])
+    extends AbstractCache[F]
     with MemcachedTTLConverter {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
 
-  override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
+  override protected def doGet[V](key: String)(implicit codec: Codec[V]): F[Option[V]] = {
     mode.M.async { cb =>
       val f = client.asyncGet(keySanitizer.toValidMemcachedKey(key))
       f.addListener(new GetCompletionListener {
@@ -51,7 +51,7 @@ class MemcachedCache[V](client: MemcachedClient, keySanitizer: MemcachedKeySanit
     }
   }
 
-  override protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] = {
+  override protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Any] = {
     mode.M.async { cb =>
       val valueToSend = codec.encode(value)
       val f = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)
@@ -69,7 +69,7 @@ class MemcachedCache[V](client: MemcachedClient, keySanitizer: MemcachedKeySanit
     }
   }
 
-  override protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] = {
+  override protected def doRemove(key: String): F[Any] = {
     mode.M.async { cb =>
       val f = client.delete(key)
       f.addListener(new OperationCompletionListener {
@@ -83,7 +83,7 @@ class MemcachedCache[V](client: MemcachedClient, keySanitizer: MemcachedKeySanit
     }
   }
 
-  override protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] = {
+  override protected def doRemoveAll(): F[Any] = {
     mode.M.async { cb =>
       val f = client.flush()
       f.addListener(new OperationCompletionListener {
@@ -97,7 +97,7 @@ class MemcachedCache[V](client: MemcachedClient, keySanitizer: MemcachedKeySanit
     }
   }
 
-  override def close[F[_]]()(implicit mode: Mode[F]): F[Any] = mode.M.delay(client.shutdown())
+  override def close(): F[Any] = mode.M.delay(client.shutdown())
 
 }
 
@@ -106,7 +106,7 @@ object MemcachedCache {
   /**
     * Create a Memcached client connecting to localhost:11211 and use it for caching
     */
-  def apply[V](implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[V] =
+  def apply[F[_]: Mode](implicit config: CacheConfig): MemcachedCache[F] =
     apply("localhost:11211")
 
   /**
@@ -114,7 +114,7 @@ object MemcachedCache {
     *
     * @param addressString Address string, with addresses separated by spaces, e.g. "host1:11211 host2:22322"
     */
-  def apply[V](addressString: String)(implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[V] =
+  def apply[F[_]: Mode](addressString: String)(implicit config: CacheConfig): MemcachedCache[F] =
     apply(new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(addressString)))
 
   /**
@@ -122,7 +122,7 @@ object MemcachedCache {
     *
     * @param client Memcached client
     */
-  def apply[V](client: MemcachedClient)(implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[V] =
-    new MemcachedCache[V](client)
+  def apply[F[_]: Mode](client: MemcachedClient)(implicit config: CacheConfig): MemcachedCache[F] =
+    new MemcachedCache[F](client)
 
 }

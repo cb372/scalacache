@@ -5,19 +5,18 @@ import redis.clients.jedis.{JedisPoolConfig, JedisShardInfo, ShardedJedis, Shard
 import scala.util.{Failure, Success, Try}
 import scala.collection.JavaConverters._
 import scalacache._
-import scalacache.serialization.Codec
+import scala.language.higherKinds
 
 class ShardedRedisCacheSpec extends RedisCacheSpecBase {
 
-  type JClient = ShardedJedis
-  type JPool = ShardedJedisPool
+  override type JClient = ShardedJedis
+  override type JPool = ShardedJedisPool
 
-  val withJedis = assumingMultipleRedisAreRunning _
+  override val withJedis = assumingMultipleRedisAreRunning
 
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[V] =
-    new ShardedRedisCache[V](jedisPool = pool)
+  override def constructCache[F[_]: Mode](pool: JPool): CacheAlg[F] = ShardedRedisCache[F](pool)
 
-  def flushRedis(client: JClient): Unit =
+  override def flushRedis(client: JClient): Unit =
     client.getAllShards.asScala.foreach(_.flushDB())
 
   def assumingMultipleRedisAreRunning(f: (ShardedJedisPool, ShardedJedis) => Unit): Unit = {

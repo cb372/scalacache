@@ -1,22 +1,21 @@
 package scalacache.redis
 
 import redis.clients.jedis._
-
-import scala.language.postfixOps
 import scalacache._
-import scalacache.serialization.Codec
+
+import scala.language.{higherKinds, postfixOps}
 
 class RedisCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
-  type JClient = Jedis
-  type JPool = JedisPool
+  override type JClient = Jedis
+  override type JPool = JedisPool
 
-  val withJedis = assumingRedisIsRunning _
+  override val withJedis = assumingRedisIsRunning
 
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[V] =
-    new RedisCache[V](jedisPool = pool)
+  override def constructCache[F[_]: Mode](pool: JPool): CacheAlg[F] =
+    RedisCache[F](pool)
 
-  def flushRedis(client: JClient): Unit = client.flushDB()
+  override def flushRedis(client: JClient): Unit = client.flushDB()
 
   runTestsIfPossible()
 

@@ -15,7 +15,7 @@ import scala.language.higherKinds
   * Contains implementations of all methods that can be implemented independent of the type of Redis client.
   * This is everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.
   */
-trait RedisCacheBase[V] extends AbstractCache[V] {
+abstract class RedisCacheBase[F[_]](implicit mode: Mode[F]) extends AbstractCache[F] {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
@@ -28,9 +28,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
 
   protected def jedisPool: Pool[JClient]
 
-  protected def codec: Codec[V]
-
-  protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = mode.M.suspend {
+  override protected def doGet[V](key: String)(implicit codec: Codec[V]): F[Option[V]] = mode.M.suspend {
     withJedisCommands { jedis =>
       val bytes = jedis.get(key.utf8bytes)
       val result: Codec.DecodingResult[Option[V]] = {
@@ -49,7 +47,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
     }
   }
 
-  protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] =
+  override protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Any] =
     mode.M.delay {
       withJedisCommands { jedis =>
         val keyBytes = key.utf8bytes
@@ -70,13 +68,13 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
       logCachePut(key, ttl)
     }
 
-  protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] = mode.M.delay {
+  override protected def doRemove(key: String): F[Any] = mode.M.delay {
     withJedisCommands { jedis =>
       jedis.del(key.utf8bytes)
     }
   }
 
-  def close[F[_]]()(implicit mode: Mode[F]): F[Any] = mode.M.delay(jedisPool.close())
+  override def close(): F[Any] = mode.M.delay(jedisPool.close())
 
   /**
     * Borrow a Jedis client from the pool, perform some operation and then return the client to the pool.
@@ -86,7 +84,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
     * @return the result of executing the block
     */
   protected final def withJedisCommands[T](f: BinaryJedisCommands => T): T = {
-    val jedis = jedisPool.getResource()
+    val jedis = jedisPool.getResource
     try {
       f(jedis)
     } finally {

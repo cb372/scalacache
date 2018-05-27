@@ -11,22 +11,24 @@ import scalacache._
 
 class OhcCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
-  private def newOHCache: OHCache[String, String] =
+  import scalacache.modes.sync._
+  import scalacache.serialization.binary._
+
+  private def newOHCache: OHCache[String, Any] =
     OHCacheBuilder
       .newBuilder()
       .keySerializer(OhcCache.stringSerializer)
       .valueSerializer(OhcCache.stringSerializer)
       .timeouts(true)
       .build()
-
-  import scalacache.modes.sync._
+      .asInstanceOf[OHCache[String, Any]]
 
   behavior of "get"
 
   it should "return the value stored in the underlying cache" in {
     val underlying = newOHCache
     underlying.put("key1", "hello")
-    OhcCache(underlying).get("key1") should be(Some("hello"))
+    OhcCache[Id](underlying).get("key1") should be(Some("hello"))
     underlying.close()
   }
 
@@ -56,10 +58,10 @@ class OhcCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Scala
 
   it should "store the given key-value pair in the underlying cache with the given TTL" in {
     val underlying = newOHCache
-    val ohcCache = new OhcCache(underlying)(implicitly[CacheConfig])
+    val ohcCache = new OhcCache[Id](underlying)
     ohcCache.put("key1")("hello", Some(1.nanosecond))
     Thread.sleep(100)
-    underlying.get("key1") should be(null)
+    underlying.get("key1").asInstanceOf[String] should be(null)
     ohcCache.put("key2")("hello", Some(1.day))
     underlying.get("key2") should be("hello")
     underlying.close()
@@ -73,7 +75,7 @@ class OhcCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Scala
     underlying.get("key1") should be("hello")
 
     OhcCache(underlying).remove("key1")
-    underlying.get("key1") should be(null)
+    underlying.get("key1").asInstanceOf[String] should be(null)
     underlying.close()
   }
 

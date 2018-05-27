@@ -11,13 +11,13 @@ import scalacache.serialization.Codec
 /**
   * Thin wrapper around Jedis that works with Redis Sentinel.
   */
-class SentinelRedisCache[V](val jedisPool: JedisSentinelPool)(implicit val config: CacheConfig, val codec: Codec[V])
-    extends RedisCacheBase[V] {
+class SentinelRedisCache[F[_]](val jedisPool: JedisSentinelPool)(implicit val config: CacheConfig, mode: Mode[F])
+    extends RedisCacheBase[F] {
 
   type JClient = Jedis
 
-  protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] = mode.M.delay {
-    val jedis = jedisPool.getResource()
+  protected def doRemoveAll(): F[Any] = mode.M.delay {
+    val jedis = jedisPool.getResource
     try {
       jedis.flushDB()
     } finally {
@@ -36,8 +36,8 @@ object SentinelRedisCache {
     * @param sentinels set of sentinels in format [host1:port, host2:port]
     * @param password password of the cluster
     */
-  def apply[V](clusterName: String, sentinels: Set[String], password: String)(implicit config: CacheConfig,
-                                                                              codec: Codec[V]): SentinelRedisCache[V] =
+  def apply[F[_]: Mode](clusterName: String, sentinels: Set[String], password: String)(
+      implicit config: CacheConfig): SentinelRedisCache[F] =
     apply(new JedisSentinelPool(clusterName, sentinels.asJava, new GenericObjectPoolConfig, password))
 
   /**
@@ -48,9 +48,10 @@ object SentinelRedisCache {
     * @param password password of the cluster
     * @param poolConfig config of the underlying pool
     */
-  def apply[V](clusterName: String, sentinels: Set[String], poolConfig: GenericObjectPoolConfig, password: String)(
-      implicit config: CacheConfig,
-      codec: Codec[V]): SentinelRedisCache[V] =
+  def apply[F[_]: Mode](clusterName: String,
+                        sentinels: Set[String],
+                        poolConfig: GenericObjectPoolConfig,
+                        password: String)(implicit config: CacheConfig): SentinelRedisCache[F] =
     apply(new JedisSentinelPool(clusterName, sentinels.asJava, poolConfig, password))
 
   /**
@@ -58,8 +59,7 @@ object SentinelRedisCache {
     *
     * @param jedisSentinelPool a JedisSentinelPool
     */
-  def apply[V](jedisSentinelPool: JedisSentinelPool)(implicit config: CacheConfig,
-                                                     codec: Codec[V]): SentinelRedisCache[V] =
-    new SentinelRedisCache[V](jedisSentinelPool)
+  def apply[F[_]: Mode](jedisSentinelPool: JedisSentinelPool)(implicit config: CacheConfig): SentinelRedisCache[F] =
+    new SentinelRedisCache[F](jedisSentinelPool)
 
 }

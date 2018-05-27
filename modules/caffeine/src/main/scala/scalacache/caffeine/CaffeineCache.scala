@@ -5,8 +5,9 @@ import java.time.{Clock, Instant}
 
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
 import org.slf4j.LoggerFactory
+import scalacache.serialization.Codec
+import scalacache.{AbstractCache, CacheConfig, Entry, Mode}
 
-import scalacache.{AbstractCache, CacheConfig, Entry, Flags, LoggingSupport, Mode}
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 
@@ -15,14 +16,15 @@ import scala.language.higherKinds
  *
  * This cache implementation is synchronous.
  */
-class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config: CacheConfig,
-                                                             clock: Clock = Clock.systemUTC())
-    extends AbstractCache[V] {
+class CaffeineCache[F[_]](underlying: CCache[String, Entry[Any]])(implicit val config: CacheConfig,
+                                                                  mode: Mode[F],
+                                                                  clock: Clock = Clock.systemUTC())
+    extends AbstractCache[F] {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
 
-  def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
+  def doGet[V: Codec](key: String): F[Option[V]] = {
     mode.M.delay {
       val baseValue = underlying.getIfPresent(key)
       val result = {
@@ -36,7 +38,7 @@ class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config
     }
   }
 
-  def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] = {
+  def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Any] = {
     mode.M.delay {
       val entry = Entry(value, ttl.map(toExpiryTime))
       underlying.put(key, entry)
@@ -44,13 +46,13 @@ class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config
     }
   }
 
-  override def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] =
+  override def doRemove(key: String): F[Any] =
     mode.M.delay(underlying.invalidate(key))
 
-  override def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] =
+  override def doRemoveAll(): F[Any] =
     mode.M.delay(underlying.invalidateAll())
 
-  override def close[F[_]]()(implicit mode: Mode[F]): F[Any] = {
+  override def close(): F[Any] = {
     // Nothing to do
     mode.M.pure(())
   }
@@ -65,15 +67,15 @@ object CaffeineCache {
   /**
     * Create a new Caffeine cache
     */
-  def apply[V](implicit config: CacheConfig): CaffeineCache[V] =
-    apply(Caffeine.newBuilder().build[String, Entry[V]]())
+  def apply[F[_]: Mode](implicit config: CacheConfig): CaffeineCache[F] =
+    apply(Caffeine.newBuilder().build[String, Entry[Any]]())
 
   /**
     * Create a new cache utilizing the given underlying Caffeine cache.
     *
     * @param underlying a Caffeine cache
     */
-  def apply[V](underlying: CCache[String, Entry[V]])(implicit config: CacheConfig): CaffeineCache[V] =
+  def apply[F[_]: Mode](underlying: CCache[String, Entry[Any]])(implicit config: CacheConfig): CaffeineCache[F] =
     new CaffeineCache(underlying)
 
 }

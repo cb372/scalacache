@@ -1,5 +1,7 @@
 package scalacache
 
+import scalacache.serialization.Codec
+
 import scala.language.experimental.macros
 import scala.concurrent.duration._
 import scala.language.higherKinds
@@ -23,14 +25,13 @@ package object memoization {
     *
     * @param ttl Time-To-Live
     * @param f A function that computes some result. This result is the value that will be cached.
-    * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param cache The cache
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V The type of the value to be cached
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoize[F[_], V](ttl: Option[Duration])(f: => V)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+  def memoize[F[_], V](ttl: Option[Duration])(f: => V)(implicit cache: Cache[F], codec: Codec[V], flags: Flags): F[V] =
     macro Macros.memoizeImpl[F, V]
 
   /**
@@ -45,7 +46,6 @@ package object memoization {
     *
     * @param ttl Time-To-Live
     * @param f A function that computes some result wrapped in an [[F]]. This result is the value that will be cached.
-    * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param cache The cache
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
@@ -53,7 +53,7 @@ package object memoization {
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
   def memoizeF[F[_], V](ttl: Option[Duration])(
-      f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+      f: => F[V])(implicit cache: Cache[F], codec: Codec[V], flags: Flags): F[V] =
     macro Macros.memoizeFImpl[F, V]
 
   /**
@@ -77,7 +77,7 @@ package object memoization {
     * @tparam V The type of the value to be cached
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoizeSync[V](ttl: Option[Duration])(f: => V)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): V =
+  def memoizeSync[V](ttl: Option[Duration])(f: => V)(implicit cache: Cache[Id], codec: Codec[V], flags: Flags): V =
     macro Macros.memoizeSyncImpl[V]
 
 }

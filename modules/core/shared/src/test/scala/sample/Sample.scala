@@ -18,7 +18,10 @@ case class User(id: Int, name: String)
 object Sample extends App {
 
   class UserRepository {
-    implicit val cache: Cache[User] = new MockCache()
+
+    import scalacache.serialization.binary._
+
+    implicit val cache: Cache[Future] = new MockCache()
 
     def getUser(id: Int): Future[User] = memoizeF(None) {
       // Do DB lookup here...

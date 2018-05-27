@@ -11,12 +11,13 @@ import scalacache._
 
 class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
+  import scalacache.modes.sync._
+  import scalacache.serialization.binary._
+
   private def newCCache =
-    new Cache2kBuilder[String, String]() {}
+    new Cache2kBuilder[String, Any]() {}
       .expireAfterWrite(1, DAYS)
       .build
-
-  import scalacache.modes.sync._
 
   behavior of "get"
 
@@ -50,10 +51,10 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
 
   it should "store the given key-value pair in the underlying cache with the given TTL" in {
     val underlying = newCCache
-    val cache2kCache = new Cache2kCache(underlying)(implicitly[CacheConfig])
+    val cache2kCache = new Cache2kCache[Id](underlying)
     cache2kCache.put("key1")("hello", Some(1.nanosecond))
     Thread.sleep(100)
-    underlying.peek("key1") should be(null)
+    underlying.peek("key1").asInstanceOf[String] should be(null)
     cache2kCache.put("key2")("hello", Some(1.day))
     underlying.peek("key2") should be("hello")
   }
@@ -66,7 +67,7 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
     underlying.peek("key1") should be("hello")
 
     Cache2kCache(underlying).remove("key1")
-    underlying.peek("key1") should be(null)
+    underlying.peek("key1").asInstanceOf[String] should be(null)
   }
 
 }

@@ -12,14 +12,15 @@ import scalacache._
 
 class EhcacheCacheSpec extends FlatSpec with Matchers with Eventually with BeforeAndAfter with ScalaFutures {
 
+  import scalacache.modes.sync._
+  import scalacache.serialization.binary._
+
   private val underlying = {
     val cacheManager = new CacheManager
     val cache = new Ehcache("test", 1000, false, false, 0, 0)
     cacheManager.addCache(cache)
     cache
   }
-
-  import scalacache.modes.sync._
 
   before {
     underlying.removeAll()
@@ -29,24 +30,24 @@ class EhcacheCacheSpec extends FlatSpec with Matchers with Eventually with Befor
 
   it should "return the value stored in Ehcache" in {
     underlying.put(new Element("key1", 123))
-    EhcacheCache[Int](underlying).get("key1") should be(Some(123))
+    EhcacheCache[Id](underlying).get("key1") should be(Some(123))
   }
 
   it should "return None if the given key does not exist in the underlying cache" in {
-    EhcacheCache[Int](underlying).get("non-existent-key") should be(None)
+    EhcacheCache[Id](underlying).get("non-existent-key") should be(None)
   }
 
   behavior of "put"
 
   it should "store the given key-value pair in the underlying cache" in {
-    EhcacheCache[Int](underlying).put("key1")(123, None)
+    EhcacheCache[Id](underlying).put("key1")(123, None)
     underlying.get("key1").getObjectValue should be(123)
   }
 
   behavior of "put with TTL"
 
   it should "store the given key-value pair in the underlying cache" in {
-    EhcacheCache[Int](underlying).put("key1")(123, Some(1 second))
+    EhcacheCache[Id](underlying).put("key1")(123, Some(1 second))
     underlying.get("key1").getObjectValue should be(123)
 
     // Should expire after 1 second
@@ -61,7 +62,7 @@ class EhcacheCacheSpec extends FlatSpec with Matchers with Eventually with Befor
     underlying.put(new Element("key1", 123))
     underlying.get("key1").getObjectValue should be(123)
 
-    EhcacheCache[Int](underlying).remove("key1")
+    EhcacheCache[Id](underlying).remove("key1")
     underlying.get("key1") should be(null)
   }
 

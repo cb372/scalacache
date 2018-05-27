@@ -1,3 +1,5 @@
+import scalacache.serialization.Codec
+
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 
@@ -12,13 +14,12 @@ package object scalacache {
     *                 This could be as simple as just a single String.
     *                 See [[CacheKeyBuilder]].
     * @param cache The cache
-    * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V The type of the corresponding value
     * @return the value, if there is one
     */
-  def get[F[_], V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[Option[V]] =
+  def get[F[_], V: Codec](keyParts: Any*)(implicit cache: Cache[F], flags: Flags): F[Option[V]] =
     cache.get(keyParts: _*)
 
   /**
@@ -32,14 +33,12 @@ package object scalacache {
     * @param value the value to be cached
     * @param ttl Time To Live (optional, if not specified then the entry will be cached indefinitely)
     * @param cache The cache
-    * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V The type of the corresponding value
     */
-  def put[F[_], V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[V],
-                                                                           mode: Mode[F],
-                                                                           flags: Flags): F[Any] =
+  def put[F[_], V: Codec](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[F],
+                                                                                  flags: Flags): F[Any] =
     cache.put(keyParts: _*)(value, ttl)
 
   /**
@@ -52,23 +51,20 @@ package object scalacache {
     *                 This could be as simple as just a single String.
     *                 See [[CacheKeyBuilder]].
     * @param cache The cache
-    * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
-    * @tparam V The type of the value to be removed
     */
-  def remove[F[_], V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[F]): F[Any] =
+  def remove[F[_]](keyParts: Any*)(implicit cache: Cache[F]): F[Any] =
     cache.remove(keyParts: _*)
 
-  final class RemoveAll[V] {
-    def apply[F[_]]()(implicit cache: Cache[V], mode: Mode[F]): F[Any] = cache.removeAll[F]()
+  // TODO Jules: ???
+  final class RemoveAll {
+    def apply[F[_]]()(implicit cache: Cache[F]): F[Any] = cache.removeAll()
   }
 
   /**
     * Remove all values from the cache.
-    *
-    * @tparam V The type of values to be removed
     */
-  def removeAll[V]: RemoveAll[V] = new RemoveAll[V]
+  def removeAll(): RemoveAll = new RemoveAll
 
   /**
     * Wrap the given block with a caching decorator.
@@ -84,14 +80,13 @@ package object scalacache {
     *            If specified, the cache entry will expire after this time has elapsed.
     * @param f The block to run
     * @param cache The cache
-    * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V the type of the block's result
     * @return The result, either retrived from the cache or returned by the block
     */
-  def caching[F[_], V](keyParts: Any*)(ttl: Option[Duration])(
-      f: => V)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+  def caching[F[_], V: Codec](keyParts: Any*)(ttl: Option[Duration])(f: => V)(implicit cache: Cache[F],
+                                                                              flags: Flags): F[V] =
     cache.caching(keyParts: _*)(ttl)(f)
 
   /**
@@ -108,14 +103,13 @@ package object scalacache {
     *            If specified, the cache entry will expire after this time has elapsed.
     * @param f The block to run
     * @param cache The cache
-    * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V the type of the block's result
     * @return The result, either retrived from the cache or returned by the block
     */
-  def cachingF[F[_], V](keyParts: Any*)(ttl: Option[Duration])(
-      f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+  def cachingF[F[_], V: Codec](keyParts: Any*)(ttl: Option[Duration])(f: => F[V])(implicit cache: Cache[F],
+                                                                                  flags: Flags): F[V] =
     cache.cachingF(keyParts: _*)(ttl)(f)
 
   /**
@@ -141,20 +135,18 @@ package object scalacache {
     */
   object sync {
 
-    def get[V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): Option[V] =
-      cache.get[Id](keyParts: _*)
+    def get[V: Codec](keyParts: Any*)(implicit cache: Cache[Id], flags: Flags): Option[V] =
+      cache.get[V](keyParts: _*)
 
-    def put[V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[V],
-                                                                       mode: Mode[Id],
-                                                                       flags: Flags): Any =
-      cache.put[Id](keyParts: _*)(value, ttl)
+    def put[V: Codec](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[Id],
+                                                                              flags: Flags): Any =
+      cache.put[V](keyParts: _*)(value, ttl)
 
-    def remove[V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[Id]): Any =
-      cache.remove[Id](keyParts: _*)
+    def remove(keyParts: Any*)(implicit cache: Cache[Id]): Any =
+      cache.remove(keyParts: _*)
 
-    def caching[V](keyParts: Any*)(ttl: Option[Duration])(
-        f: => V)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): V =
-      cache.caching[Id](keyParts: _*)(ttl)(f)
+    def caching[V: Codec](keyParts: Any*)(ttl: Option[Duration])(f: => V)(implicit cache: Cache[Id], flags: Flags): V =
+      cache.caching[V](keyParts: _*)(ttl)(f)
   }
 
 }

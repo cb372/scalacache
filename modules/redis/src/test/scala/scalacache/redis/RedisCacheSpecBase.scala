@@ -4,15 +4,15 @@ import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Inside, Matchers}
 import redis.clients.jedis.{BinaryJedisCommands, JedisCommands}
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.concurrent.duration._
-import scala.language.postfixOps
 import scalacache._
-import scalacache.serialization.{Codec, FailedToDecode}
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.binary._
+import scalacache.serialization.{Codec, FailedToDecode}
+
+import scala.concurrent.{CanAwait, ExecutionContext, Future}
+import scala.concurrent.duration._
+import scala.language.{higherKinds, postfixOps}
+import scala.util.Try
 
 trait RedisCacheSpecBase
     extends FlatSpec
@@ -23,6 +23,9 @@ trait RedisCacheSpecBase
     with RedisSerialization
     with ScalaFutures
     with IntegrationPatience {
+
+  import scalacache.modes.scalaFuture._
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   type JPool
   type JClient <: JedisCommands with BinaryJedisCommands
@@ -35,16 +38,57 @@ trait RedisCacheSpecBase
   }
 
   def withJedis: ((JPool, JClient) => Unit) => Unit
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[V]
+  def constructCache[F[_]: Mode](pool: JPool): CacheAlg[F]
   def flushRedis(client: JClient): Unit
+
+  class AlwaysFailingFuture[+F] extends Future[F] {
+    override def onComplete[U](f: Try[F] => U)(implicit executor: ExecutionContext): Unit = ()
+    override def isCompleted: Boolean = true
+    override def value: Option[Try[F]] = None
+    override def transform[S](f: Try[F] => Try[S])(implicit executor: ExecutionContext): Future[S] =
+      Future.failed(new Exception("AlwaysFailingFuture"))
+    override def transformWith[S](f: Try[F] => Future[S])(implicit executor: ExecutionContext): Future[S] =
+      Future.failed(new Exception("AlwaysFailingFuture"))
+    override def ready(atMost: Duration)(implicit permit: CanAwait): AlwaysFailingFuture.this.type =
+      throw new Exception("AlwaysFailingFuture")
+    override def result(atMost: Duration)(implicit permit: CanAwait): F = throw new Exception("AlwaysFailingFuture")
+  }
+
+  object AlwaysFailingFuture {
+    implicit val alwaysFailingFutureModeInstance: Mode[AlwaysFailingFuture] =
+      scalacache.modes.scalaFuture.mode.asInstanceOf[Mode[AlwaysFailingFuture]]
+  }
 
   def runTestsIfPossible() = {
 
-    import scalacache.modes.scalaFuture._
-
     withJedis { (pool, client) =>
-      val cache = constructCache[Int](pool)
-      val failingCache = constructCache[AlwaysFailing.type](pool)
+      val cache = constructCache[Future](pool)
+      val failingCache = new Cache[Future] {
+        override def config: CacheConfig = null
+
+        override def cachingForMemoize[V](baseKey: String)(ttl: Option[Duration])(f: => V)(implicit codec: Codec[V],
+                                                                                           flags: Flags): Future[V] =
+          Future.failed(new Exception("always failing cache"))
+
+        override def cachingForMemoizeF[V](baseKey: String)(ttl: Option[Duration])(
+            f: => Future[V])(implicit codec: Codec[V], flags: Flags): Future[V] =
+          Future.failed(new Exception("always failing cache"))
+
+        override def get[V: Codec](keyParts: Any*)(implicit flags: Flags): Future[Option[V]] =
+          Future.failed(new Exception("always failing cache"))
+
+        override def put[V: Codec](keyParts: Any*)(value: V,
+                                                   ttl: Option[Duration])(implicit flags: Flags): Future[Any] =
+          Future.failed(new Exception("always failing cache"))
+
+        override def remove(keyParts: Any*): Future[Any] = Future.failed(new Exception("always failing cache"))
+        override def removeAll(): Future[Any] = Future.failed(new Exception("always failing cache"))
+        override def caching[V: Codec](keyParts: Any*)(ttl: Option[Duration])(f: => V)(
+            implicit flags: Flags): Future[V] = Future.failed(new Exception("always failing cache"))
+        override def cachingF[V: Codec](keyParts: Any*)(ttl: Option[Duration])(f: => Future[V])(
+            implicit flags: Flags): Future[V] = Future.failed(new Exception("always failing cache"))
+        override def close(): Future[Any] = Future.failed(new Exception("always failing cache"))
+      }
 
       before {
         flushRedis(client)
@@ -54,16 +98,16 @@ trait RedisCacheSpecBase
 
       it should "return the value stored in Redis" in {
         client.set(bytes("key1"), serialize(123))
-        whenReady(cache.get("key1")) { _ should be(Some(123)) }
+        whenReady(cache.get[Int]("key1")) { _ should be(Some(123)) }
       }
 
       it should "return None if the given key does not exist in the underlying cache" in {
-        whenReady(cache.get("non-existent-key")) { _ should be(None) }
+        whenReady(cache.get[Int]("non-existent-key")) { _ should be(None) }
       }
 
       it should "raise an error if decoding fails" in {
         client.set(bytes("key1"), serialize(123))
-        whenReady(failingCache.get("key1").failed) { t =>
+        whenReady(failingCache.get[Int]("key1").failed) { t =>
           inside(t) { case FailedToDecode(e) => e.getMessage should be("Failed to decode") }
         }
       }
@@ -114,9 +158,9 @@ trait RedisCacheSpecBase
 
       behavior of "caching with serialization"
 
-      def roundTrip[V](key: String, value: V)(implicit codec: Codec[V]): Future[Option[V]] = {
-        val c = constructCache[V](pool)
-        c.put(key)(value, None).flatMap(_ => c.get(key))
+      def roundTrip[F[_], V: Codec](key: String, value: V)(implicit F: Mode[F]): F[Option[V]] = {
+        val c = constructCache[F](pool)
+        F.M.flatMap(c.put(key)(value, None))(_ => c.get(key))
       }
 
       it should "round-trip a String" in {

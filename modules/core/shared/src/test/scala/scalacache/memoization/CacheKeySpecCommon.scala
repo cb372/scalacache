@@ -2,17 +2,19 @@ package scalacache.memoization
 
 import org.scalatest._
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
-
 import scalacache._
-import scala.concurrent.ExecutionContext.Implicits.global
+
 import scala.concurrent.Future
-import scalacache.modes.scalaFuture._
 
 trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with BeforeAndAfter with Eventually {
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+  import scalacache.modes.scalaFuture.mode
+  import scalacache.serialization.binary._
+
   implicit def config: CacheConfig
 
-  implicit lazy val cache: MockCache[Int] = new MockCache[Int]()(config)
+  implicit lazy val cache: MockCache[Future] = new MockCache[Future]()
 
   before {
     cache.mmap.clear()
@@ -25,7 +27,6 @@ trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with Befo
     whenReady(future) { value =>
       // Check that the value is in the cache, with the expected key
       eventually {
-        implicit val mode: Mode[Id] = scalacache.modes.sync.mode
         cache.get(expectedKey) should be(Some(value))
       }
     }
@@ -55,7 +56,9 @@ trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with Befo
 
 }
 
-class AClass(implicit cache: Cache[Int]) {
+class AClass(implicit cache: Cache[Future]) {
+  import scalacache.serialization.binary._
+
   def insideClass(a: Int): Future[Int] = memoize(None) {
     123
   }
@@ -75,7 +78,9 @@ class AClass(implicit cache: Cache[Int]) {
 }
 
 trait ATrait {
-  implicit val cache: Cache[Int]
+  import scalacache.serialization.binary._
+
+  implicit val cache: Cache[Future]
 
   def insideTrait(a: Int): Future[Int] = memoize(None) {
     123
@@ -83,21 +88,27 @@ trait ATrait {
 }
 
 object AnObject {
-  implicit var cache: Cache[Int] = null
+  import scalacache.serialization.binary._
+
+  implicit var cache: Cache[Future] = null
   def insideObject(a: Int): Future[Int] = memoize(None) {
     123
   }
 }
 
 class ClassWithConstructorParams(b: Int) {
-  implicit var cache: Cache[Int] = null
+  import scalacache.serialization.binary._
+
+  implicit var cache: Cache[Future] = null
   def foo(a: Int): Future[Int] = memoize(None) {
     a + b
   }
 }
 
 class ClassWithExcludedConstructorParam(b: Int, @cacheKeyExclude c: Int) {
-  implicit var cache: Cache[Int] = null
+  import scalacache.serialization.binary._
+
+  implicit var cache: Cache[Future] = null
   def foo(a: Int): Future[Int] = memoize(None) {
     a + b + c
   }
