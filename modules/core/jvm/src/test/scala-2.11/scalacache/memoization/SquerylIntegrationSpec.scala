@@ -44,6 +44,8 @@ class SquerylIntegrationSpec
 
   it should "work with Squeryl" in {
     import FooDb.users
+    import scalacache.serialization.binary._
+
     implicit val cache = new MockCache[Id] with LoggingCache[Id]
 
     def findUser(userId: Int): Option[User] = memoizeSync(None) {
