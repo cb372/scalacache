@@ -41,24 +41,6 @@ trait RedisCacheSpecBase
   def constructCache[F[_]: Mode](pool: JPool): CacheAlg[F]
   def flushRedis(client: JClient): Unit
 
-  class AlwaysFailingFuture[+F] extends Future[F] {
-    override def onComplete[U](f: Try[F] => U)(implicit executor: ExecutionContext): Unit = ()
-    override def isCompleted: Boolean = true
-    override def value: Option[Try[F]] = None
-    override def transform[S](f: Try[F] => Try[S])(implicit executor: ExecutionContext): Future[S] =
-      Future.failed(new Exception("AlwaysFailingFuture"))
-    override def transformWith[S](f: Try[F] => Future[S])(implicit executor: ExecutionContext): Future[S] =
-      Future.failed(new Exception("AlwaysFailingFuture"))
-    override def ready(atMost: Duration)(implicit permit: CanAwait): AlwaysFailingFuture.this.type =
-      throw new Exception("AlwaysFailingFuture")
-    override def result(atMost: Duration)(implicit permit: CanAwait): F = throw new Exception("AlwaysFailingFuture")
-  }
-
-  object AlwaysFailingFuture {
-    implicit val alwaysFailingFutureModeInstance: Mode[AlwaysFailingFuture] =
-      scalacache.modes.scalaFuture.mode.asInstanceOf[Mode[AlwaysFailingFuture]]
-  }
-
   def runTestsIfPossible() = {
 
     withJedis { (pool, client) =>
