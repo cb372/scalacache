@@ -2,8 +2,8 @@ package scalacache
 
 import scalacache.serialization.Codec
 
-import scala.language.experimental.macros
 import scala.concurrent.duration._
+import scala.language.experimental.macros
 import scala.language.higherKinds
 
 /**

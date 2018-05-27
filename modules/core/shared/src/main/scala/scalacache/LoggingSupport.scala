@@ -9,7 +9,7 @@ import scala.concurrent.duration.Duration
   */
 trait LoggingSupport {
 
-  protected def logger: Logger
+  protected val logger: Logger
 
   /**
     * Output a debug log to record the result of a cache lookup
@@ -18,12 +18,11 @@ trait LoggingSupport {
     * @param result the result of the cache lookup
     * @tparam A the type of the cache value
     */
-  protected def logCacheHitOrMiss[A](key: String, result: Option[A]): Unit = {
+  protected final def logCacheHitOrMiss[A](key: String, result: Option[A]): Unit =
     if (logger.isDebugEnabled) {
-      val hitOrMiss = result.map(_ => "hit") getOrElse "miss"
+      val hitOrMiss = result.fold("miss")(_ => "hit")
       logger.debug(s"Cache $hitOrMiss for key $key")
     }
-  }
 
   /**
     * Output a debug log to record a cache insertion/update
@@ -31,11 +30,10 @@ trait LoggingSupport {
     * @param key the key that was inserted/updated
     * @param ttl the TTL of the inserted entry
     */
-  protected def logCachePut(key: String, ttl: Option[Duration]): Unit = {
+  protected final def logCachePut(key: String, ttl: Option[Duration]): Unit =
     if (logger.isDebugEnabled) {
-      val ttlMsg = ttl.map(d => s" with TTL ${d.toMillis} ms") getOrElse ""
+      val ttlMsg = ttl.fold("")(d => s" with TTL ${d.toMillis} ms")
       logger.debug(s"Inserted value into cache with key $key$ttlMsg")
     }
-  }
 
 }

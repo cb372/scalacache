@@ -3,14 +3,13 @@ package scalacache
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 import scalacache.serialization.Codec
 
 class EmptyCache[F[_]](implicit val config: CacheConfig, mode: Mode[F]) extends AbstractCache[F] {
 
-  override protected def logger = LoggerFactory.getLogger("EmptyCache")
+  override protected val logger = LoggerFactory.getLogger("EmptyCache")
 
   override protected def doGet[V: Codec](key: String) =
     mode.M.pure(None)
@@ -30,7 +29,7 @@ class EmptyCache[F[_]](implicit val config: CacheConfig, mode: Mode[F]) extends 
 
 class FullCache[F[_]](value: Any)(implicit val config: CacheConfig, mode: Mode[F]) extends AbstractCache[F] {
 
-  override protected def logger = LoggerFactory.getLogger("FullCache")
+  override protected val logger = LoggerFactory.getLogger("FullCache")
 
   override protected def doGet[V: Codec](key: String) =
     mode.M.pure(Some(value).asInstanceOf[Option[V]])
@@ -50,7 +49,7 @@ class FullCache[F[_]](value: Any)(implicit val config: CacheConfig, mode: Mode[F
 
 class ErrorRaisingCache[F[_]](implicit val config: CacheConfig, mode: Mode[F]) extends AbstractCache[F] {
 
-  override protected def logger = LoggerFactory.getLogger("FullCache")
+  override protected val logger = LoggerFactory.getLogger("FullCache")
 
   override protected def doGet[V: Codec](key: String) =
     mode.M.raiseError(new RuntimeException("failed to read"))
@@ -74,7 +73,7 @@ class ErrorRaisingCache[F[_]](implicit val config: CacheConfig, mode: Mode[F]) e
   */
 class MockCache[F[_]]()(implicit val config: CacheConfig, mode: Mode[F]) extends AbstractCache[F] {
 
-  override protected def logger = LoggerFactory.getLogger("MockCache")
+  override protected val logger = LoggerFactory.getLogger("MockCache")
 
   val mmap = collection.mutable.Map[String, Any]()
 

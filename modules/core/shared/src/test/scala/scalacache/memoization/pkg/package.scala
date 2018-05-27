@@ -1,9 +1,8 @@
 package scalacache.memoization
 
-import scala.concurrent.Future
 import scalacache._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scalacache.modes.scalaFuture._
+
+import scala.concurrent.Future
 
 package object pkg {
 

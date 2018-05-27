@@ -1,12 +1,11 @@
 package scalacache.ehcache
 
+import net.sf.ehcache.{Element, Cache => Ehcache}
 import org.slf4j.LoggerFactory
+import scalacache.serialization.Codec
 import scalacache.{AbstractCache, CacheConfig, Mode}
 
 import scala.concurrent.duration.Duration
-import net.sf.ehcache.{Element, Cache => Ehcache}
-import scalacache.serialization.Codec
-
 import scala.language.higherKinds
 
 /**

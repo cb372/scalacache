@@ -11,11 +11,11 @@ import scalacache.{AbstractCache, CacheConfig, Entry, Mode}
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 
-/*
- * Thin wrapper around Caffeine.
- *
- * This cache implementation is synchronous.
- */
+/**
+  * Thin wrapper around Caffeine.
+  *
+  * This cache implementation is synchronous.
+  */
 class CaffeineCache[F[_]](underlying: CCache[String, Entry[Any]])(implicit val config: CacheConfig,
                                                                   mode: Mode[F],
                                                                   clock: Clock = Clock.systemUTC())
