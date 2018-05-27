@@ -10,7 +10,7 @@ class RedisCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
   override type JClient = Jedis
   override type JPool = JedisPool
 
-  override val withJedis = assumingRedisIsRunning
+  override def withJedis = assumingRedisIsRunning
 
   override def constructCache[F[_]: Mode](pool: JPool): CacheAlg[F] =
     RedisCache[F](pool)
