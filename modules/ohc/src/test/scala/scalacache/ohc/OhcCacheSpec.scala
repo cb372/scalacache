@@ -61,7 +61,7 @@ class OhcCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Scala
     val ohcCache = new OhcCache[Id](underlying)
     ohcCache.put("key1")("hello", Some(1.nanosecond))
     Thread.sleep(100)
-    underlying.get("key1").asInstanceOf[String] should be(null)
+    underlying.get("key1") should be(null)
     ohcCache.put("key2")("hello", Some(1.day))
     underlying.get("key2") should be("hello")
     underlying.close()
@@ -75,7 +75,7 @@ class OhcCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Scala
     underlying.get("key1") should be("hello")
 
     OhcCache(underlying).remove("key1")
-    underlying.get("key1").asInstanceOf[String] should be(null)
+    underlying.get("key1") should be(null)
     underlying.close()
   }
 

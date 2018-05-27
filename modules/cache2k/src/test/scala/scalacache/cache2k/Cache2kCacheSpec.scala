@@ -60,7 +60,7 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
     val cache2kCache = new Cache2kCache[Id](underlying)
     cache2kCache.put("key1")("hello", Some(1.nanosecond))
     Thread.sleep(100)
-    underlying.peek("key1").asInstanceOf[String] should be(null)
+    underlying.peek("key1") should be(null)
     cache2kCache.put("key2")("hello", Some(1.day))
     underlying.peek("key2") should be("hello")
   }
@@ -73,7 +73,7 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
     underlying.peek("key1") should be("hello")
 
     Cache2kCache(underlying).remove("key1")
-    underlying.peek("key1").asInstanceOf[String] should be(null)
+    underlying.peek("key1") should be(null)
   }
 
 }
