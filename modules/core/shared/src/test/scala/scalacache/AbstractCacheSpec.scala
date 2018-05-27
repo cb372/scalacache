@@ -15,8 +15,8 @@ class AbstractCacheSpec
     with Eventually
     with IntegrationPatience {
 
-  import scalacache.serialization.binary._
   import scalacache.modes.scalaFuture._
+  import scalacache.serialization.binary._
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
