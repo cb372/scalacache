@@ -104,7 +104,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
   it should "work with a method argument called 'key'" in {
     // Reproduces https://github.com/cb372/scalacache/issues/13
     """
-    implicit val emptyCache = new EmptyCache[Int] with LoggingCache[Int]
+    implicit val emptyCache = new EmptyCache[Id] with LoggingCache[Id]
     def foo(key: Int): Int = memoizeSync(None) {
       key + 1
     }
