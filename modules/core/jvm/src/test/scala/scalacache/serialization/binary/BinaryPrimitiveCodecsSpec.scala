@@ -15,7 +15,7 @@ class BinaryPrimitiveCodecsSpec extends FlatSpec with Matchers with GeneratorDri
     forAll { n: A =>
       val serialised = codec.encode(n)
       val deserialised = codec.decode(serialised)
-      deserialised shouldBe Right(n)
+      deserialised.right.get shouldBe n
     }
   }
 
