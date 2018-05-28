@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import scalacache.serialization.Codec
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.{AbstractCache, CacheConfig, Mode}
+import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
 import scala.language.higherKinds
@@ -14,7 +15,7 @@ import scala.language.higherKinds
   *
   * This cache implementation is synchronous.
   */
-final class Cache2kCache[F[_]](underlying: CCache[String, Array[Byte]])(implicit val config: CacheConfig, mode: Mode[F])
+final class Cache2kCache[F[_]](underlying: CCache[String, ByteVector])(implicit val config: CacheConfig, mode: Mode[F])
     extends AbstractCache[F] {
 
   override protected final val logger = LoggerFactory.getLogger(getClass.getName)
@@ -50,7 +51,7 @@ object Cache2kCache {
     *
     * @param underlying a cache2k cache configured with a ExpiryPolicy or Cache2kBuilder.expireAfterWrite(long, TimeUnit)
     */
-  def apply[F[_]: Mode](underlying: CCache[String, Array[Byte]])(implicit config: CacheConfig): Cache2kCache[F] =
+  def apply[F[_]: Mode](underlying: CCache[String, ByteVector])(implicit config: CacheConfig): Cache2kCache[F] =
     new Cache2kCache(underlying)
 
 }

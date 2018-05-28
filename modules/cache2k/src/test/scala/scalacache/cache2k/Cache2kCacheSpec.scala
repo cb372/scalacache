@@ -1,15 +1,14 @@
 package scalacache.cache2k
 
-import java.nio.charset.StandardCharsets
 import java.time.Instant
 
 import org.cache2k.Cache2kBuilder
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import scalacache._
+import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
-import scalacache._
-
 import scala.language.implicitConversions
 
 class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
@@ -18,12 +17,12 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
   import scalacache.serialization.binary._
 
   private def newCCache =
-    new Cache2kBuilder[String, Array[Byte]]() {}
+    new Cache2kBuilder[String, ByteVector]() {}
       .expireAfterWrite(1, DAYS)
       .build
 
   // Ugly but convenient. Do not abuse of that.
-  private[this] implicit def getBytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
+  private[this] implicit def getBytes(s: String): ByteVector = ByteVector.encodeUtf8(s).right.get
 
   behavior of "get"
 

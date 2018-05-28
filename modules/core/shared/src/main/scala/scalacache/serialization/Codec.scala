@@ -1,8 +1,10 @@
 package scalacache.serialization
 
+import scodec.bits.ByteVector
+
 import scala.annotation.implicitNotFound
 import scala.language.implicitConversions
-import scala.util.{Failure, Success, Try}
+import scala.util.control.NonFatal
 
 /**
   * Represents a type class that needs to be implemented
@@ -23,8 +25,9 @@ You will need a dependency on the scalacache-circe module.
 
 See the documentation for more details on codecs.""")
 trait Codec[A] {
-  def encode(value: A): Array[Byte]
-  def decode(bytes: Array[Byte]): Codec.DecodingResult[A]
+  def encode(value: A): ByteVector
+  def decode(bytes: ByteVector): Codec.DecodingResult[A]
+  def decode(bytes: Array[Byte]): Codec.DecodingResult[A] = decode(ByteVector(bytes))
 }
 
 /**
@@ -39,9 +42,11 @@ object Codec {
   }
 
   def tryDecode[A](f: => A): DecodingResult[A] =
-    Try(f) match {
-      case Success(a) => Right(a)
-      case Failure(e) => Left(FailedToDecode(e))
+    try Right(f)
+    catch {
+      case NonFatal(e) => Left(FailedToDecode(e))
     }
+
+  def tryDecode[A](f: Either[Throwable, A]): DecodingResult[A] = f.left.map(FailedToDecode)
 
 }

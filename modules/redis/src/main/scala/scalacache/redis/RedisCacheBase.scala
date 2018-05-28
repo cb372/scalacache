@@ -53,16 +53,16 @@ abstract class RedisCacheBase[F[_]](implicit mode: Mode[F]) extends AbstractCach
         val keyBytes = key.utf8bytes
         val valueBytes = codec.encode(value)
         ttl match {
-          case None                => jedis.set(keyBytes, valueBytes)
-          case Some(Duration.Zero) => jedis.set(keyBytes, valueBytes)
+          case None                => jedis.set(keyBytes, valueBytes.toArray)
+          case Some(Duration.Zero) => jedis.set(keyBytes, valueBytes.toArray)
           case Some(d) if d < 1.second =>
             if (logger.isWarnEnabled) {
               logger.warn(
                 "Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
             }
-            jedis.setex(keyBytes, 1, valueBytes)
+            jedis.setex(keyBytes, 1, valueBytes.toArray)
           case Some(d) =>
-            jedis.setex(keyBytes, d.toSeconds.toInt, valueBytes)
+            jedis.setex(keyBytes, d.toSeconds.toInt, valueBytes.toArray)
         }
       }
       logCachePut(key, ttl)

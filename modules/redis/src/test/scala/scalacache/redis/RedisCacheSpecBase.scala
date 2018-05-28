@@ -10,6 +10,7 @@ import scalacache._
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.binary._
 import scalacache.serialization.{Codec, FailedToDecode}
+import scodec.bits.ByteVector
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -34,8 +35,8 @@ trait RedisCacheSpecBase
 
   case object AlwaysFailing
   implicit val alwaysFailingCodec: Codec[AlwaysFailing.type] = new Codec[AlwaysFailing.type] {
-    override def encode(value: AlwaysFailing.type): Array[Byte] = Array(0)
-    override def decode(bytes: Array[Byte]): DecodingResult[AlwaysFailing.type] =
+    override def encode(value: AlwaysFailing.type): ByteVector = ByteVector.empty
+    override def decode(bytes: ByteVector): DecodingResult[AlwaysFailing.type] =
       Left(FailedToDecode(new Exception("Failed to decode")))
   }
 
@@ -81,7 +82,7 @@ trait RedisCacheSpecBase
       behavior of "get"
 
       it should "return the value stored in Redis" in {
-        client.set(bytes("key1"), serialize(123))
+        client.set(bytes("key1"), serialize(123).toArray)
         whenReady(cache.get[Int]("key1")) { _ should be(Some(123)) }
       }
 
@@ -90,7 +91,7 @@ trait RedisCacheSpecBase
       }
 
       it should "raise an error if decoding fails" in {
-        client.set(bytes("key1"), serialize(123))
+        client.set(bytes("key1"), serialize(123).toArray)
         whenReady(failingCache.get[Int]("key1").failed) { t =>
           inside(t) { case FailedToDecode(e) => e.getMessage should be("Failed to decode") }
         }
@@ -177,7 +178,7 @@ trait RedisCacheSpecBase
       behavior of "remove"
 
       it should "delete the given key and its value from the underlying cache" in {
-        client.set(bytes("key1"), serialize(123))
+        client.set(bytes("key1"), serialize(123).toArray)
         deserialize[Int](client.get(bytes("key1"))) should be(Right(123))
 
         whenReady(cache.remove("key1")) { _ =>

@@ -1,17 +1,16 @@
 package scalacache.memcached
 
-import org.scalatest._
 import net.spy.memcached._
-
-import scala.concurrent.duration._
+import org.scalatest._
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Seconds, Span}
-
-import scala.language.postfixOps
 import scalacache.serialization.Codec
 import scalacache.serialization.binary._
+import scodec.bits.ByteVector
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class MemcachedCacheSpec
     extends FlatSpec
@@ -28,8 +27,9 @@ class MemcachedCacheSpec
     client.shutdown()
   }
 
-  import scala.concurrent.ExecutionContext.Implicits.global
   import scalacache.modes.scalaFuture._
+
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   def memcachedIsRunning = {
     try {
@@ -38,8 +38,7 @@ class MemcachedCacheSpec
     } catch { case _: Exception => false }
   }
 
-  def serialise[A](v: A)(implicit codec: Codec[A]): Array[Byte] =
-    codec.encode(v)
+  def serialise[A](v: A)(implicit codec: Codec[A]): ByteVector = codec.encode(v)
 
   if (!memcachedIsRunning) {
     alert("Skipping tests because Memcached does not appear to be running on localhost.")
