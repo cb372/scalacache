@@ -89,7 +89,7 @@ lazy val memcached = module("memcached")
 lazy val ehcache = module("ehcache")
   .settings(
     libraryDependencies ++= Seq(
-      "net.sf.ehcache" % "ehcache" % "2.10.4",
+      "net.sf.ehcache" % "ehcache" % "2.10.5",
       "javax.transaction" % "jta" % "1.1"
     ),
     coverageMinimum := 80,
