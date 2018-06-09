@@ -6,7 +6,7 @@ import java.time.{Clock, Instant}
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
 import org.slf4j.LoggerFactory
 
-import scalacache.{AbstractCache, CacheConfig, Entry, Flags, LoggingSupport, Mode}
+import scalacache.{AbstractCache, CacheStats, CacheConfig, Entry, Flags, LoggingSupport, Mode}
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 
@@ -21,6 +21,8 @@ class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
+
+  override def stats: CacheStats = CacheStats(underlying.stats().hitCount(), underlying.stats().missCount())
 
   def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     mode.M.delay {

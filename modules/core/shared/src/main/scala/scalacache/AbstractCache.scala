@@ -15,6 +15,10 @@ import scala.language.higherKinds
   */
 trait AbstractCache[V] extends Cache[V] with LoggingSupport {
 
+  // STATS
+
+  override def stats: CacheStats = CacheStats.empty
+
   // GET
 
   protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]]

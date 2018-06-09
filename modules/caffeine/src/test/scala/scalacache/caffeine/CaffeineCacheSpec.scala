@@ -11,9 +11,29 @@ import org.scalatest.concurrent.ScalaFutures
 
 class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
-  private def newCCache = Caffeine.newBuilder.build[String, Entry[String]]
+  private def newCCache = Caffeine.newBuilder.recordStats.build[String, Entry[String]]
 
   import scalacache.modes.sync._
+
+  behavior of "stats"
+
+  it should "return basic stats of the underlying cache" in {
+    val cache = CaffeineCache(newCCache)
+
+    cache.stats.hitCount should be(0)
+    cache.stats.missCount should be(0)
+
+    cache.put("key1")("hello", None)
+    for (i <- 1 to 10) {
+      cache.get("key1") should be(Some("hello"))
+    }
+    cache.stats.hitCount should be(10)
+
+    for (i <- 1 to 5) {
+      cache.get("key2") should be(None)
+    }
+    cache.stats.missCount should be(5)
+  }
 
   behavior of "get"
 
