@@ -71,7 +71,7 @@ def module(name: String) =
 lazy val guava = module("guava")
   .settings(
     libraryDependencies ++= Seq(
-      "com.google.guava" % "guava" % "25.0-jre",
+      "com.google.guava" % "guava" % "25.1-jre",
       "com.google.code.findbugs" % "jsr305" % "1.3.9"
     )
   )
@@ -86,7 +86,7 @@ lazy val memcached = module("memcached")
 lazy val ehcache = module("ehcache")
   .settings(
     libraryDependencies ++= Seq(
-      "net.sf.ehcache" % "ehcache" % "2.10.4",
+      "net.sf.ehcache" % "ehcache" % "2.10.5",
       "javax.transaction" % "jta" % "1.1"
     ),
     coverageMinimum := 80,
@@ -149,7 +149,7 @@ lazy val monix = module("monix")
 lazy val scalaz72 = module("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-concurrent" % "7.2.22"
+      "org.scalaz" %% "scalaz-concurrent" % "7.2.23"
     ),
     coverageMinimum := 40,
     coverageFailOnMinimum := true
