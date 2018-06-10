@@ -63,7 +63,7 @@ object OhcCache {
     }
 
     // TODO Jules: `+ 4 ?
-    override final def serializedSize(value: Array[Byte]): Int = value.length
+    override final def serializedSize(value: Array[Byte]): Int = value.length + 4
 
   }
 
@@ -76,7 +76,7 @@ object OhcCache {
       new String(bytesSerializer.deserialize(buf), StandardCharsets.UTF_8)
 
     final def serializedSize(s: String): Int =
-      bytesSerializer.serializedSize(s.getBytes(StandardCharsets.UTF_8)) + 4
+      bytesSerializer.serializedSize(s.getBytes(StandardCharsets.UTF_8))
 
   }
 
