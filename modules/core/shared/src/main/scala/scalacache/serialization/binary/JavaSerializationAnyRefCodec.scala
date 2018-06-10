@@ -33,7 +33,7 @@ class JavaSerializationAnyRefCodec[S <: Serializable](classTag: ClassTag[S]) ext
 
   override def decode(data: Array[Byte]): DecodingResult[S] =
     Codec.tryDecode {
-      using(new ByteArrayInputStream(data.toArray)) { buf =>
+      using(new ByteArrayInputStream(data)) { buf =>
         val in = new GenericCodecObjectInputStream(classTag, buf)
         using(in) { inp =>
           inp.readObject().asInstanceOf[S]
