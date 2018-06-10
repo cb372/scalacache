@@ -1,5 +1,6 @@
 package scalacache.guava
 
+import java.nio.charset.StandardCharsets
 import java.time.{Clock, Instant, ZoneOffset}
 
 import cats.effect.IO
@@ -17,6 +18,9 @@ class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
 
   private def newGCache = CacheBuilder.newBuilder.build[String, Entry]
   private def newCacheInstance = GuavaCache[IO](newGCache)
+
+  // Ugly but convenient. Do not abuse of that.
+  private[this] implicit def getBytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
 
   behavior of "get"
 
