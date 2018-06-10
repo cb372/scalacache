@@ -27,7 +27,7 @@ trait MemcachedKeySanitizer {
 final case class ReplaceAndTruncateSanitizer(replacementChar: String = "_", maxKeyLength: Int = 250)
     extends MemcachedKeySanitizer {
 
-  private val invalidCharsRegex = "[^\u0021-\u007e]".r
+  import ReplaceAndTruncateSanitizer._
 
   /**
     * Convert the given string to a valid Memcached key by:
@@ -52,6 +52,10 @@ final case class ReplaceAndTruncateSanitizer(replacementChar: String = "_", maxK
     else replacedKey.substring(replacedKey.length - maxKeyLength)
   }
 
+}
+
+object ReplaceAndTruncateSanitizer {
+  private[ReplaceAndTruncateSanitizer] val invalidCharsRegex = "[^\u0021-\u007e]".r
 }
 
 /**
