@@ -44,7 +44,8 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
              monix,
              scalaz72,
              circe,
-             tests)
+             testsJS,
+             testsJVM)
 
 lazy val core =
   CrossProject(id = "core", file("modules/core"), CrossType.Full)
@@ -53,10 +54,6 @@ lazy val core =
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
-      ) ++ scalacheck,
-      scala211OnlyDeps(
-        "org.squeryl" %% "squeryl" % "0.9.9" % Test,
-        "com.h2database" % "h2" % "1.4.196" % Test
       ),
       coverageMinimum := 79,
       coverageFailOnMinimum := true
@@ -169,9 +166,28 @@ lazy val circe = module("circe")
     coverageFailOnMinimum := true
   )
 
-lazy val tests = module("tests")
-  .settings(publishArtifact := false)
-  .dependsOn(cache2k, caffeine, memcached, redis, ohc, guava, ehcache, catsEffect, monix, scalaz72, circe)
+lazy val tests =
+  CrossProject(id = "tests", file("modules/tests"), CrossType.Full)
+    .settings(moduleName := s"scalacache-tests")
+    .settings(publishArtifact := false)
+    .settings(commonSettings)
+    .settings(libraryDependencies ++= scalacheck)
+    .settings(
+      scala211OnlyDeps(
+        "org.squeryl" %% "squeryl" % "0.9.9" % Test,
+        "com.h2database" % "h2" % "1.4.196" % Test
+      )
+    )
+
+lazy val testsJS =
+  tests.js
+    .settings(coverageEnabled := false)
+    .dependsOn(coreJS)
+    .dependsOn(cache2k, caffeine, memcached, redis, ohc, guava, ehcache, catsEffect, monix, scalaz72, circe)
+lazy val testsJVM =
+  tests.jvm
+    .dependsOn(coreJVM)
+    .dependsOn(cache2k, caffeine, memcached, redis, ohc, guava, ehcache, catsEffect, monix, scalaz72, circe)
 
 lazy val doc = module("doc")
   .enablePlugins(MicrositesPlugin)

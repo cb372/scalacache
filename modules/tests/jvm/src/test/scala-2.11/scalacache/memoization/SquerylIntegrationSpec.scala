@@ -2,15 +2,15 @@ package scalacache.memoization
 
 import java.util.Date
 
+import cats.effect.IO
 import org.scalatest.concurrent.{Eventually, IntegrationPatience}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 import org.squeryl.adapters.H2Adapter
 import org.squeryl.annotations.Column
 import org.squeryl._
 import org.squeryl.PrimitiveTypeMode._
-
+import scalacache.core.scalacache.{EmptyCache, ErrorRaisingCache, FullCache, LoggingCache, _}
 import scalacache._
-import scalacache.modes.sync._
 
 /**
   * Test for https://github.com/cb372/scalacache/issues/14
@@ -21,6 +21,8 @@ class SquerylIntegrationSpec
     with BeforeAndAfterAll
     with Eventually
     with IntegrationPatience {
+
+  import scalacache.CatsEffect.implicits._
 
   var theUserId: Int = -1
 
@@ -46,13 +48,14 @@ class SquerylIntegrationSpec
     import FooDb.users
     import scalacache.serialization.binary._
 
-    implicit val cache = new MockCache[Id] with LoggingCache[Id]
+    implicit val cache = new MockCache[IO] with LoggingCache[IO]
 
-    def findUser(userId: Int): Option[User] = memoizeSync(None) {
-      inTransaction {
-        from(users)((u) => select(u))
-      }.headOption
-    }
+    def findUser(userId: Int): Option[User] =
+      memoize(None) {
+        inTransaction {
+          from(users)((u) => select(u))
+        }.headOption
+      }.unsafeRunSync()
 
     // Check the value returned from the DB
     val fromDb = findUser(theUserId)
