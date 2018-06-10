@@ -16,7 +16,7 @@ import scala.language.higherKinds
  *
  * This cache implementation is synchronous.
  */
-class OhcCache[F[_]](override val underlying: OHCache[String, Array[Byte]])(
+class OhcCache[F[_]](override final val underlying: OHCache[String, Array[Byte]])(
     implicit val config: CacheConfig,
     F: Async[F]
 ) extends AbstractCache[F] {
@@ -25,14 +25,14 @@ class OhcCache[F[_]](override val underlying: OHCache[String, Array[Byte]])(
 
   override protected final val logger = LoggerFactory.getLogger(getClass.getName)
 
-  def doGet[V: Codec](key: String): F[Option[V]] =
+  final def doGet[V: Codec](key: String): F[Option[V]] =
     F.delay {
       val result = Option(underlying.get(key))
       logCacheHitOrMiss(key, result)
       result.asInstanceOf[Option[V]]
     }
 
-  def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Unit] = {
+  final def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Unit] = {
     @inline def toExpiryTime(ttl: Duration): Long = System.currentTimeMillis + ttl.toMillis
 
     F.delay {
@@ -41,9 +41,9 @@ class OhcCache[F[_]](override val underlying: OHCache[String, Array[Byte]])(
     }
   }
 
-  override def doRemove(key: String): F[Any] = F.delay(underlying.remove(key))
-  override def doRemoveAll(): F[Any] = F.delay(underlying.clear())
-  override def close(): F[Any] = F.pure(underlying.close())
+  override final def doRemove(key: String): F[Any] = F.delay(underlying.remove(key))
+  override final def doRemoveAll(): F[Any] = F.delay(underlying.clear())
+  override final def close(): F[Any] = F.pure(underlying.close())
 
 }
 
@@ -82,7 +82,7 @@ object OhcCache {
   /**
     * Create a new OHC cache
     */
-  def apply[F[_]: Async]()(implicit config: CacheConfig): OhcCache[F] =
+  final def apply[F[_]: Async]()(implicit config: CacheConfig): OhcCache[F] =
     new OhcCache(
       OHCacheBuilder
         .newBuilder()
@@ -97,7 +97,7 @@ object OhcCache {
     *
     * @param underlying a OHC cache configured with OHCacheBuilder.timeouts(true)
     */
-  def apply[F[_]: Async](underlying: OHCache[String, Array[Byte]])(implicit config: CacheConfig): OhcCache[F] =
+  final def apply[F[_]: Async](underlying: OHCache[String, Array[Byte]])(implicit config: CacheConfig): OhcCache[F] =
     new OhcCache(underlying)
 
 }
