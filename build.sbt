@@ -52,9 +52,7 @@ lazy val core =
     .settings(
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
-        "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-        "org.scodec" %% "scodec-bits" % "1.1.5",
-        "org.scodec" %% "scodec-core" % "1.10.3"
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value
       ) ++ scalacheck,
       scala211OnlyDeps(
         "org.squeryl" %% "squeryl" % "0.9.9" % Test,
@@ -135,7 +133,7 @@ lazy val ohc = module("ohc")
 lazy val catsEffect = module("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "0.10"
+      "org.typelevel" %% "cats-effect" % "1.0.0-RC2"
     ),
     coverageMinimum := 50,
     coverageFailOnMinimum := true
@@ -173,7 +171,7 @@ lazy val circe = module("circe")
 
 lazy val tests = module("tests")
   .settings(publishArtifact := false)
-  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, monix, scalaz72, circe)
+  .dependsOn(cache2k, caffeine, memcached, redis, ohc, guava, ehcache, catsEffect, monix, scalaz72, circe)
 
 lazy val doc = module("doc")
   .enablePlugins(MicrositesPlugin)

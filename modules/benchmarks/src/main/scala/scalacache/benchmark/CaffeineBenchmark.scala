@@ -1,34 +1,27 @@
 package scalacache.benchmark
 
-import org.openjdk.jmh.annotations._
-import org.openjdk.jmh.infra.Blackhole
 import java.util.concurrent.TimeUnit
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import cats.effect.IO
 import com.github.benmanes.caffeine.cache.Caffeine
-
+import org.openjdk.jmh.annotations._
+import org.openjdk.jmh.infra.Blackhole
 import scalacache._
-import caffeine._
-import memoization._
-import scalacache.modes.sync._
+import scalacache.caffeine.CaffeineCache
 
 @State(Scope.Thread)
 class CaffeineBenchmark {
+  import memoization._
 
-  val underlyingCache = Caffeine.newBuilder().build[String, Entry[String]]()
-  implicit val cache: Cache[String] = CaffeineCache(underlyingCache)
+  val underlyingCache = Caffeine.newBuilder().build[String, Entry]()
+  implicit val cache: Cache[IO] = CaffeineCache[IO](underlyingCache)
 
   val key = "key"
   val value: String = "value"
 
-  def itemCachedNoMemoize(key: String): Id[Option[String]] = {
-    cache.get(key)
-  }
+  def itemCachedNoMemoize(key: String): IO[Option[String]] = cache.get(key)
 
-  def itemCachedMemoize(key: String): String = memoizeSync(None) {
-    value
-  }
+  def itemCachedMemoize(key: String): IO[String] = memoize(None) { value }
 
   // populate the cache
   cache.put(key)(value)

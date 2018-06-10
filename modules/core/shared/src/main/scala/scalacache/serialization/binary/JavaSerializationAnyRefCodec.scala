@@ -4,7 +4,6 @@ import java.io._
 
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.{Codec, GenericCodecObjectInputStream}
-import scodec.bits.ByteVector
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -23,16 +22,16 @@ class JavaSerializationAnyRefCodec[S <: Serializable](classTag: ClassTag[S]) ext
       case NonFatal(_) => // does nothing
     }
 
-  override def encode(value: S): ByteVector =
+  override def encode(value: S): Array[Byte] =
     using(new ByteArrayOutputStream()) { buf =>
       using(new ObjectOutputStream(buf)) { out =>
         out.writeObject(value)
         out.close()
-        ByteVector(buf.toByteArray)
+        buf.toByteArray
       }
     }
 
-  override def decode(data: ByteVector): DecodingResult[S] =
+  override def decode(data: Array[Byte]): DecodingResult[S] =
     Codec.tryDecode {
       using(new ByteArrayInputStream(data.toArray)) { buf =>
         val in = new GenericCodecObjectInputStream(classTag, buf)

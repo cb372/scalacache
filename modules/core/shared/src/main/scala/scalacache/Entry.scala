@@ -1,13 +1,12 @@
 package scalacache
 
+import java.nio.charset.StandardCharsets
 import java.time.{Clock, Instant}
-
-import scodec.bits.ByteVector
 
 /**
   * A cache entry with an optional expiry time
   */
-final case class Entry(value: ByteVector, expiresAt: Option[Instant]) {
+final case class Entry(value: Array[Byte], expiresAt: Option[Instant]) {
 
   /**
     * Has the entry expired yet?
@@ -17,6 +16,6 @@ final case class Entry(value: ByteVector, expiresAt: Option[Instant]) {
 }
 
 object Entry {
-  def apply(value: String, expiresAt: Option[Instant]): Entry =
-    new Entry(ByteVector.encodeUtf8(value).right.get, expiresAt)
+  final def apply(value: String, expiresAt: Option[Instant]): Entry =
+    new Entry(value.getBytes(StandardCharsets.UTF_8), expiresAt)
 }

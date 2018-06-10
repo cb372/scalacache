@@ -8,10 +8,9 @@ import scala.language.higherKinds
 /**
   * Abstract algebra describing the operations a cache can perform
   *
-  * @param Mode The operation mode, which decides the type of container in which to wrap the result
   * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
   */
-abstract class CacheAlg[F[_]: Mode] {
+abstract class CacheAlg[F[_]: Async] {
 
   /**
     * Get a value from the cache

@@ -2,37 +2,32 @@ package scalacache.benchmark
 
 import java.util.concurrent.TimeUnit
 
-import org.caffinitas.ohc.OHCacheBuilder
+import cats.effect.IO
+import org.caffinitas.ohc.{OHCache, OHCacheBuilder}
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
-
-import scalacache._
 import scalacache.memoization._
-import scalacache.modes.sync._
 import scalacache.ohc.OhcCache
 
 @State(Scope.Thread)
 class OhcBenchmark {
 
-  val underlyingCache =
+  val underlyingCache: OHCache[String, Array[Byte]] =
     OHCacheBuilder
       .newBuilder()
       .keySerializer(OhcCache.stringSerializer)
-      .valueSerializer(OhcCache.stringSerializer)
+      .valueSerializer(OhcCache.bytesSerializer)
       .timeouts(true)
       .build()
-  implicit val cache: Cache[String] = OhcCache(underlyingCache)
+
+  implicit val cache: OhcCache[IO] = OhcCache[IO](underlyingCache)
 
   val key = "key"
   val value: String = "value"
 
-  def itemCachedNoMemoize(key: String): Id[Option[String]] = {
-    cache.get(key)
-  }
+  def itemCachedNoMemoize(key: String): IO[Option[String]] = cache.get(key)
 
-  def itemCachedMemoize(key: String): String = memoizeSync(None) {
-    value
-  }
+  def itemCachedMemoize(key: String): IO[String] = memoize(None) { value }
 
   // populate the cache
   cache.put(key)(value)

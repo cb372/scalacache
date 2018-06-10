@@ -14,7 +14,7 @@ import scala.language.higherKinds
   *
   * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
   */
-abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with LoggingSupport {
+abstract class AbstractCache[F[_]](implicit F: Async[F]) extends Cache[F] with LoggingSupport {
 
   // GET
 
@@ -76,10 +76,8 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
   }
 
   private final def _caching[V: Codec](key: String, ttl: Option[Duration], f: => V)(implicit flags: Flags): F[V] = {
-    import mode._
-
-    M.flatMap {
-      M.handleNonFatal(checkFlagsAndGet(key)) { e =>
+    F.flatMap {
+      F.handleNonFatal(checkFlagsAndGet(key)) { e =>
         if (logger.isWarnEnabled) {
           logger.warn(s"Failed to read from cache. Key = $key", e)
         }
@@ -87,11 +85,11 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
       }
     } {
       case Some(valueFromCache) =>
-        M.pure(valueFromCache)
+        F.pure(valueFromCache)
       case None =>
         val calculatedValue = f
-        M.map {
-          M.handleNonFatal {
+        F.map {
+          F.handleNonFatal {
             checkFlagsAndPut(key, calculatedValue, ttl)
           } { e =>
             if (logger.isWarnEnabled) {
@@ -103,10 +101,8 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
   }
 
   private final def _cachingF[V: Codec](key: String, ttl: Option[Duration], f: => F[V])(implicit flags: Flags): F[V] = {
-    import mode._
-
-    M.flatMap {
-      M.handleNonFatal(checkFlagsAndGet(key)) { e =>
+    F.flatMap {
+      F.handleNonFatal(checkFlagsAndGet(key)) { e =>
         if (logger.isWarnEnabled) {
           logger.warn(s"Failed to read from cache. Key = $key", e)
         }
@@ -114,11 +110,11 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
       }
     } {
       case Some(valueFromCache) =>
-        M.pure(valueFromCache)
+        F.pure(valueFromCache)
       case None =>
-        M.flatMap(f) { calculatedValue =>
-          M.map {
-            M.handleNonFatal {
+        F.flatMap(f) { calculatedValue =>
+          F.map {
+            F.handleNonFatal {
               checkFlagsAndPut(key, calculatedValue, ttl)
             } { e =>
               if (logger.isWarnEnabled) {
@@ -138,7 +134,7 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
       if (logger.isDebugEnabled) {
         logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
       }
-      mode.M.pure(None)
+      F.pure(None)
     }
 
   private def checkFlagsAndPut[V](
@@ -151,7 +147,7 @@ abstract class AbstractCache[F[_]](implicit mode: Mode[F]) extends Cache[F] with
       if (logger.isDebugEnabled) {
         logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
       }
-      mode.M.pure(())
+      F.pure(())
     }
 
 }

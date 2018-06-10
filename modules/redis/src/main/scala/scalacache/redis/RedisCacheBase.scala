@@ -5,9 +5,9 @@ import java.io.Closeable
 import org.slf4j.LoggerFactory
 import redis.clients.jedis._
 import redis.clients.util.Pool
-
 import scalacache.serialization.Codec
-import scalacache.{AbstractCache, CacheConfig, Mode}
+import scalacache.{AbstractCache, Async, CacheConfig}
+
 import scala.concurrent.duration._
 import scala.language.higherKinds
 
@@ -15,10 +15,9 @@ import scala.language.higherKinds
   * Contains implementations of all methods that can be implemented independent of the type of Redis client.
   * This is everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.
   */
-abstract class RedisCacheBase[F[_]](implicit mode: Mode[F]) extends AbstractCache[F] {
+abstract class RedisCacheBase[F[_]](implicit F: Async[F]) extends AbstractCache[F] {
 
-  override protected final val logger =
-    LoggerFactory.getLogger(getClass.getName)
+  override protected final val logger = LoggerFactory.getLogger(getClass.getName)
 
   import StringEnrichment.StringWithUtf8Bytes
 
@@ -28,7 +27,7 @@ abstract class RedisCacheBase[F[_]](implicit mode: Mode[F]) extends AbstractCach
 
   protected def jedisPool: Pool[JClient]
 
-  override protected def doGet[V](key: String)(implicit codec: Codec[V]): F[Option[V]] = mode.M.suspend {
+  override protected final def doGet[V](key: String)(implicit codec: Codec[V]): F[Option[V]] = F.suspend {
     withJedisCommands { jedis =>
       val bytes = jedis.get(key.utf8bytes)
       val result: Codec.DecodingResult[Option[V]] = {
@@ -39,16 +38,17 @@ abstract class RedisCacheBase[F[_]](implicit mode: Mode[F]) extends AbstractCach
       }
       result match {
         case Left(e) =>
-          mode.M.raiseError(e)
+          F.raiseError(e)
         case Right(maybeValue) =>
           logCacheHitOrMiss(key, maybeValue)
-          mode.M.pure(maybeValue)
+          F.pure(maybeValue)
       }
     }
   }
 
-  override protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Unit] =
-    mode.M.delay {
+  override protected final def doPut[V](key: String, value: V, ttl: Option[Duration])(
+      implicit codec: Codec[V]): F[Unit] =
+    F.delay {
       withJedisCommands { jedis =>
         val keyBytes = key.utf8bytes
         val valueBytes = codec.encode(value)
@@ -68,13 +68,13 @@ abstract class RedisCacheBase[F[_]](implicit mode: Mode[F]) extends AbstractCach
       logCachePut(key, ttl)
     }
 
-  override protected def doRemove(key: String): F[Any] = mode.M.delay {
+  override protected final def doRemove(key: String): F[Any] = F.delay {
     withJedisCommands { jedis =>
       jedis.del(key.utf8bytes)
     }
   }
 
-  override def close(): F[Any] = mode.M.delay(jedisPool.close())
+  override final def close(): F[Any] = F.delay(jedisPool.close())
 
   /**
     * Borrow a Jedis client from the pool, perform some operation and then return the client to the pool.

@@ -5,7 +5,11 @@ import scalacache.serialization.Codec
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 
-abstract class Cache[F[_]: Mode] extends CacheAlg[F] {
+abstract class Cache[F[_]: Async] extends CacheAlg[F] {
+
+  type Underlying
+
+  val underlying: Underlying
 
   def config: CacheConfig
 

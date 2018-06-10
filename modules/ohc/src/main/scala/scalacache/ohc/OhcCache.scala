@@ -6,80 +6,88 @@ import java.nio.charset.StandardCharsets
 import org.caffinitas.ohc.{CacheSerializer, OHCache, OHCacheBuilder}
 import org.slf4j.LoggerFactory
 import scalacache.serialization.Codec
+import scalacache.{AbstractCache, Async, CacheConfig}
 
 import scala.concurrent.duration._
 import scala.language.higherKinds
-import scalacache.{AbstractCache, CacheConfig, Mode}
 
 /*
  * Thin wrapper around OHC.
  *
  * This cache implementation is synchronous.
  */
-class OhcCache[F[_]](underlying: OHCache[String, Any])(implicit val config: CacheConfig, mode: Mode[F])
-    extends AbstractCache[F] {
+class OhcCache[F[_]](override val underlying: OHCache[String, Array[Byte]])(
+    implicit val config: CacheConfig,
+    F: Async[F]
+) extends AbstractCache[F] {
 
-  override protected final val logger =
-    LoggerFactory.getLogger(getClass.getName)
+  override type Underlying = OHCache[String, Array[Byte]]
 
-  def doGet[V: Codec](key: String): F[Option[V]] = {
-    mode.M.delay {
+  override protected final val logger = LoggerFactory.getLogger(getClass.getName)
+
+  def doGet[V: Codec](key: String): F[Option[V]] =
+    F.delay {
       val result = Option(underlying.get(key))
       logCacheHitOrMiss(key, result)
       result.asInstanceOf[Option[V]]
     }
-  }
 
-  def doPut[V: Codec](key: String, value: V, ttl: Option[Duration]): F[Unit] = {
-    mode.M.delay {
-      ttl.fold(underlying.put(key, value))(x => underlying.put(key, value, toExpiryTime(x)))
+  def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Unit] = {
+    @inline def toExpiryTime(ttl: Duration): Long = System.currentTimeMillis + ttl.toMillis
+
+    F.delay {
+      ttl.fold(underlying.put(key, codec.encode(value)))(x => underlying.put(key, codec.encode(value), toExpiryTime(x)))
       logCachePut(key, ttl)
     }
   }
 
-  override def doRemove(key: String): F[Any] =
-    mode.M.delay(underlying.remove(key))
-
-  override def doRemoveAll(): F[Any] =
-    mode.M.delay(underlying.clear())
-
-  override def close(): F[Any] =
-    mode.M.pure(underlying.close())
-
-  private def toExpiryTime(ttl: Duration): Long =
-    System.currentTimeMillis + ttl.toMillis
+  override def doRemove(key: String): F[Any] = F.delay(underlying.remove(key))
+  override def doRemoveAll(): F[Any] = F.delay(underlying.clear())
+  override def close(): F[Any] = F.pure(underlying.close())
 
 }
 
 object OhcCache {
 
-  val stringSerializer: CacheSerializer[String] = new CacheSerializer[String]() {
-
-    def serialize(s: String, buf: ByteBuffer): Unit = {
-      val bytes = s.getBytes(StandardCharsets.UTF_8)
+  final val bytesSerializer: CacheSerializer[Array[Byte]] = new CacheSerializer[Array[Byte]]() {
+    override final def serialize(bytes: Array[Byte], buf: ByteBuffer): Unit = {
       buf.putInt(bytes.length)
       buf.put(bytes)
     }
 
-    def deserialize(buf: ByteBuffer): String = {
+    override final def deserialize(buf: ByteBuffer): Array[Byte] = {
       val bytes = new Array[Byte](buf.getInt)
       buf.get(bytes)
-      new String(bytes, StandardCharsets.UTF_8)
+      bytes
     }
 
-    def serializedSize(s: String): Int =
-      s.getBytes(StandardCharsets.UTF_8).length + 4
+    // TODO Jules: `+ 4 ?
+    override final def serializedSize(value: Array[Byte]): Int = value.length
+
+  }
+
+  final val stringSerializer: CacheSerializer[String] = new CacheSerializer[String]() {
+
+    final def serialize(s: String, buf: ByteBuffer): Unit =
+      bytesSerializer.serialize(s.getBytes(StandardCharsets.UTF_8), buf)
+
+    final def deserialize(buf: ByteBuffer): String =
+      new String(bytesSerializer.deserialize(buf), StandardCharsets.UTF_8)
+
+    final def serializedSize(s: String): Int =
+      bytesSerializer.serializedSize(s.getBytes(StandardCharsets.UTF_8)) + 4
 
   }
 
   /**
     * Create a new OHC cache
     */
-  def apply[F[_]: Mode](implicit config: CacheConfig): OhcCache[F] =
+  def apply[F[_]: Async]()(implicit config: CacheConfig): OhcCache[F] =
     new OhcCache(
       OHCacheBuilder
         .newBuilder()
         .keySerializer(stringSerializer)
+        .valueSerializer(bytesSerializer)
         .timeouts(true)
         .build()
     )
@@ -89,7 +97,7 @@ object OhcCache {
     *
     * @param underlying a OHC cache configured with OHCacheBuilder.timeouts(true)
     */
-  def apply[F[_]: Mode](underlying: OHCache[String, Any])(implicit config: CacheConfig): OhcCache[F] =
+  def apply[F[_]: Async](underlying: OHCache[String, Array[Byte]])(implicit config: CacheConfig): OhcCache[F] =
     new OhcCache(underlying)
 
 }

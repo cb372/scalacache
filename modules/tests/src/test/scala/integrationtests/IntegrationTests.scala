@@ -48,10 +48,10 @@ class IntegrationTests extends WordSpec with Matchers with BeforeAndAfterAll {
       case NonFatal(_) => false
     }
 
-  case class CacheBackend[F[_]: Mode](name: String, cache: Cache[F])
+  case class CacheBackend[F[_]: Async](name: String, cache: Cache[F])
 
-  private def caffeine[F[_]: Mode] = CacheBackend("Caffeine", CaffeineCache[F])
-  private def memcached[F[_]: Mode]: Seq[CacheBackend[F]] =
+  private def caffeine[F[_]: Async] = CacheBackend("Caffeine", CaffeineCache[F])
+  private def memcached[F[_]: Async]: Seq[CacheBackend[F]] =
     if (memcachedIsRunning) {
       Seq(
         {
@@ -65,7 +65,7 @@ class IntegrationTests extends WordSpec with Matchers with BeforeAndAfterAll {
       Nil
     }
 
-  private def redis[F[_]: Mode]: Seq[CacheBackend[F]] =
+  private def redis[F[_]: Async]: Seq[CacheBackend[F]] =
     if (redisIsRunning)
       Seq(
         {
@@ -79,12 +79,12 @@ class IntegrationTests extends WordSpec with Matchers with BeforeAndAfterAll {
       Nil
     }
 
-  def backends[AIO[_]: Mode]: List[CacheBackend[AIO]] = List(caffeine) ++ memcached ++ redis
+  def backends[AIO[_]: Async]: List[CacheBackend[AIO]] = List(caffeine) ++ memcached ++ redis
 
-  def passTests[F[_]](fName: String)(runSync: F[Option[String]] => Option[String])(implicit F: Mode[F]): Unit = {
+  def passTests[F[_]](fName: String)(runSync: F[Option[String]] => Option[String])(implicit F: Async[F]): Unit = {
     implicit final class RichF[A](fa: F[A]) {
-      def map[B](f: A => B): F[B] = F.M.map(fa)(f)
-      def flatMap[B](f: A => F[B]): F[B] = F.M.flatMap(fa)(f)
+      def map[B](f: A => B): F[B] = F.map(fa)(f)
+      def flatMap[B](f: A => F[B]): F[B] = F.flatMap(fa)(f)
     }
 
     backends[F].foreach { cacheBackend =>
@@ -113,22 +113,22 @@ class IntegrationTests extends WordSpec with Matchers with BeforeAndAfterAll {
   }
 
   "with cats-effect IO" should {
-    import CatsEffect.modes.io
+    import CatsEffect.implicits._
     passTests[CatsIO]("cats-effect IO")(_.unsafeRunSync())
   }
 
   "with Monix Task" should {
-    import Monix.modes.task
+    import Monix.implicits._
     import monix.execution.Scheduler.Implicits.global
     passTests[MonixTask]("Monix Task")(_.runSyncUnsafe(Duration.Inf))
   }
 
   "with Scalaz Task" should {
-    import Scalaz72.modes.task
+    import Scalaz72.implicits._
     passTests[ScalazTask]("Scalaz Task")(_.unsafePerformSync)
   }
 
-  private def checkComputationHasNotRun[F[_]: Mode](key: String)(runSync: F[Option[String]] => Option[String])(
+  private def checkComputationHasNotRun[F[_]: Async](key: String)(runSync: F[Option[String]] => Option[String])(
       cache: Cache[F]): Unit = {
     Thread.sleep(1000)
     assert(runSync(cache.get[String](key)).isEmpty)

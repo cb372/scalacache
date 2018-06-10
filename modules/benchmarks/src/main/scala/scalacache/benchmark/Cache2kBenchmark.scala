@@ -2,35 +2,32 @@ package scalacache.benchmark
 
 import java.util.concurrent.TimeUnit
 
+import cats.effect.IO
 import org.cache2k.Cache2kBuilder
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
-
-import scala.concurrent.duration._
 import scalacache._
 import scalacache.cache2k.Cache2kCache
 import scalacache.memoization._
-import scalacache.modes.sync._
+
+import scala.concurrent.duration._
 
 @State(Scope.Thread)
 class Cache2kBenchmark {
 
   val underlyingCache =
-    new Cache2kBuilder[String, String]() {}
+    new Cache2kBuilder[String, Array[Byte]]() {}
       .expireAfterWrite(1, DAYS)
       .build
-  implicit val cache: Cache[String] = Cache2kCache(underlyingCache)
+
+  implicit val cache: Cache[IO] = Cache2kCache[IO](underlyingCache)
 
   val key = "key"
   val value: String = "value"
 
-  def itemCachedNoMemoize(key: String): Id[Option[String]] = {
-    cache.get(key)
-  }
+  def itemCachedNoMemoize(key: String): IO[Option[String]] = cache.get(key)
 
-  def itemCachedMemoize(key: String): String = memoizeSync(None) {
-    value
-  }
+  def itemCachedMemoize(key: String): IO[String] = memoize(None) { value }
 
   // populate the cache
   cache.put(key)(value)

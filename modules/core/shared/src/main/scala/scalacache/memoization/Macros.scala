@@ -1,12 +1,12 @@
 package scalacache.memoization
 
 import scalacache.serialization.Codec
+import scalacache.{Cache, Flags}
 
-import scala.language.experimental.macros
-import scala.reflect.macros.blackbox
 import scala.concurrent.duration.Duration
+import scala.language.experimental.macros
 import scala.language.higherKinds
-import scalacache.{Cache, Flags, Id, Mode}
+import scala.reflect.macros.blackbox
 
 class Macros(val c: blackbox.Context) {
   import c.universe._
@@ -22,13 +22,6 @@ class Macros(val c: blackbox.Context) {
       f: c.Tree)(cache: c.Expr[Cache[F]], codec: c.Expr[Codec[V]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
       q"""$cache.cachingForMemoizeF($keyName)($ttl)($f)($codec, $flags)"""
-    })
-  }
-
-  def memoizeSyncImpl[V: c.WeakTypeTag](ttl: c.Expr[Option[Duration]])(
-      f: c.Tree)(cache: c.Expr[Cache[Id]], codec: c.Expr[Codec[V]], flags: c.Expr[Flags]): c.Tree = {
-    commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoize($keyName)($ttl)($f)($codec, $flags)"""
     })
   }
 

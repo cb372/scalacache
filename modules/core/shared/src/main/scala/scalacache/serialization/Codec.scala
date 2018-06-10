@@ -1,7 +1,5 @@
 package scalacache.serialization
 
-import scodec.bits.ByteVector
-
 import scala.annotation.implicitNotFound
 import scala.language.implicitConversions
 import scala.util.control.NonFatal
@@ -25,9 +23,8 @@ You will need a dependency on the scalacache-circe module.
 
 See the documentation for more details on codecs.""")
 trait Codec[A] {
-  def encode(value: A): ByteVector
-  def decode(bytes: ByteVector): Codec.DecodingResult[A]
-  def decode(bytes: Array[Byte]): Codec.DecodingResult[A] = decode(ByteVector(bytes))
+  def encode(value: A): Array[Byte]
+  def decode(bytes: Array[Byte]): Codec.DecodingResult[A]
 }
 
 /**

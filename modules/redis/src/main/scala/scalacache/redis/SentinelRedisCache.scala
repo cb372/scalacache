@@ -2,21 +2,23 @@ package scalacache.redis
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import redis.clients.jedis._
+import scalacache.{Async, CacheConfig}
 
 import scala.collection.JavaConverters._
 import scala.language.higherKinds
-import scalacache.{CacheConfig, Mode}
-import scalacache.serialization.Codec
 
 /**
   * Thin wrapper around Jedis that works with Redis Sentinel.
   */
-class SentinelRedisCache[F[_]](val jedisPool: JedisSentinelPool)(implicit val config: CacheConfig, mode: Mode[F])
+class SentinelRedisCache[F[_]](val jedisPool: JedisSentinelPool)(implicit val config: CacheConfig, F: Async[F])
     extends RedisCacheBase[F] {
 
-  type JClient = Jedis
+  override type JClient = Jedis
+  override type Underlying = JedisSentinelPool
 
-  protected def doRemoveAll(): F[Any] = mode.M.delay {
+  override val underlying: Underlying = jedisPool
+
+  protected def doRemoveAll(): F[Any] = F.delay {
     val jedis = jedisPool.getResource
     try {
       jedis.flushDB()
@@ -36,7 +38,7 @@ object SentinelRedisCache {
     * @param sentinels set of sentinels in format [host1:port, host2:port]
     * @param password password of the cluster
     */
-  def apply[F[_]: Mode](clusterName: String, sentinels: Set[String], password: String)(
+  def apply[F[_]: Async](clusterName: String, sentinels: Set[String], password: String)(
       implicit config: CacheConfig): SentinelRedisCache[F] =
     apply(new JedisSentinelPool(clusterName, sentinels.asJava, new GenericObjectPoolConfig, password))
 
@@ -48,10 +50,10 @@ object SentinelRedisCache {
     * @param password password of the cluster
     * @param poolConfig config of the underlying pool
     */
-  def apply[F[_]: Mode](clusterName: String,
-                        sentinels: Set[String],
-                        poolConfig: GenericObjectPoolConfig,
-                        password: String)(implicit config: CacheConfig): SentinelRedisCache[F] =
+  def apply[F[_]: Async](clusterName: String,
+                         sentinels: Set[String],
+                         poolConfig: GenericObjectPoolConfig,
+                         password: String)(implicit config: CacheConfig): SentinelRedisCache[F] =
     apply(new JedisSentinelPool(clusterName, sentinels.asJava, poolConfig, password))
 
   /**
@@ -59,7 +61,7 @@ object SentinelRedisCache {
     *
     * @param jedisSentinelPool a JedisSentinelPool
     */
-  def apply[F[_]: Mode](jedisSentinelPool: JedisSentinelPool)(implicit config: CacheConfig): SentinelRedisCache[F] =
+  def apply[F[_]: Async](jedisSentinelPool: JedisSentinelPool)(implicit config: CacheConfig): SentinelRedisCache[F] =
     new SentinelRedisCache[F](jedisSentinelPool)
 
 }

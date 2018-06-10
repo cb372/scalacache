@@ -5,7 +5,6 @@ import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.{Codec, FailedToDecode}
-import scodec.bits.ByteVector
 
 object CompressingCodec {
 
@@ -37,7 +36,7 @@ trait GZippingBinaryCodec[A] extends Codec[A] {
     */
   protected val sizeThreshold: Int = CompressingCodec.DefaultSizeThreshold
 
-  abstract override def encode(value: A): ByteVector = {
+  abstract override def encode(value: A): Array[Byte] = {
     val serialised = super.encode(value)
     if (serialised.length > sizeThreshold) {
       Headers.Gzipped +: compress(serialised)
@@ -46,7 +45,7 @@ trait GZippingBinaryCodec[A] extends Codec[A] {
     }
   }
 
-  abstract override def decode(data: ByteVector): DecodingResult[A] = {
+  abstract override def decode(data: Array[Byte]): DecodingResult[A] = {
     val firstByte = data.headOption
     firstByte match {
       case Some(Headers.Uncompressed) =>
@@ -62,21 +61,21 @@ trait GZippingBinaryCodec[A] extends Codec[A] {
   }
 
   // Port of compress in SpyMemcached
-  private final def compress(data: ByteVector): ByteVector = {
+  private final def compress(data: Array[Byte]): Array[Byte] = {
     val byteOutputStream = new ByteArrayOutputStream()
     val gzipOutputStream = new GZIPOutputStream(byteOutputStream)
     try {
-      gzipOutputStream.write(data.toArray)
+      gzipOutputStream.write(data)
     } finally {
       gzipOutputStream.close()
       byteOutputStream.close()
     }
-    ByteVector(byteOutputStream.toByteArray)
+    byteOutputStream.toByteArray
   }
 
   // Port of decompress in SpyMemcached
-  private final def decompress(data: ByteVector): ByteVector = {
-    val bytesArray = data.toArray
+  private final def decompress(data: Array[Byte]): Array[Byte] = {
+    val bytesArray = data
     val bis = new ByteArrayInputStream(bytesArray, 1, bytesArray.length - 1)
     val gis = new GZIPInputStream(bis)
     val bos = new ByteArrayOutputStream
@@ -92,6 +91,6 @@ trait GZippingBinaryCodec[A] extends Codec[A] {
       bis.close()
       bos.close()
     }
-    ByteVector(bos.toByteArray)
+    bos.toByteArray
   }
 }
