@@ -55,7 +55,7 @@ final case class ReplaceAndTruncateSanitizer(replacementChar: String = "_", maxK
 }
 
 object ReplaceAndTruncateSanitizer {
-  private[ReplaceAndTruncateSanitizer] val invalidCharsRegex = "[^\u0021-\u007e]".r
+  private[ReplaceAndTruncateSanitizer] final val invalidCharsRegex = "[^\u0021-\u007e]".r
 }
 
 /**
