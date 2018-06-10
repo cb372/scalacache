@@ -20,6 +20,15 @@ abstract class AbstractCache[F[_]](implicit F: Async[F]) extends Cache[F] with L
 
   protected def doGet[V](key: String)(implicit codec: Codec[V]): F[Option[V]]
 
+  private final def checkFlagsAndGet[V: Codec](key: String)(implicit flags: Flags): F[Option[V]] =
+    if (flags.readsEnabled) doGet(key)
+    else {
+      if (logger.isDebugEnabled) {
+        logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
+      }
+      F.pure(None)
+    }
+
   final override def get[V: Codec](keyParts: Any*)(implicit flags: Flags): F[Option[V]] = {
     val key = toKey(keyParts: _*)
     checkFlagsAndGet(key)
@@ -28,6 +37,19 @@ abstract class AbstractCache[F[_]](implicit F: Async[F]) extends Cache[F] with L
   // PUT
 
   protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Unit]
+
+  private def checkFlagsAndPut[V](
+      key: String,
+      value: V,
+      ttl: Option[Duration]
+  )(implicit flags: Flags, codec: Codec[V]): F[Unit] =
+    if (flags.writesEnabled) doPut(key, value, ttl)
+    else {
+      if (logger.isDebugEnabled) {
+        logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
+      }
+      F.pure(())
+    }
 
   final override def put[V: Codec](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit flags: Flags): F[Unit] = {
     val key = toKey(keyParts: _*)
@@ -127,27 +149,5 @@ abstract class AbstractCache[F[_]](implicit F: Async[F]) extends Cache[F] with L
   }
 
   private final def toKey(keyParts: Any*): String = config.cacheKeyBuilder.toCacheKey(keyParts)
-
-  private final def checkFlagsAndGet[V: Codec](key: String)(implicit flags: Flags): F[Option[V]] =
-    if (flags.readsEnabled) doGet(key)
-    else {
-      if (logger.isDebugEnabled) {
-        logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
-      }
-      F.pure(None)
-    }
-
-  private def checkFlagsAndPut[V](
-      key: String,
-      value: V,
-      ttl: Option[Duration]
-  )(implicit flags: Flags, codec: Codec[V]): F[Unit] =
-    if (flags.writesEnabled) doPut(key, value, ttl)
-    else {
-      if (logger.isDebugEnabled) {
-        logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
-      }
-      F.pure(())
-    }
 
 }
