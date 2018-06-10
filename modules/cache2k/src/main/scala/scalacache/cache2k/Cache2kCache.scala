@@ -14,9 +14,10 @@ import scala.language.higherKinds
   *
   * This cache implementation is synchronous.
   */
-final class Cache2kCache[F[_]](override val underlying: CCache[String, Array[Byte]])(implicit val config: CacheConfig,
-                                                                                     F: Async[F])
-    extends AbstractCache[F] {
+final class Cache2kCache[F[_]](override val underlying: CCache[String, Array[Byte]])(
+    implicit val config: CacheConfig,
+    F: Async[F]
+) extends AbstractCache[F] {
 
   override type Underlying = CCache[String, Array[Byte]]
 
