@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets
 import org.caffinitas.ohc.{CacheSerializer, OHCache, OHCacheBuilder}
 import org.slf4j.LoggerFactory
 import scalacache.serialization.Codec
+import scalacache.serialization.Codec.DecodingResult
 import scalacache.{AbstractCache, Async, CacheConfig}
 
 import scala.concurrent.duration._
@@ -25,11 +26,11 @@ class OhcCache[F[_]](override final val underlying: OHCache[String, Array[Byte]]
 
   override protected final val logger = LoggerFactory.getLogger(getClass.getName)
 
-  final def doGet[V: Codec](key: String): F[Option[V]] =
+  final def doGet[V](key: String)(implicit codec: Codec[V]): F[Option[V]] =
     F.delay {
       val result = Option(underlying.get(key))
       logCacheHitOrMiss(key, result)
-      result.asInstanceOf[Option[V]]
+      result.flatMap(r => DecodingResult.toOption(codec.decode(r)))
     }
 
   final def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Unit] = {
