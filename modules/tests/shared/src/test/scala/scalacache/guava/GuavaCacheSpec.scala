@@ -10,6 +10,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import scalacache._
 
 import scala.concurrent.duration._
+import scala.language.implicitConversions
 
 class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
 
