@@ -89,7 +89,7 @@ trait RedisCacheSpecBase
       it should "return the value stored in Redis" in {
         import scalacache.serialization.binary._
 
-        client.set(bytes("key1"), serialize(123).toArray)
+        client.set(bytes("key1"), serialize(123))
         cache.get[Int]("key1").unsafeRunSync() should be(Some(123))
       }
 
