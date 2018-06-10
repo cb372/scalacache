@@ -9,6 +9,8 @@ import scala.reflect.ClassTag
 
 /**
   * Codecs for all the Java primitive types, plus String and Array[Byte]
+  *
+  * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
   */
 trait BinaryPrimitiveCodecs extends LowPriorityBinaryPrimitiveCodecs {
 
