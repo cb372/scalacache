@@ -12,7 +12,7 @@ import scalacache.{AbstractCache, CacheConfig, Mode}
  *
  * This cache implementation is synchronous.
  */
-class Cache2kCache[V](underlying: CCache[String, V])(implicit val config: CacheConfig) extends AbstractCache[V] {
+class Cache2kCache[V](val underlying: CCache[String, V])(implicit val config: CacheConfig) extends AbstractCache[V] {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)

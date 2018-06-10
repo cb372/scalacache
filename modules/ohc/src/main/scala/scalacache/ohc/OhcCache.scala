@@ -15,7 +15,7 @@ import scalacache.{AbstractCache, CacheConfig, Mode}
  *
  * This cache implementation is synchronous.
  */
-class OhcCache[V](underlying: OHCache[String, V])(implicit val config: CacheConfig) extends AbstractCache[V] {
+class OhcCache[V](val underlying: OHCache[String, V])(implicit val config: CacheConfig) extends AbstractCache[V] {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)

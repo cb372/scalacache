@@ -15,8 +15,8 @@ import scala.language.higherKinds
  *
  * This cache implementation is synchronous.
  */
-class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config: CacheConfig,
-                                                             clock: Clock = Clock.systemUTC())
+class CaffeineCache[V](val underlying: CCache[String, Entry[V]])(implicit val config: CacheConfig,
+                                                                 clock: Clock = Clock.systemUTC())
     extends AbstractCache[V] {
 
   override protected final val logger =

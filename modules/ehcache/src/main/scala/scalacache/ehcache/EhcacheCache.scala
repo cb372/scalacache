@@ -11,7 +11,7 @@ import scala.language.higherKinds
 /**
   * Thin wrapper around Ehcache.
   */
-class EhcacheCache[V](underlying: Ehcache)(implicit val config: CacheConfig) extends AbstractCache[V] {
+class EhcacheCache[V](val underlying: Ehcache)(implicit val config: CacheConfig) extends AbstractCache[V] {
 
   override protected final val logger =
     LoggerFactory.getLogger(getClass.getName)
