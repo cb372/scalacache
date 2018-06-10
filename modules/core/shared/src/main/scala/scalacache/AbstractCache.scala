@@ -38,11 +38,7 @@ abstract class AbstractCache[F[_]](implicit F: Async[F]) extends Cache[F] with L
 
   protected def doPut[V](key: String, value: V, ttl: Option[Duration])(implicit codec: Codec[V]): F[Unit]
 
-  private def checkFlagsAndPut[V: Codec](
-      key: String,
-      value: V,
-      ttl: Option[Duration]
-  )(implicit flags: Flags): F[Unit] =
+  private def checkFlagsAndPut[V: Codec](key: String, value: V, ttl: Option[Duration])(implicit flags: Flags): F[Unit] =
     if (flags.writesEnabled) doPut(key, value, ttl)
     else {
       if (logger.isDebugEnabled) {
