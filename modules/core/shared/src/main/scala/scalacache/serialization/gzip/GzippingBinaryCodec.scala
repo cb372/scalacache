@@ -75,8 +75,7 @@ trait GZippingBinaryCodec[A] extends Codec[A] {
 
   // Port of decompress in SpyMemcached
   private final def decompress(data: Array[Byte]): Array[Byte] = {
-    val bytesArray = data
-    val bis = new ByteArrayInputStream(bytesArray, 1, bytesArray.length - 1)
+    val bis = new ByteArrayInputStream(data, 1, data.length - 1)
     val gis = new GZIPInputStream(bis)
     val bos = new ByteArrayOutputStream
     val buf = new Array[Byte](4 * 1024)
