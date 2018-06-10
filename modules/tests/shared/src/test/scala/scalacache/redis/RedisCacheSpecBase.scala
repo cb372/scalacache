@@ -71,13 +71,13 @@ trait RedisCacheSpecBase
         override def put[V: Codec](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit flags: Flags): IO[Unit] =
           IO.raiseError(new Exception("always failing cache"))
 
-        override def remove(keyParts: Any*): IO[Any] = IO.raiseError(new Exception("always failing cache"))
-        override def removeAll(): IO[Any] = IO.raiseError(new Exception("always failing cache"))
+        override def remove(keyParts: Any*): IO[Unit] = IO.raiseError(new Exception("always failing cache"))
+        override def removeAll(): IO[Unit] = IO.raiseError(new Exception("always failing cache"))
         override def caching[V: Codec](keyParts: Any*)(ttl: Option[Duration])(f: => V)(implicit flags: Flags): IO[V] =
           IO.raiseError(new Exception("always failing cache"))
         override def cachingF[V: Codec](keyParts: Any*)(ttl: Option[Duration])(f: => IO[V])(
             implicit flags: Flags): IO[V] = IO.raiseError(new Exception("always failing cache"))
-        override def close(): IO[Any] = IO.raiseError(new Exception("always failing cache"))
+        override def close(): IO[Unit] = IO.raiseError(new Exception("always failing cache"))
       }
 
       before {

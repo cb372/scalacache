@@ -126,7 +126,7 @@ trait LoggingCache[F[_]] extends AbstractCache[F] {
     super.doPut(key, value, ttl)
   }
 
-  protected abstract override def doRemove(key: String): F[Any] = {
+  protected abstract override def doRemove(key: String): F[Unit] = {
     removeCalledWithArgs.append(key)
     super.doRemove(key)
   }

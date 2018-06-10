@@ -41,9 +41,9 @@ final class Cache2kCache[F[_]](override val underlying: CCache[String, Array[Byt
     }
   }
 
-  override def doRemove(key: String): F[Any] = F.delay(underlying.remove(key))
-  override def doRemoveAll(): F[Any] = F.delay(underlying.clear())
-  override def close(): F[Any] = F.delay(underlying.close())
+  override def doRemove(key: String): F[Unit] = F.delay(underlying.remove(key))
+  override def doRemoveAll(): F[Unit] = F.delay(underlying.clear())
+  override def close(): F[Unit] = F.delay(underlying.close())
 
 }
 

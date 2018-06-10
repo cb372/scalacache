@@ -72,7 +72,7 @@ class MemcachedCache[F[_]](client: MemcachedClient, keySanitizer: MemcachedKeySa
     }
   }
 
-  override protected def doRemove(key: String): F[Any] = {
+  override protected def doRemove(key: String): F[Unit] = {
     F.async { cb =>
       val f = client.delete(key)
       f.addListener(new OperationCompletionListener {
@@ -86,7 +86,7 @@ class MemcachedCache[F[_]](client: MemcachedClient, keySanitizer: MemcachedKeySa
     }
   }
 
-  override protected def doRemoveAll(): F[Any] = {
+  override protected def doRemoveAll(): F[Unit] = {
     F.async { cb =>
       val f = client.flush()
       f.addListener(new OperationCompletionListener {
@@ -100,7 +100,7 @@ class MemcachedCache[F[_]](client: MemcachedClient, keySanitizer: MemcachedKeySa
     }
   }
 
-  override def close(): F[Any] = F.delay(client.shutdown())
+  override def close(): F[Unit] = F.delay(client.shutdown())
 
 }
 

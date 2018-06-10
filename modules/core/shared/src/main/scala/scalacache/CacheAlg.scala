@@ -39,12 +39,12 @@ abstract class CacheAlg[F[_]: Async] {
     *
     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
     */
-  def remove(keyParts: Any*): F[Any]
+  def remove(keyParts: Any*): F[Unit]
 
   /**
     * Delete the entire contents of the cache. Use wisely!
     */
-  def removeAll(): F[Any]
+  def removeAll(): F[Unit]
 
   /**
     * Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
@@ -79,6 +79,6 @@ abstract class CacheAlg[F[_]: Async] {
     * Note that you should not try to use this Cache instance after you have called this method.
     *
     */
-  def close(): F[Any]
+  def close(): F[Unit]
 
 }

@@ -68,13 +68,13 @@ abstract class RedisCacheBase[F[_]](implicit F: Async[F]) extends AbstractCache[
       logCachePut(key, ttl)
     }
 
-  override protected final def doRemove(key: String): F[Any] = F.delay {
+  override protected final def doRemove(key: String): F[Unit] = F.delay {
     withJedisCommands { jedis =>
       jedis.del(key.utf8bytes)
     }
   }
 
-  override final def close(): F[Any] = F.delay(jedisPool.close())
+  override final def close(): F[Unit] = F.delay(jedisPool.close())
 
   /**
     * Borrow a Jedis client from the pool, perform some operation and then return the client to the pool.

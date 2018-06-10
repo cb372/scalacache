@@ -42,9 +42,9 @@ class OhcCache[F[_]](override final val underlying: OHCache[String, Array[Byte]]
     }
   }
 
-  override final def doRemove(key: String): F[Any] = F.delay(underlying.remove(key))
-  override final def doRemoveAll(): F[Any] = F.delay(underlying.clear())
-  override final def close(): F[Any] = F.pure(underlying.close())
+  override final def doRemove(key: String): F[Unit] = F.delay(underlying.remove(key))
+  override final def doRemoveAll(): F[Unit] = F.delay(underlying.clear())
+  override final def close(): F[Unit] = F.pure(underlying.close())
 
 }
 

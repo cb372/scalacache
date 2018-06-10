@@ -1,5 +1,6 @@
 package scalacache.caffeine
 
+import java.nio.charset.StandardCharsets
 import java.time.{Clock, Instant, ZoneOffset}
 
 import cats.effect.IO
@@ -9,6 +10,7 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import scalacache._
 
 import scala.concurrent.duration._
+import scala.language.implicitConversions
 
 class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
@@ -16,6 +18,9 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
   import scalacache.serialization.binary._
 
   private def newCCache = Caffeine.newBuilder.build[String, Entry]
+
+  // Ugly but convenient. Do not abuse of that.
+  private[this] implicit def getBytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
 
   behavior of "get"
 

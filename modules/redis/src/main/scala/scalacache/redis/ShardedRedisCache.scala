@@ -17,7 +17,7 @@ class ShardedRedisCache[F[_]](val jedisPool: ShardedJedisPool)(implicit val conf
 
   override final val underlying: Underlying = jedisPool
 
-  protected override final def doRemoveAll(): F[Any] = F.delay {
+  protected override final def doRemoveAll(): F[Unit] = F.delay {
     val jedis = jedisPool.getResource
     try {
       jedis.getAllShards.asScala.foreach(_.flushDB())

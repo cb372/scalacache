@@ -18,7 +18,7 @@ class SentinelRedisCache[F[_]](val jedisPool: JedisSentinelPool)(implicit val co
 
   override val underlying: Underlying = jedisPool
 
-  protected def doRemoveAll(): F[Any] = F.delay {
+  protected def doRemoveAll(): F[Unit] = F.delay {
     val jedis = jedisPool.getResource
     try {
       jedis.flushDB()

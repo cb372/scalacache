@@ -16,7 +16,7 @@ class RedisCache[F[_]](val jedisPool: JedisPool)(implicit val config: CacheConfi
 
   override final val underlying: Underlying = jedisPool
 
-  override protected final def doRemoveAll(): F[Any] = F.delay {
+  override protected final def doRemoveAll(): F[Unit] = F.delay {
     val jedis = jedisPool.getResource
     try {
       jedis.flushDB()

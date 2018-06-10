@@ -40,9 +40,9 @@ class EhcacheCache[F[_]](override val underlying: Ehcache)(implicit val config: 
     }
   }
 
-  override protected def doRemove(key: String): F[Any] = F.delay(underlying.remove(key))
-  override protected def doRemoveAll(): F[Any] = F.delay(underlying.removeAll())
-  override def close(): F[Any] = F.pure(()) // Nothing to do
+  override protected def doRemove(key: String): F[Unit] = F.delay(underlying.remove(key))
+  override protected def doRemoveAll(): F[Unit] = F.delay(underlying.removeAll())
+  override def close(): F[Unit] = F.pure(()) // Nothing to do
 
 }
 

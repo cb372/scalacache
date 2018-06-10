@@ -55,15 +55,15 @@ abstract class AbstractCache[F[_]](implicit F: Async[F]) extends Cache[F] with L
 
   // REMOVE
 
-  protected def doRemove(key: String): F[Any]
+  protected def doRemove(key: String): F[Unit]
 
-  final override def remove(keyParts: Any*): F[Any] = doRemove(toKey(keyParts: _*))
+  final override def remove(keyParts: Any*): F[Unit] = doRemove(toKey(keyParts: _*))
 
   // REMOVE ALL
 
-  protected def doRemoveAll(): F[Any]
+  protected def doRemoveAll(): F[Unit]
 
-  final override def removeAll(): F[Any] = doRemoveAll()
+  final override def removeAll(): F[Unit] = doRemoveAll()
 
   // CACHING
 
