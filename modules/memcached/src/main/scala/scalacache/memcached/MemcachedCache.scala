@@ -17,7 +17,8 @@ class MemcachedException(message: String) extends Exception(message)
 /**
   * Wrapper around spymemcached
   */
-class MemcachedCache[V](client: MemcachedClient, keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(
+class MemcachedCache[V](val client: MemcachedClient,
+                        val keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(
     implicit val config: CacheConfig,
     codec: Codec[V])
     extends AbstractCache[V]

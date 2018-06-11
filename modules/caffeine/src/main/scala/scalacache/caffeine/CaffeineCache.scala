@@ -15,8 +15,8 @@ import scala.language.higherKinds
  *
  * This cache implementation is synchronous.
  */
-class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config: CacheConfig,
-                                                             clock: Clock = Clock.systemUTC())
+class CaffeineCache[V](val underlying: CCache[String, Entry[V]])(implicit val config: CacheConfig,
+                                                                 clock: Clock = Clock.systemUTC())
     extends AbstractCache[V] {
 
   override protected final val logger =
@@ -24,12 +24,12 @@ class CaffeineCache[V](underlying: CCache[String, Entry[V]])(implicit val config
 
   def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     mode.M.delay {
-      val baseValue = underlying.getIfPresent(key)
+      val entry = underlying.getIfPresent(key)
       val result = {
-        if (baseValue != null) {
-          val entry = baseValue.asInstanceOf[Entry[V]]
-          if (entry.isExpired) None else Some(entry.value)
-        } else None
+        if (entry == null || entry.isExpired)
+          None
+        else
+          Some(entry.value)
       }
       logCacheHitOrMiss(key, result)
       result

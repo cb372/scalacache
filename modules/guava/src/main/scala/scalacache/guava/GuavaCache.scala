@@ -14,8 +14,8 @@ import scala.language.higherKinds
 /*
  * Thin wrapper around Google Guava.
  */
-class GuavaCache[V](underlying: GCache[String, Entry[V]])(implicit val config: CacheConfig,
-                                                          clock: Clock = Clock.systemUTC())
+class GuavaCache[V](val underlying: GCache[String, Entry[V]])(implicit val config: CacheConfig,
+                                                              clock: Clock = Clock.systemUTC())
     extends AbstractCache[V] {
 
   override protected final val logger =
@@ -23,12 +23,12 @@ class GuavaCache[V](underlying: GCache[String, Entry[V]])(implicit val config: C
 
   def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     mode.M.delay {
-      val baseValue = underlying.getIfPresent(key)
+      val entry = underlying.getIfPresent(key)
       val result = {
-        if (baseValue != null) {
-          val entry = baseValue.asInstanceOf[Entry[V]]
-          if (entry.isExpired) None else Some(entry.value)
-        } else None
+        if (entry == null || entry.isExpired)
+          None
+        else
+          Some(entry.value)
       }
       logCacheHitOrMiss(key, result)
       result
