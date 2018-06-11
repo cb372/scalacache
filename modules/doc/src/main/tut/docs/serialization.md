@@ -24,7 +24,7 @@ If you want to serialize your values as JSON, you can use ScalaCache's [circe](h
 You will need to add a dependency on the scalacache-circe module:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-circe" % "0.24.1"
+libraryDependencies += "com.github.cb372" %% "scalacache-circe" % "0.24.2"
 ```
 
 Then import the codec:
