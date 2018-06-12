@@ -3,10 +3,8 @@ package scalacache
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
-import scalacache.serialization.Codec
 
 class EmptyCache[V](implicit val config: CacheConfig) extends AbstractCache[V] {
 

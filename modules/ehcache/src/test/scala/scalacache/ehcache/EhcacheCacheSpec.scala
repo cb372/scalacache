@@ -8,8 +8,6 @@ import language.postfixOps
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 
-import scalacache._
-
 class EhcacheCacheSpec extends FlatSpec with Matchers with Eventually with BeforeAndAfter with ScalaFutures {
 
   private val underlying = {
