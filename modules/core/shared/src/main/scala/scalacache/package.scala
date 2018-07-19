@@ -75,7 +75,7 @@ package object scalacache {
     * First look in the cache. If the value is found, then return it immediately.
     * Otherwise run the block and save the result in the cache before returning it.
     *
-    * Note: Because no TTL is specified, the result will be stored in the cache indefinitely.
+    * Note: If ttl is set to None, the result will be stored in the cache indefinitely.
     *
     * @param keyParts Data to be used to generate the cache key.
     *                 This could be as simple as just a single String.
@@ -99,7 +99,7 @@ package object scalacache {
     * First look in the cache. If the value is found, then return it immediately.
     * Otherwise run the block and save the result in the cache before returning it.
     *
-    * Note: Because no TTL is specified, the result will be stored in the cache indefinitely.
+    * Note: If ttl is set to None, the result will be stored in the cache indefinitely.
     *
     * @param keyParts Data to be used to generate the cache key.
     *                 This could be as simple as just a single String.
