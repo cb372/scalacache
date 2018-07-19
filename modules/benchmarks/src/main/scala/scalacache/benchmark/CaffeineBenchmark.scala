@@ -4,8 +4,6 @@ import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
 import java.util.concurrent.TimeUnit
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 import com.github.benmanes.caffeine.cache.Caffeine
 
 import scalacache._

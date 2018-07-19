@@ -6,7 +6,7 @@ import java.time.{Clock, Instant}
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
 import org.slf4j.LoggerFactory
 
-import scalacache.{AbstractCache, CacheConfig, Entry, Flags, LoggingSupport, Mode}
+import scalacache.{AbstractCache, CacheConfig, Entry, Mode}
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 

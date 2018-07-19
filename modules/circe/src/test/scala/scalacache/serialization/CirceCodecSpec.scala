@@ -1,6 +1,6 @@
 package scalacache.serialization
 
-import io.circe.{Decoder, Encoder, Json, ObjectEncoder}
+import io.circe.Json
 import org.scalacheck.Arbitrary
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FlatSpec, Matchers}

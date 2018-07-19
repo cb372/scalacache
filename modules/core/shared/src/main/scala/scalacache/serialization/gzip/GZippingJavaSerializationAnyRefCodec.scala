@@ -3,7 +3,7 @@ package scalacache.serialization.gzip
 import java.io.Serializable
 
 import scala.reflect.ClassTag
-import scalacache.serialization.binary.{BinaryPrimitiveCodecs, JavaSerializationAnyRefCodec}
+import scalacache.serialization.binary.JavaSerializationAnyRefCodec
 
 object GZippingJavaSerializationAnyRefCodec {
 
