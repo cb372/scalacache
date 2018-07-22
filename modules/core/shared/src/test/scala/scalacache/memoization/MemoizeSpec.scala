@@ -265,7 +265,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
   class MockDbCall(result: String) extends (Int => String) {
     val calledWithArgs = ArrayBuffer.empty[Int]
     def apply(a: Int): String = {
-      calledWithArgs.append(a)
+      calledWithArgs += a
       result
     }
   }

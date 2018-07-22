@@ -138,10 +138,10 @@ class Macros(val c: blackbox.Context) {
   }
 
   /**
-    * Convert a List[Tree] to a Tree representing `ArrayBuffer`
+    * Convert a List[Tree] to a Tree representing `Vector`
     */
   private def listToTree(ts: List[c.Tree]): c.Tree = {
-    q"_root_.scala.collection.mutable.ArrayBuffer(..$ts)"
+    q"_root_.scala.collection.immutable.Vector(..$ts)"
   }
 
   private def createKeyName(): TermName = {

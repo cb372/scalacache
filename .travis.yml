@@ -11,6 +11,7 @@ services:
 script:
   - sbt +coverage +test +doc/tut
   - sbt +coverageReport
+  - sbt ++2.13.0-M4 {coreJVM,guava,memcached,ehcache,redis,cache2k,caffeine,ohc,scalaz72}/test
 cache:
   directories:
   - $HOME/.sbt

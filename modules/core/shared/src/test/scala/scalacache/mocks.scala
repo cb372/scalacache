@@ -101,18 +101,18 @@ trait LoggingCache[V] extends AbstractCache[V] {
     (ArrayBuffer.empty[String], ArrayBuffer.empty[(String, Any, Option[Duration])], ArrayBuffer.empty[String])
 
   protected abstract override def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
-    getCalledWithArgs.append(key)
+    getCalledWithArgs += key
     super.doGet(key)
   }
 
   protected abstract override def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(
       implicit mode: Mode[F]): F[Any] = {
-    putCalledWithArgs.append((key, value, ttl))
+    putCalledWithArgs += ((key, value, ttl))
     super.doPut(key, value, ttl)
   }
 
   protected abstract override def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] = {
-    removeCalledWithArgs.append(key)
+    removeCalledWithArgs += key
     super.doRemove(key)
   }
 

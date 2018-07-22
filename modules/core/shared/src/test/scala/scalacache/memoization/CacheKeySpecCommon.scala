@@ -18,7 +18,7 @@ trait CacheKeySpecCommon extends Suite with Matchers with ScalaFutures with Befo
     cache.mmap.clear()
   }
 
-  def checkCacheKey(expectedKey: String)(call: => Future[Int]) {
+  def checkCacheKey(expectedKey: String)(call: => Future[Int]): Unit = {
     // Run the memoize block, putting some value into the cache
     val future = call
 
