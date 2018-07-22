@@ -9,8 +9,10 @@ services:
   - memcached
   - redis
 script:
-  - sbt +coverage +test +doc/tut
-  - sbt +coverageReport
+  # disable scoverage until it's published for 2.13.0-M4
+  #- sbt +coverage +test +doc/tut
+  #- sbt +coverageReport
+  - sbt +test doc/tut
   - sbt ++2.13.0-M4 {coreJVM,guava,memcached,ehcache,redis,cache2k,caffeine,ohc,scalaz72}/test
 cache:
   directories:
