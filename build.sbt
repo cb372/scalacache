@@ -74,8 +74,8 @@ def module(name: String) =
 lazy val guava = module("guava")
   .settings(
     libraryDependencies ++= Seq(
-      "com.google.guava" % "guava" % "25.1-jre",
-      "com.google.code.findbugs" % "jsr305" % "1.3.9"
+      "com.google.guava" % "guava" % "26.0-jre",
+      "com.google.code.findbugs" % "jsr305" % "3.0.2"
     )
   )
 
@@ -117,7 +117,7 @@ lazy val caffeine = module("caffeine")
   .settings(
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine" % "2.6.2",
-      "com.google.code.findbugs" % "jsr305" % "3.0.0" % Provided
+      "com.google.code.findbugs" % "jsr305" % "3.0.2" % Provided
     ),
     coverageMinimum := 80,
     coverageFailOnMinimum := true
@@ -133,7 +133,7 @@ lazy val ohc = module("ohc")
 lazy val catsEffect = module("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "0.10"
+      "org.typelevel" %% "cats-effect" % "0.10.1"
     ),
     coverageMinimum := 50,
     coverageFailOnMinimum := true
@@ -152,7 +152,7 @@ lazy val monix = module("monix")
 lazy val scalaz72 = module("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-concurrent" % "7.2.23"
+      "org.scalaz" %% "scalaz-concurrent" % "7.2.25"
     ),
     coverageMinimum := 40,
     coverageFailOnMinimum := true
