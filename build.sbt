@@ -108,8 +108,8 @@ lazy val redis = module("redis")
 lazy val cache2k = module("cache2k")
   .settings(
     libraryDependencies ++= Seq(
-      "org.cache2k" % "cache2k-core" % "1.0.2.Final",
-      "org.cache2k" % "cache2k-api" % "1.0.2.Final"
+      "org.cache2k" % "cache2k-core" % "1.2.0.Final",
+      "org.cache2k" % "cache2k-api" % "1.2.0.Final"
     )
   )
 
