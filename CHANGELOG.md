@@ -1,3 +1,30 @@
+0.24.3 (2018/09/04)
+---
+
+* Cache2k 1.2.0.Final
+* Guava 26.0
+* cats-effect 0.10.1
+* Scalaz 7.2.25
+* sbt 1.2.1
+* Fix typo in Scaladoc regarding TTL
+* Refactoring: remove unused imports
+
+0.24.2 (2018/07/11)
+---
+
+Note: somehow this release got a bit messed up. There is no git tag for it but
+the artifacts are on Maven Central.
+
+* Make the underlying cache implementation accessible (it was a private field)
+* Scala 2.12.6
+* Guava 25.1
+* Scalacheck 1.14.0
+* Improve logging in Redis implementation
+* Scalaz 7.2.23
+* Ehcache 2.10.5
+* sbt 1.1.5
+* Refactoring: remove some pointless casting
+
 0.24.1 (2018/05/03)
 ---
 
