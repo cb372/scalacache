@@ -51,7 +51,7 @@ lazy val core =
     .settings(commonSettings)
     .settings(
       moduleName := "scalacache-core",
-      crossScalaVersions += "2.13.0-M4",
+      crossScalaVersions += "2.13.0-M5",
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
       ) ++ scalacheck,
@@ -74,7 +74,7 @@ def module(name: String) =
 
 lazy val guava = module("guava")
   .settings(
-    crossScalaVersions += "2.13.0-M4",
+    crossScalaVersions += "2.13.0-M5",
     libraryDependencies ++= Seq(
       "com.google.guava" % "guava" % "26.0-jre",
       "com.google.code.findbugs" % "jsr305" % "3.0.2"
@@ -83,7 +83,7 @@ lazy val guava = module("guava")
 
 lazy val memcached = module("memcached")
   .settings(
-    crossScalaVersions += "2.13.0-M4",
+    crossScalaVersions += "2.13.0-M5",
     libraryDependencies ++= Seq(
       "net.spy" % "spymemcached" % "2.12.3"
     )
@@ -91,7 +91,7 @@ lazy val memcached = module("memcached")
 
 lazy val ehcache = module("ehcache")
   .settings(
-    crossScalaVersions += "2.13.0-M4",
+    crossScalaVersions += "2.13.0-M5",
     libraryDependencies ++= Seq(
       "net.sf.ehcache" % "ehcache" % "2.10.5",
       "javax.transaction" % "jta" % "1.1"
@@ -102,7 +102,7 @@ lazy val ehcache = module("ehcache")
 
 lazy val redis = module("redis")
   .settings(
-    crossScalaVersions += "2.13.0-M4",
+    crossScalaVersions += "2.13.0-M5",
     libraryDependencies ++= Seq(
       "redis.clients" % "jedis" % "2.9.0"
     ) //,
@@ -112,7 +112,7 @@ lazy val redis = module("redis")
 
 lazy val cache2k = module("cache2k")
   .settings(
-    crossScalaVersions += "2.13.0-M4",
+    crossScalaVersions += "2.13.0-M5",
     libraryDependencies ++= Seq(
       "org.cache2k" % "cache2k-core" % "1.2.0.Final",
       "org.cache2k" % "cache2k-api" % "1.2.0.Final"
@@ -121,7 +121,7 @@ lazy val cache2k = module("cache2k")
 
 lazy val caffeine = module("caffeine")
   .settings(
-    crossScalaVersions += "2.13.0-M4",
+    crossScalaVersions += "2.13.0-M5",
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine" % "2.6.2",
       "com.google.code.findbugs" % "jsr305" % "3.0.2" % Provided
@@ -132,7 +132,7 @@ lazy val caffeine = module("caffeine")
 
 lazy val ohc = module("ohc")
   .settings(
-    crossScalaVersions += "2.13.0-M4",
+    crossScalaVersions += "2.13.0-M5",
     libraryDependencies ++= Seq(
       "org.caffinitas.ohc" % "ohc-core-j8" % "0.6.1"
     )
@@ -159,7 +159,7 @@ lazy val monix = module("monix")
 
 lazy val scalaz72 = module("scalaz72")
   .settings(
-    crossScalaVersions += "2.13.0-M4",
+    crossScalaVersions += "2.13.0-M5",
     libraryDependencies ++= Seq(
       "org.scalaz" %% "scalaz-concurrent" % "7.2.25"
     ) //,
