@@ -126,7 +126,7 @@ lazy val caffeine = module("caffeine")
 lazy val ohc = module("ohc")
   .settings(
     libraryDependencies ++= Seq(
-      "org.caffinitas.ohc" % "ohc-core-j8" % "0.6.1"
+      "org.caffinitas.ohc" % "ohc-core" % "0.7.0"
     )
   )
 
