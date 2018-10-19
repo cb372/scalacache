@@ -161,9 +161,9 @@ lazy val scalaz72 = module("scalaz72")
 lazy val circe = module("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core" % "0.9.3",
-      "io.circe" %% "circe-parser" % "0.9.3",
-      "io.circe" %% "circe-generic" % "0.9.3" % Test
+      "io.circe" %% "circe-core" % "0.10.0",
+      "io.circe" %% "circe-parser" % "0.10.0",
+      "io.circe" %% "circe-generic" % "0.10.0" % Test
     ) ++ scalacheck,
     coverageMinimum := 80,
     coverageFailOnMinimum := true
