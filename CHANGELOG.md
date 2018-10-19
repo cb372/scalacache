@@ -1,3 +1,11 @@
+0.25.0 (2018/10/19)
+---
+
+* ohc 0.7.0
+* cats-effect 1.0.0
+* Monix 3.0.0-RC2-d0feeba (which depends on cats-effect 1.0.0-RC3)
+* Fix broken link in memoization docs
+
 0.24.3 (2018/09/04)
 ---
 
