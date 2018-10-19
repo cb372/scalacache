@@ -25,7 +25,7 @@
 <span class="n">defined</span> <span class="k">class</span> <span class="nc">Cat</span>
 
 <span class="n">scala</span><span class="o">&gt;</span> <span class="k">implicit</span> <span class="k">val</span> <span class="n">catsCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="nc">MemcachedCache</span><span class="o">(</span><span class="s">"localhost:11211"</span><span class="o">)</span>
-<span class="n">catsCache</span><span class="k">:</span> <span class="kt">scalacache.Cache</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="n">scalacache</span><span class="o">.</span><span class="n">memcached</span><span class="o">.</span><span class="nc">MemcachedCache</span><span class="k">@</span><span class="mf">3d</span><span class="mi">6</span><span class="n">bd29f</span>
+<span class="n">catsCache</span><span class="k">:</span> <span class="kt">scalacache.Cache</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="n">scalacache</span><span class="o">.</span><span class="n">memcached</span><span class="o">.</span><span class="nc">MemcachedCache</span><span class="k">@</span><span class="mi">5</span><span class="n">e6d428e</span>
 
 <span class="n">scala</span><span class="o">&gt;</span> <span class="c1">// You wouldn't normally need to specify the type params for memoize.
 </span>     <span class="o">|</span> <span class="c1">// This is an artifact of the way this README is generated using tut.
@@ -102,7 +102,7 @@ The next time you call the method with the same arguments the result will be ret
 
 <p>would be cached with the key: <code class="highlighter-rouge">foo.bar.Baz(1, hello)(world)</code>.</p>
 
-<p>Note that the cache key generation logic is customizable. Just provide your own implementation of <a href="core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala">MethodCallToStringConverter</a></p>
+<p>Note that the cache key generation logic is customizable. Just provide your own implementation of <a href="https://github.com/cb372/scalacache/blob/master/modules/core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala">MethodCallToStringConverter</a></p>
 
 <h4 id="enclosing-classs-constructor-arguments">Enclosing class’s constructor arguments</h4>
 
@@ -121,7 +121,7 @@ The next time you call the method with the same arguments the result will be ret
 <span class="o">}</span>
 </code></pre></div></div>
 
-<p>then you want the cache key to depend on the values of both <code class="highlighter-rouge">a</code> and <code class="highlighter-rouge">b</code>. In that case, you need to use a different implementation of <a href="core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala">MethodCallToStringConverter</a>, like this:</p>
+<p>then you want the cache key to depend on the values of both <code class="highlighter-rouge">a</code> and <code class="highlighter-rouge">b</code>. In that case, you need to use a different implementation of <a href="https://github.com/cb372/scalacache/blob/master/modules/core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala">MethodCallToStringConverter</a>, like this:</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">implicit</span> <span class="k">val</span> <span class="n">cacheConfig</span> <span class="k">=</span> <span class="nc">CacheConfig</span><span class="o">(</span>
   <span class="n">memoization</span> <span class="k">=</span> <span class="nc">MemoizationConfig</span><span class="o">(</span><span class="nc">MethodCallToStringConverter</span><span class="o">.</span><span class="n">includeClassConstructorParams</span><span class="o">)</span>
