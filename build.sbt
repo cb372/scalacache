@@ -1,8 +1,8 @@
 import org.scalajs.sbtplugin.cross.CrossProject
-
-import xerial.sbt.Sonatype.sonatypeSettings
 import sbtrelease.ReleaseStateTransformations._
-import sys.process.Process
+import xerial.sbt.Sonatype.sonatypeSettings
+
+import scala.sys.process.Process
 
 scalafmtOnCompile in ThisBuild := true
 
@@ -158,6 +158,15 @@ lazy val scalaz72 = module("scalaz72")
     coverageFailOnMinimum := true
   )
 
+lazy val twitterUtil = module("twitter-util")
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.twitter" %% "util-core" % "18.10.0"
+    ),
+    coverageMinimum := 40,
+    coverageFailOnMinimum := true
+  )
+
 lazy val circe = module("circe")
   .settings(
     libraryDependencies ++= Seq(
@@ -171,7 +180,7 @@ lazy val circe = module("circe")
 
 lazy val tests = module("tests")
   .settings(publishArtifact := false)
-  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, monix, scalaz72, circe)
+  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, monix, scalaz72, twitterUtil, circe)
 
 lazy val doc = module("doc")
   .enablePlugins(MicrositesPlugin)
@@ -189,7 +198,19 @@ lazy val doc = module("doc")
     micrositeTwitterCreator := "@cbirchall",
     micrositeShareOnSocial := true
   )
-  .dependsOn(coreJVM, guava, memcached, ehcache, redis, cache2k, caffeine, ohc, catsEffect, monix, scalaz72, circe)
+  .dependsOn(coreJVM,
+             guava,
+             memcached,
+             ehcache,
+             redis,
+             cache2k,
+             caffeine,
+             ohc,
+             catsEffect,
+             monix,
+             scalaz72,
+             twitterUtil,
+             circe)
 
 lazy val benchmarks = module("benchmarks")
   .enablePlugins(JmhPlugin)
