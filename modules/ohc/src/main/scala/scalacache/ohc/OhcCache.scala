@@ -4,7 +4,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import org.caffinitas.ohc.{CacheSerializer, OHCache, OHCacheBuilder}
-import org.slf4j.LoggerFactory
+import scalacache.logging.Logger
 
 import scala.concurrent.duration._
 import scala.language.higherKinds
@@ -17,8 +17,7 @@ import scalacache.{AbstractCache, CacheConfig, Mode}
  */
 class OhcCache[V](val underlying: OHCache[String, V])(implicit val config: CacheConfig) extends AbstractCache[V] {
 
-  override protected final val logger =
-    LoggerFactory.getLogger(getClass.getName)
+  override protected final val logger = Logger.getLogger(getClass.getName)
 
   def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     mode.M.delay {

@@ -52,26 +52,36 @@ lazy val core =
     .settings(
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
-        "org.scala-lang" % "scala-reflect" % scalaVersion.value
-      ) ++ scalacheck,
-      scala211OnlyDeps(
-        "org.squeryl" %% "squeryl" % "0.9.9" % Test,
-        "com.h2database" % "h2" % "1.4.196" % Test
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+        "org.scalatest" %%% "scalatest" % "3.0.5" % Test,
+        "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test
       ),
       coverageMinimum := 79,
       coverageFailOnMinimum := true
+    )
+    .jvmSettings(
+      libraryDependencies ++= Seq(
+        "org.slf4j" % "slf4j-api" % "1.7.25"
+      ),
+      scala211OnlyDeps(
+        "org.squeryl" %% "squeryl" % "0.9.9" % Test,
+        "com.h2database" % "h2" % "1.4.196" % Test
+      )
     )
 
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js.settings(coverageEnabled := false)
 
-def module(name: String) =
+def jvmOnlyModule(name: String) =
   Project(id = name, base = file(s"modules/$name"))
     .settings(commonSettings)
-    .settings(moduleName := s"scalacache-$name")
+    .settings(
+      moduleName := s"scalacache-$name",
+      libraryDependencies += scalatest
+    )
     .dependsOn(coreJVM)
 
-lazy val guava = module("guava")
+lazy val guava = jvmOnlyModule("guava")
   .settings(
     libraryDependencies ++= Seq(
       "com.google.guava" % "guava" % "27.0-jre",
@@ -79,14 +89,14 @@ lazy val guava = module("guava")
     )
   )
 
-lazy val memcached = module("memcached")
+lazy val memcached = jvmOnlyModule("memcached")
   .settings(
     libraryDependencies ++= Seq(
       "net.spy" % "spymemcached" % "2.12.3"
     )
   )
 
-lazy val ehcache = module("ehcache")
+lazy val ehcache = jvmOnlyModule("ehcache")
   .settings(
     libraryDependencies ++= Seq(
       "net.sf.ehcache" % "ehcache" % "2.10.6",
@@ -96,7 +106,7 @@ lazy val ehcache = module("ehcache")
     coverageFailOnMinimum := true
   )
 
-lazy val redis = module("redis")
+lazy val redis = jvmOnlyModule("redis")
   .settings(
     libraryDependencies ++= Seq(
       "redis.clients" % "jedis" % "2.9.0"
@@ -105,7 +115,7 @@ lazy val redis = module("redis")
     coverageFailOnMinimum := true
   )
 
-lazy val cache2k = module("cache2k")
+lazy val cache2k = jvmOnlyModule("cache2k")
   .settings(
     libraryDependencies ++= Seq(
       "org.cache2k" % "cache2k-core" % "1.2.0.Final",
@@ -113,7 +123,7 @@ lazy val cache2k = module("cache2k")
     )
   )
 
-lazy val caffeine = module("caffeine")
+lazy val caffeine = jvmOnlyModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine" % "2.6.2",
@@ -123,14 +133,14 @@ lazy val caffeine = module("caffeine")
     coverageFailOnMinimum := true
   )
 
-lazy val ohc = module("ohc")
+lazy val ohc = jvmOnlyModule("ohc")
   .settings(
     libraryDependencies ++= Seq(
       "org.caffinitas.ohc" % "ohc-core" % "0.7.0"
     )
   )
 
-lazy val catsEffect = module("cats-effect")
+lazy val catsEffect = jvmOnlyModule("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-effect" % "1.0.0"
@@ -139,7 +149,7 @@ lazy val catsEffect = module("cats-effect")
     coverageFailOnMinimum := true
   )
 
-lazy val monix = module("monix")
+lazy val monix = jvmOnlyModule("monix")
   .settings(
     libraryDependencies ++= Seq(
       "io.monix" %% "monix" % "3.0.0-RC2-d0feeba"
@@ -149,7 +159,7 @@ lazy val monix = module("monix")
   )
   .dependsOn(catsEffect)
 
-lazy val scalaz72 = module("scalaz72")
+lazy val scalaz72 = jvmOnlyModule("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
       "org.scalaz" %% "scalaz-concurrent" % "7.2.26"
@@ -158,7 +168,7 @@ lazy val scalaz72 = module("scalaz72")
     coverageFailOnMinimum := true
   )
 
-lazy val twitterUtil = module("twitter-util")
+lazy val twitterUtil = jvmOnlyModule("twitter-util")
   .settings(
     libraryDependencies ++= Seq(
       "com.twitter" %% "util-core" % "18.10.0"
@@ -167,22 +177,23 @@ lazy val twitterUtil = module("twitter-util")
     coverageFailOnMinimum := true
   )
 
-lazy val circe = module("circe")
+lazy val circe = jvmOnlyModule("circe")
   .settings(
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core" % "0.10.0",
       "io.circe" %% "circe-parser" % "0.10.0",
-      "io.circe" %% "circe-generic" % "0.10.0" % Test
-    ) ++ scalacheck,
+      "io.circe" %% "circe-generic" % "0.10.0" % Test,
+      scalacheck
+    ),
     coverageMinimum := 80,
     coverageFailOnMinimum := true
   )
 
-lazy val tests = module("tests")
+lazy val tests = jvmOnlyModule("tests")
   .settings(publishArtifact := false)
   .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, monix, scalaz72, twitterUtil, circe)
 
-lazy val doc = module("doc")
+lazy val doc = jvmOnlyModule("doc")
   .enablePlugins(MicrositesPlugin)
   .settings(
     publishArtifact := false,
@@ -212,7 +223,7 @@ lazy val doc = module("doc")
              twitterUtil,
              circe)
 
-lazy val benchmarks = module("benchmarks")
+lazy val benchmarks = jvmOnlyModule("benchmarks")
   .enablePlugins(JmhPlugin)
   .settings(
     publishArtifact := false,
@@ -233,20 +244,9 @@ lazy val benchmarks = module("benchmarks")
   .dependsOn(caffeine)
   .dependsOn(ohc)
 
-lazy val slf4j = Seq(
-  "org.slf4j" % "slf4j-api" % "1.7.25"
-)
+lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.5" % Test
 
-lazy val scalaTest = Seq(
-  "org.scalatest" %% "scalatest" % "3.0.5" % Test
-)
-
-lazy val scalacheck = Seq(
-  "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
-)
-
-// Dependencies common to all projects
-lazy val commonDeps = slf4j ++ scalaTest
+lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
 
 lazy val commonSettings =
   mavenSettings ++
@@ -256,7 +256,6 @@ lazy val commonSettings =
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       resolvers += Resolver.typesafeRepo("releases"),
       releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-      libraryDependencies ++= commonDeps,
       parallelExecution in Test := false
     )
 

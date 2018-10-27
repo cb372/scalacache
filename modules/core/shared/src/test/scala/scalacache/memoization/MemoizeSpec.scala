@@ -1,17 +1,16 @@
 package scalacache.memoization
 
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 import scalacache._
 import scalacache.modes.sync._
 
-class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventually {
+import scala.util.Try
+
+class MemoizeSpec extends FlatSpec with Matchers {
 
   behavior of "memoize block"
 
@@ -33,9 +32,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
     mockDbCall.calledWithArgs should be(Seq(123))
 
     // and finally store the result in the cache
-    eventually {
-      emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
-    }
+    emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
   }
 
   it should "not execute the block if there is a cache hit" in {
@@ -68,15 +65,13 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
     result should be("hello")
 
     // should NOT check the cache, because reads are disabled
-    fullCache.getCalledWithArgs should be('empty)
+    fullCache.getCalledWithArgs should be(empty)
 
     // should execute the block
     mockDbCall.calledWithArgs should be(Seq(123))
 
     // and then store the result in the cache
-    eventually {
-      fullCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
-    }
+    fullCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
   }
 
   it should "not cache the result if cache writes are disabled" in {
@@ -125,9 +120,7 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
     mockDbCall.calledWithArgs should be(Seq(123))
 
     // and then store the result in the cache
-    eventually {
-      dodgyCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
-    }
+    dodgyCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
   }
 
   behavior of "memoize block with TTL"
@@ -150,116 +143,103 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
     mockDbCall.calledWithArgs should be(Seq(123))
 
     // and finally store the result in the cache
-    eventually {
-      emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, Some(10 seconds))))
-    }
+    emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, Some(10 seconds))))
   }
 
   behavior of "memoizeF block"
 
   it should "execute the block and cache the result, if there is a cache miss" in {
-    val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithFutures.myLongRunningMethod(123, abc)"
+    val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
     implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
-    implicit val mode = scalacache.modes.scalaFuture.mode
+    implicit val mode = scalacache.modes.try_.mode
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val fResult = new MyMockClassWithFutures(mockDbCall).myLongRunningMethod(123, "abc")
+    val result = new MyMockClassWithTry(mockDbCall).myLongRunningMethod(123, "abc").get
 
-    whenReady(fResult) { result =>
-      result should be("hello")
+    result should be("hello")
 
-      // should check the cache first
-      emptyCache.getCalledWithArgs should be(Seq(expectedKey))
+    // should check the cache first
+    emptyCache.getCalledWithArgs should be(Seq(expectedKey))
 
-      // then execute the block
-      mockDbCall.calledWithArgs should be(Seq(123))
+    // then execute the block
+    mockDbCall.calledWithArgs should be(Seq(123))
 
-      // and finally store the result in the cache
-      eventually {
-        emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
-      }
-    }
+    // and finally store the result in the cache
+    emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
   }
 
   it should "not execute the block if there is a cache hit" in {
-    val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithFutures.myLongRunningMethod(123, abc)"
+    val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
     implicit val fullCache = new FullCache[String]("cache hit") with LoggingCache[String]
-    implicit val mode = scalacache.modes.scalaFuture.mode
+    implicit val mode = scalacache.modes.try_.mode
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the cached result
-    val fResult = new MyMockClassWithFutures(mockDbCall).myLongRunningMethod(123, "abc")
+    val result = new MyMockClassWithTry(mockDbCall).myLongRunningMethod(123, "abc").get
 
-    whenReady(fResult) { result =>
-      result should be("cache hit")
+    result should be("cache hit")
 
-      // should check the cache first
-      fullCache.getCalledWithArgs should be(Seq(expectedKey))
+    // should check the cache first
+    fullCache.getCalledWithArgs should be(Seq(expectedKey))
 
-      // should NOT execute the block
-      mockDbCall.calledWithArgs should be(empty)
+    // should NOT execute the block
+    mockDbCall.calledWithArgs should be(empty)
 
-      // should NOT update the cache
-      fullCache.putCalledWithArgs should be(empty)
-    }
+    // should NOT update the cache
+    fullCache.putCalledWithArgs should be(empty)
   }
 
   it should "catch exceptions thrown by the cache" in {
-    val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithFutures.myLongRunningMethod(123, abc)"
+    val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
     implicit val dodgyCache = new ErrorRaisingCache[String] with LoggingCache[String]
-    implicit val mode = scalacache.modes.scalaFuture.mode
+    implicit val mode = scalacache.modes.try_.mode
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val fResult = new MyMockClassWithFutures(mockDbCall).myLongRunningMethod(123, "abc")
-    whenReady(fResult) { result =>
-      result should be("hello")
+    val result = new MyMockClassWithTry(mockDbCall).myLongRunningMethod(123, "abc").get
 
-      // should check the cache first
-      dodgyCache.getCalledWithArgs should be(Seq(expectedKey))
+    result should be("hello")
 
-      // then execute the block
-      mockDbCall.calledWithArgs should be(Seq(123))
+    // should check the cache first
+    dodgyCache.getCalledWithArgs should be(Seq(expectedKey))
 
-      // and then store the result in the cache
-      dodgyCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
-    }
+    // then execute the block
+    mockDbCall.calledWithArgs should be(Seq(123))
+
+    // and then store the result in the cache
+    dodgyCache.putCalledWithArgs should be(Seq((expectedKey, result, None)))
   }
 
   behavior of "memoizeF block with TTL"
 
   it should "pass the TTL parameter to the cache" in {
-    val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithFutures.withTTL(123, abc)"
+    val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.withTTL(123, abc)"
 
     implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
-    implicit val mode = scalacache.modes.scalaFuture.mode
+    implicit val mode = scalacache.modes.try_.mode
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val fResult = new MyMockClassWithFutures(mockDbCall).withTTL(123, "abc")
+    val result = new MyMockClassWithTry(mockDbCall).withTTL(123, "abc").get
 
-    whenReady(fResult) { result =>
-      result should be("hello")
+    result should be("hello")
 
-      // should check the cache first
-      emptyCache.getCalledWithArgs should be(Seq(expectedKey))
+    // should check the cache first
+    emptyCache.getCalledWithArgs should be(Seq(expectedKey))
 
-      // then execute the block
-      mockDbCall.calledWithArgs should be(Seq(123))
+    // then execute the block
+    mockDbCall.calledWithArgs should be(Seq(123))
 
-      // and finally store the result in the cache
-      eventually {
-        emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, Some(10 seconds))))
-      }
-    }
+    // and finally store the result in the cache
+    emptyCache.putCalledWithArgs should be(Seq((expectedKey, result, Some(10 seconds))))
   }
 
   class MockDbCall(result: String) extends (Int => String) {
@@ -282,14 +262,14 @@ class MemoizeSpec extends FlatSpec with Matchers with ScalaFutures with Eventual
 
   }
 
-  class MyMockClassWithFutures(dbCall: Int => String)(implicit cache: Cache[String], mode: Mode[Future], flags: Flags) {
+  class MyMockClassWithTry(dbCall: Int => String)(implicit cache: Cache[String], mode: Mode[Try], flags: Flags) {
 
-    def myLongRunningMethod(a: Int, b: String): Future[String] = memoizeF(None) {
-      Future { dbCall(a) }
+    def myLongRunningMethod(a: Int, b: String): Try[String] = memoizeF(None) {
+      Try { dbCall(a) }
     }
 
-    def withTTL(a: Int, b: String): Future[String] = memoizeF(Some(10 seconds)) {
-      Future { dbCall(a) }
+    def withTTL(a: Int, b: String): Try[String] = memoizeF(Some(10 seconds)) {
+      Try { dbCall(a) }
     }
 
   }

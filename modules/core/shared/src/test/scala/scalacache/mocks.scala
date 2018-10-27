@@ -1,14 +1,13 @@
 package scalacache
 
-import org.slf4j.LoggerFactory
-
+import scalacache.logging.Logger
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 
 class EmptyCache[V](implicit val config: CacheConfig) extends AbstractCache[V] {
 
-  override protected def logger = LoggerFactory.getLogger("EmptyCache")
+  override protected def logger = Logger.getLogger("EmptyCache")
 
   override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]) =
     mode.M.pure(None)
@@ -28,7 +27,7 @@ class EmptyCache[V](implicit val config: CacheConfig) extends AbstractCache[V] {
 
 class FullCache[V](value: V)(implicit val config: CacheConfig) extends AbstractCache[V] {
 
-  override protected def logger = LoggerFactory.getLogger("FullCache")
+  override protected def logger = Logger.getLogger("FullCache")
 
   override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]) =
     mode.M.pure(Some(value))
@@ -48,7 +47,7 @@ class FullCache[V](value: V)(implicit val config: CacheConfig) extends AbstractC
 
 class ErrorRaisingCache[V](implicit val config: CacheConfig) extends AbstractCache[V] {
 
-  override protected def logger = LoggerFactory.getLogger("FullCache")
+  override protected def logger = Logger.getLogger("FullCache")
 
   override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]) =
     mode.M.raiseError(new RuntimeException("failed to read"))
@@ -72,7 +71,7 @@ class ErrorRaisingCache[V](implicit val config: CacheConfig) extends AbstractCac
   */
 class MockCache[V](implicit val config: CacheConfig) extends AbstractCache[V] {
 
-  override protected def logger = LoggerFactory.getLogger("MockCache")
+  override protected def logger = Logger.getLogger("MockCache")
 
   val mmap = collection.mutable.Map[String, V]()
 

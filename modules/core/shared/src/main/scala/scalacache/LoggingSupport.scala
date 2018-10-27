@@ -1,6 +1,6 @@
 package scalacache
 
-import org.slf4j.Logger
+import scalacache.logging.Logger
 
 import scala.concurrent.duration.Duration
 

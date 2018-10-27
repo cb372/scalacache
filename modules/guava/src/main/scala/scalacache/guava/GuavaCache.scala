@@ -3,9 +3,9 @@ package scalacache.guava
 import java.time.temporal.ChronoUnit
 import java.time.{Clock, Instant}
 
-import org.slf4j.LoggerFactory
-
 import scalacache.{AbstractCache, CacheConfig, Entry, Mode}
+import scalacache.logging.Logger
+
 import com.google.common.cache.{Cache => GCache, CacheBuilder => GCacheBuilder}
 
 import scala.concurrent.duration.Duration
@@ -19,7 +19,7 @@ class GuavaCache[V](val underlying: GCache[String, Entry[V]])(implicit val confi
     extends AbstractCache[V] {
 
   override protected final val logger =
-    LoggerFactory.getLogger(getClass.getName)
+    Logger.getLogger(getClass.getName)
 
   def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     mode.M.delay {

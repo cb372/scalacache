@@ -1,14 +1,12 @@
 package scalacache.memoization
 
-import scala.concurrent.Future
 import scalacache._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scalacache.modes.scalaFuture._
+import scalacache.modes.sync._
 
 package object pkg {
   implicit var cache: Cache[Int] = null
 
-  def insidePackageObject(a: Int): Future[Int] = memoize(None) {
+  def insidePackageObject(a: Int): Int = memoizeSync(None) {
     123
   }
 

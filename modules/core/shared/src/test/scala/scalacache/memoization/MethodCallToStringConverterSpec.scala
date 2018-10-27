@@ -29,8 +29,8 @@ class MethodCallToStringConverterSpec extends FlatSpec with Matchers {
   }
 
   it should "build a key for a method with multiple argument lists" in {
-    excludeClassConstructorParams.toString("MyClass", Vector.empty, "myMethod", Vector(Vector("foo", 123), Vector(3.0))) should be(
-      "MyClass.myMethod(foo, 123)(3.0)")
+    excludeClassConstructorParams.toString("MyClass", Vector.empty, "myMethod", Vector(Vector("foo", 123), Vector(3.4))) should be(
+      "MyClass.myMethod(foo, 123)(3.4)")
   }
 
   it should "ignore class constructor arguments" in {
@@ -44,8 +44,8 @@ class MethodCallToStringConverterSpec extends FlatSpec with Matchers {
     includeClassConstructorParams.toString("MyClass",
                                            Vector(Vector("foo", "bar"), Vector("baz")),
                                            "myMethod",
-                                           Vector(Vector("foo", 123), Vector(3.0))) should be(
-      "MyClass(foo, bar)(baz).myMethod(foo, 123)(3.0)")
+                                           Vector(Vector("foo", 123), Vector(3.4))) should be(
+      "MyClass(foo, bar)(baz).myMethod(foo, 123)(3.4)")
   }
 
   it should "build a key for a method in an object" in {

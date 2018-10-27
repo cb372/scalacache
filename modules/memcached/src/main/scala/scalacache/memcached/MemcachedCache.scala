@@ -1,10 +1,10 @@
 package scalacache.memcached
 
-import org.slf4j.LoggerFactory
 import net.spy.memcached.internal.{GetCompletionListener, GetFuture, OperationCompletionListener, OperationFuture}
 import net.spy.memcached.ops.StatusCode
 import net.spy.memcached.{AddrUtil, BinaryConnectionFactory, MemcachedClient}
 
+import scalacache.logging.Logger
 import scalacache.serialization.Codec
 import scalacache.{AbstractCache, CacheConfig, Mode}
 import scala.concurrent.duration.Duration
@@ -25,7 +25,7 @@ class MemcachedCache[V](val client: MemcachedClient,
     with MemcachedTTLConverter {
 
   override protected final val logger =
-    LoggerFactory.getLogger(getClass.getName)
+    Logger.getLogger(getClass.getName)
 
   override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     mode.M.async { cb =>
