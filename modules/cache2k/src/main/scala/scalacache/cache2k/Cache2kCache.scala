@@ -1,7 +1,7 @@
 package scalacache.cache2k
 
 import org.cache2k.{Cache => CCache}
-import org.slf4j.LoggerFactory
+import scalacache.logging.Logger
 
 import scala.concurrent.duration._
 import scala.language.higherKinds
@@ -14,8 +14,7 @@ import scalacache.{AbstractCache, CacheConfig, Mode}
  */
 class Cache2kCache[V](val underlying: CCache[String, V])(implicit val config: CacheConfig) extends AbstractCache[V] {
 
-  override protected final val logger =
-    LoggerFactory.getLogger(getClass.getName)
+  override protected final val logger = Logger.getLogger(getClass.getName)
 
   def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     mode.M.delay {

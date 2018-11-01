@@ -4,8 +4,8 @@ import java.time.temporal.ChronoUnit
 import java.time.{Clock, Instant}
 
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
-import org.slf4j.LoggerFactory
 
+import scalacache.logging.Logger
 import scalacache.{AbstractCache, CacheConfig, Entry, Mode}
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
@@ -19,8 +19,7 @@ class CaffeineCache[V](val underlying: CCache[String, Entry[V]])(implicit val co
                                                                  clock: Clock = Clock.systemUTC())
     extends AbstractCache[V] {
 
-  override protected final val logger =
-    LoggerFactory.getLogger(getClass.getName)
+  override protected final val logger = Logger.getLogger(getClass.getName)
 
   def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     mode.M.delay {

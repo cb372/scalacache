@@ -2,10 +2,10 @@ package scalacache.redis
 
 import java.io.Closeable
 
-import org.slf4j.LoggerFactory
 import redis.clients.jedis._
 import redis.clients.util.Pool
 
+import scalacache.logging.Logger
 import scalacache.serialization.Codec
 import scalacache.{AbstractCache, CacheConfig, Mode}
 import scala.concurrent.duration._
@@ -17,8 +17,7 @@ import scala.language.higherKinds
   */
 trait RedisCacheBase[V] extends AbstractCache[V] {
 
-  override protected final val logger =
-    LoggerFactory.getLogger(getClass.getName)
+  override protected final val logger = Logger.getLogger(getClass.getName)
 
   import StringEnrichment.StringWithUtf8Bytes
 

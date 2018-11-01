@@ -1,8 +1,8 @@
 package scalacache.ehcache
 
-import org.slf4j.LoggerFactory
-
 import scalacache.{AbstractCache, CacheConfig, Mode}
+import scalacache.logging.Logger
+
 import scala.concurrent.duration.Duration
 import net.sf.ehcache.{Element, Cache => Ehcache}
 
@@ -13,8 +13,7 @@ import scala.language.higherKinds
   */
 class EhcacheCache[V](val underlying: Ehcache)(implicit val config: CacheConfig) extends AbstractCache[V] {
 
-  override protected final val logger =
-    LoggerFactory.getLogger(getClass.getName)
+  override protected final val logger = Logger.getLogger(getClass.getName)
 
   override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
     mode.M.delay {
