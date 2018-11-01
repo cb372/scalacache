@@ -180,9 +180,9 @@ lazy val twitterUtil = jvmOnlyModule("twitter-util")
 lazy val circe = jvmOnlyModule("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core" % "0.10.0",
-      "io.circe" %% "circe-parser" % "0.10.0",
-      "io.circe" %% "circe-generic" % "0.10.0" % Test,
+      "io.circe" %% "circe-core" % "0.10.1",
+      "io.circe" %% "circe-parser" % "0.10.1",
+      "io.circe" %% "circe-generic" % "0.10.1" % Test,
       scalacheck
     ),
     coverageMinimum := 80,
