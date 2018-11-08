@@ -1,102 +1,27 @@
 package integrationtests
-
 import java.util.UUID
 
-import org.scalatest._
 import cats.effect.{IO => CatsIO}
-import com.twitter.util.{Future => TwitterFuture, Await => TwitterAwait}
+import com.twitter.util.{Await => TwitterAwait, Future => TwitterFuture}
 import monix.eval.{Task => MonixTask}
+import org.scalatest.FlatSpec
+import scalacache.{Cache, _}
 import scalaz.concurrent.{Task => ScalazTask}
-import net.spy.memcached.{AddrUtil, MemcachedClient}
-import redis.clients.jedis.JedisPool
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
-import scala.util.control.NonFatal
-import scalacache._
-import scalacache.caffeine.CaffeineCache
-import scalacache.memcached.MemcachedCache
-import scalacache.redis.RedisCache
 
-class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
+trait CacheBehaviours {
+  this: FlatSpec =>
 
-  private val memcachedClient = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
-  private val jedisPool = new JedisPool("localhost", 6379)
-
-  override def afterAll(): Unit = {
-    memcachedClient.shutdown()
-    jedisPool.close()
-  }
-
-  private def memcachedIsRunning: Boolean = {
-    try {
-      memcachedClient.get("foo")
-      true
-    } catch { case _: Exception => false }
-  }
-
-  private def redisIsRunning: Boolean = {
-    try {
-      val jedis = jedisPool.getResource()
-      try {
-        jedis.ping()
-        true
-      } finally {
-        jedis.close()
-      }
-    } catch {
-      case NonFatal(_) => false
-    }
-  }
-
-  case class CacheBackend(name: String, cache: Cache[String])
-
-  private val caffeine = CacheBackend("Caffeine", CaffeineCache[String])
-  private val memcached: Seq[CacheBackend] =
-    if (memcachedIsRunning) {
-      Seq(
-        {
-          import scalacache.serialization.binary._
-          CacheBackend("(Memcached) ⇔ (binary codec)", MemcachedCache[String](memcachedClient))
-        }, {
-          import scalacache.serialization.circe._
-          CacheBackend("(Memcached) ⇔ (circe codec)", MemcachedCache[String](memcachedClient))
-        }
-      )
-    } else {
-      alert("Skipping Memcached integration tests because Memcached does not appear to be running on localhost.")
-      Nil
-    }
-
-  private val redis: Seq[CacheBackend] =
-    if (redisIsRunning)
-      Seq(
-        {
-          import scalacache.serialization.binary._
-          CacheBackend("(Redis) ⇔ (binary codec)", RedisCache[String](jedisPool))
-        }, {
-          import scalacache.serialization.circe._
-          CacheBackend("(Redis) ⇔ (circe codec)", RedisCache[String](jedisPool))
-        }
-      )
-    else {
-      alert("Skipping Redis integration tests because Redis does not appear to be running on localhost.")
-      Nil
-    }
-
-  val backends: List[CacheBackend] = List(caffeine) ++ memcached ++ redis
-
-  for (CacheBackend(name, cache) <- backends) {
-
+  def cacheWithDifferentEffects[T](name: String, cache: => Cache[String]) {
     s"$name ⇔ (cats-effect IO)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
       implicit val mode: Mode[CatsIO] = CatsEffect.modes.io
 
       val key = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString
-
-      import cats.syntax.all._
       val program =
         for {
           _ <- put(key)(initialValue)
@@ -176,7 +101,6 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
       val result: Option[String] = TwitterAwait.result(program)
       assert(result.contains("prepended " + initialValue))
     }
-
   }
 
   private def checkComputationHasNotRun(key: String)(implicit cache: Cache[String]): Unit = {
@@ -184,5 +108,4 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
     implicit val mode: Mode[Id] = scalacache.modes.sync.mode
     assert(scalacache.sync.get(key).isEmpty)
   }
-
 }

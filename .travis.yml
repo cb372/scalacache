@@ -6,8 +6,7 @@ scala:
 jdk:
   - oraclejdk8
 services:
-  - memcached
-  - redis
+  - docker
 script:
   - sbt +coverage +test +doc/tut
   - sbt +coverageReport

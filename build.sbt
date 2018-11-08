@@ -43,6 +43,7 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
              catsEffect,
              monix,
              scalaz72,
+             twitterUtil,
              circe,
              tests)
 
@@ -190,7 +191,10 @@ lazy val circe = jvmOnlyModule("circe")
   )
 
 lazy val tests = jvmOnlyModule("tests")
-  .settings(publishArtifact := false)
+  .settings(publishArtifact := false,
+            libraryDependencies ++= Seq(
+              "com.dimafeng" %% "testcontainers-scala" % "0.21.0" % Test
+            ))
   .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, monix, scalaz72, twitterUtil, circe)
 
 lazy val doc = jvmOnlyModule("doc")
