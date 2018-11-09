@@ -1,11 +1,23 @@
 package scalacache
 
-import cats.effect.{Async => CatsAsync, IO}
+import cats.Functor
+import cats.effect.{Async => CatsAsync, IO, Resource}
 
 import scala.language.higherKinds
 import scala.util.control.NonFatal
 
 object CatsEffect {
+
+  object lowPrioModes {
+
+    /**
+      * A mode that wraps computations in F[_],
+      * where there is an instance of cats-effect Async available for F.
+      */
+    implicit def async[F[_]](implicit F: CatsAsync[F]): Mode[F] = new Mode[F] {
+      val M: Async[F] = asyncForCatsEffectAsync[F]
+    }
+  }
 
   object modes {
 
@@ -14,14 +26,6 @@ object CatsEffect {
       */
     implicit val io: Mode[IO] = new Mode[IO] {
       val M: Async[IO] = asyncForCatsEffectAsync[IO]
-    }
-
-    /**
-      * A mode that wraps computations in F[_],
-      * where there is an instance of cats-effect Async available for F.
-      */
-    implicit def async[F[_]](implicit F: CatsAsync[F]): Mode[F] = new Mode[F] {
-      val M: Async[F] = asyncForCatsEffectAsync[F]
     }
 
   }
@@ -46,6 +50,11 @@ object CatsEffect {
 
     def async[A](register: (Either[Throwable, A] => Unit) => Unit): F[A] = af.async(register)
 
+  }
+
+  final case class ResourceCache[F[_]: CatsAsync: Functor: Mode]() {
+    def apply[V](thunk: => Cache[V]): Resource[F, Cache[V]] =
+      Resource.make(CatsAsync[F].delay(thunk))(toClose => Functor[F].map(toClose.close())(_ => ()))
   }
 
 }
