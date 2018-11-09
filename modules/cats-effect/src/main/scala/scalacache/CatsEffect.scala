@@ -1,6 +1,7 @@
 package scalacache
 
 import cats.Functor
+import cats.evidence.<~<
 import cats.effect.{Async => CatsAsync, IO, Resource}
 
 import scala.language.higherKinds
@@ -52,9 +53,8 @@ object CatsEffect {
 
   }
 
-  final case class ResourceCache[F[_]: CatsAsync: Functor: Mode]() {
-    def apply[V](thunk: => Cache[V]): Resource[F, Cache[V]] =
-      Resource.make(CatsAsync[F].delay(thunk))(toClose => Functor[F].map(toClose.close())(_ => ()))
-  }
+  def resourceCache[F[_]: CatsAsync: Functor: Mode, G[_], V](cacheF: F[G[V]])(
+      implicit ev: G[V] <~< Cache[V]): Resource[F, G[V]] =
+    Resource.make(cacheF)(toClose => Functor[F].map(ev(toClose).close())(_ => ()))
 
 }

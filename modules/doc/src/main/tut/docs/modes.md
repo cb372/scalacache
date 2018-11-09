@@ -62,8 +62,7 @@ import scalacache.CatsEffect.modes._
 
 * Wraps the operation in `IO`, deferring execution until it is explicitly run
 
-Note that `CatsEffect` also has a Function `ResourceCache[F[_]:Async, V](thunk: => Cache[V]):Resource[F, Cache[V]]`. This resource will discard the values of `close:F[Any]` upon closing the Resource. 
-(This Function is encoded as a caseclass with an override apply to make partial type application possible)
+Note that `CatsEffect` also has a Function `resourceCache[F[_]:Async, V](cacheF: F[Cache[V]]):Resource[F, Cache[V]]`. This resource will discard the values of `close:F[Any]` upon closing the Resource. 
 
 Usage would look like this:
 
@@ -74,7 +73,7 @@ import scalacache.CatsEffect.modes._
 import cats.effect.IO
 import cats.implicits._
 
-val cacheResource = CatsEffect.ResourceCache[IO].apply {CaffeineCache[String]} 
+val cacheResource = CatsEffect.resourceCache( IO {CaffeineCache[String]})
 ```
 
 #### Monix Task
