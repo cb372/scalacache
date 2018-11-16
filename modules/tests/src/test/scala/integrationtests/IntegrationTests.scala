@@ -91,7 +91,7 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
     s"$name ⇔ (cats-effect IO)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
-      implicit val mode: Mode[CatsIO] = CatsEffect.modes.io
+      implicit val mode: Mode[CatsIO] = CatsEffect.modes.async[CatsIO]
 
       val key = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString
