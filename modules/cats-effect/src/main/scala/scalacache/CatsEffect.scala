@@ -9,7 +9,7 @@ import scala.util.control.NonFatal
 
 object CatsEffect {
 
-  object lowPrioModes {
+  trait LowPrioModes {
 
     /**
       * A mode that wraps computations in F[_],
@@ -20,7 +20,7 @@ object CatsEffect {
     }
   }
 
-  object modes {
+  object modes extends LowPrioModes {
 
     /**
       * A mode that wraps computations in cats-effect IO.
