@@ -9,7 +9,7 @@ import scala.util.control.NonFatal
 
 object CatsEffect {
 
-  trait LowPrioModes {
+  object modes {
 
     /**
       * A mode that wraps computations in F[_],
@@ -17,16 +17,6 @@ object CatsEffect {
       */
     implicit def async[F[_]](implicit F: CatsAsync[F]): Mode[F] = new Mode[F] {
       val M: Async[F] = asyncForCatsEffectAsync[F]
-    }
-  }
-
-  object modes extends LowPrioModes {
-
-    /**
-      * A mode that wraps computations in cats-effect IO.
-      */
-    implicit val io: Mode[IO] = new Mode[IO] {
-      val M: Async[IO] = asyncForCatsEffectAsync[IO]
     }
 
   }
