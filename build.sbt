@@ -109,7 +109,7 @@ lazy val ehcache = jvmOnlyModule("ehcache")
 lazy val redis = jvmOnlyModule("redis")
   .settings(
     libraryDependencies ++= Seq(
-      "redis.clients" % "jedis" % "2.9.0"
+      "redis.clients" % "jedis" % "2.9.1"
     ),
     coverageMinimum := 56,
     coverageFailOnMinimum := true
