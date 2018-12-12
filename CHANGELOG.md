@@ -1,3 +1,24 @@
+0.27.0 (2018/12/12)
+---
+
+* Add support for twitter-util Future (thanks @gurinderu)
+* Sort out Scala.js support in core
+* Ehcache 2.10.6
+* Guava 27.0.1-jre
+* Jedis 2.10.0
+* circe 0.10.1
+* cats-effect 1.1.0
+* Monix 3.0.0-RC2 (thanks @ploddi)
+* Scalaz 7.2.27
+
+Breaking changes:
+
+* Removed an implicit val `scalacache.CatsEffect.modes.io`. It is superseded by
+    `scalacache.CatsEffect.modes.async`.
+* `AbstractCache`'s `logger` is now a `scalacache.logging.Logger` instead of a
+    `org.slf4j.Logger`
+
+
 0.26.0 (2018/10/22)
 ---
 
