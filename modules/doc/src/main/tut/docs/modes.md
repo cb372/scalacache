@@ -53,7 +53,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 You will need a dependency on the `scalacache-cats-effect` module:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.26.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.27.0"
 ```
 
 ```tut:silent
@@ -67,7 +67,7 @@ import scalacache.CatsEffect.modes._
 You will need a dependency on the `scalacache-monix` module:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-monix" % "0.26.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-monix" % "0.27.0"
 ```
 
 ```tut:silent
@@ -81,7 +81,7 @@ import scalacache.Monix.modes._
 You will need a dependency on the `scalacache-scalaz72` module:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.26.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.27.0"
 ```
 
 ```tut:silent
