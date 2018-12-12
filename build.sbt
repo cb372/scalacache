@@ -162,7 +162,7 @@ lazy val monix = jvmOnlyModule("monix")
 lazy val scalaz72 = jvmOnlyModule("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-concurrent" % "7.2.26"
+      "org.scalaz" %% "scalaz-concurrent" % "7.2.27"
     ),
     coverageMinimum := 40,
     coverageFailOnMinimum := true
