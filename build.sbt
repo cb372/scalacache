@@ -118,8 +118,8 @@ lazy val redis = jvmOnlyModule("redis")
 lazy val cache2k = jvmOnlyModule("cache2k")
   .settings(
     libraryDependencies ++= Seq(
-      "org.cache2k" % "cache2k-core" % "1.2.0.Final",
-      "org.cache2k" % "cache2k-api" % "1.2.0.Final"
+      "org.cache2k" % "cache2k-core" % "1.2.1.Final",
+      "org.cache2k" % "cache2k-api" % "1.2.1.Final"
     )
   )
 
