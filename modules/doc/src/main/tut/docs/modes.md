@@ -40,7 +40,7 @@ import scalacache.modes.try_._
 import scalacache.modes.scalaFuture._
 ```
 
-* Executes the operation on a separate thread and returns a `scala.util.Future`
+* Executes the operation on a separate thread and returns a `scala.concurrent.Future`
 
 You will also need an ExecutionContext in implicit scope:
 
