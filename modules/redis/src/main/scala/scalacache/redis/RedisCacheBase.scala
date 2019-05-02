@@ -30,7 +30,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
   protected def codec: Codec[V]
 
   protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = mode.M.suspend {
-    withJedisCommands { jedis =>
+    withJedis { jedis =>
       val bytes = jedis.get(key.utf8bytes)
       val result: Codec.DecodingResult[Option[V]] = {
         if (bytes != null)
@@ -50,7 +50,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
 
   protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] =
     mode.M.delay {
-      withJedisCommands { jedis =>
+      withJedis { jedis =>
         val keyBytes = key.utf8bytes
         val valueBytes = codec.encode(value)
         ttl match {
@@ -70,7 +70,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
     }
 
   protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] = mode.M.delay {
-    withJedisCommands { jedis =>
+    withJedis { jedis =>
       jedis.del(key.utf8bytes)
     }
   }
@@ -84,7 +84,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
     * @tparam T return type of the block
     * @return the result of executing the block
     */
-  protected final def withJedisCommands[T](f: BinaryJedisCommands => T): T = {
+  protected final def withJedis[T](f: JClient => T): T = {
     val jedis = jedisPool.getResource()
     try {
       f(jedis)
