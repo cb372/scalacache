@@ -17,10 +17,10 @@ class MemcachedException(message: String) extends Exception(message)
 /**
   * Wrapper around spymemcached
   */
-class MemcachedCache[V](val client: MemcachedClient,
-                        val keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer())(
-    implicit val config: CacheConfig,
-    codec: Codec[V])
+class MemcachedCache[V](
+    val client: MemcachedClient,
+    val keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer()
+)(implicit val config: CacheConfig, codec: Codec[V])
     extends AbstractCache[V]
     with MemcachedTTLConverter {
 
@@ -55,7 +55,7 @@ class MemcachedCache[V](val client: MemcachedClient,
   override protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] = {
     mode.M.async { cb =>
       val valueToSend = codec.encode(value)
-      val f = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)
+      val f           = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)
       f.addListener(new OperationCompletionListener {
         def onComplete(g: OperationFuture[_]): Unit = {
           if (g.getStatus.isSuccess) {

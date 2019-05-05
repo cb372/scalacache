@@ -36,7 +36,7 @@ class RedisSerializationSpec extends FlatSpec with Matchers with RedisSerializat
   }
 
   it should "round-trip a Serializable case class" in {
-    val cc = CaseClass(123, "wow")
+    val cc    = CaseClass(123, "wow")
     val bytes = serialize(cc)
     deserialize[CaseClass](bytes) should be(Right(cc))
   }

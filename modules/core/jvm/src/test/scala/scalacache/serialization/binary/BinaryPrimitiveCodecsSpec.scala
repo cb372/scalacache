@@ -13,7 +13,7 @@ class BinaryPrimitiveCodecsSpec extends FlatSpec with Matchers with GeneratorDri
 
   private def serdesCheck[A: Arbitrary](implicit codec: Codec[A]): Unit = {
     forAll { n: A =>
-      val serialised = codec.encode(n)
+      val serialised   = codec.encode(n)
       val deserialised = codec.decode(serialised)
       deserialised shouldBe Right(n)
     }

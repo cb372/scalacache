@@ -16,6 +16,6 @@ object GZippingJavaSerializationAnyRefCodec {
 }
 
 class GZippingJavaSerializationAnyRefCodec[S <: Serializable](override val sizeThreshold: Int)(
-    implicit classTag: ClassTag[S])
-    extends JavaSerializationAnyRefCodec[S](classTag)
+    implicit classTag: ClassTag[S]
+) extends JavaSerializationAnyRefCodec[S](classTag)
     with GZippingBinaryCodec[S]

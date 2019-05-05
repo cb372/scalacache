@@ -63,7 +63,7 @@ class CirceCodecSpec extends FlatSpec with Matchers with GeneratorDrivenProperty
     import io.circe.generic.auto._
     val fruitCodec = implicitly[Codec[Fruit]]
 
-    val banana = Fruit("banana", 0.7)
+    val banana     = Fruit("banana", 0.7)
     val serialised = fruitCodec.encode(banana)
     new String(serialised, "utf-8") shouldBe """{"name":"banana","tastinessQuotient":0.7}"""
     val deserialised = fruitCodec.decode(serialised)

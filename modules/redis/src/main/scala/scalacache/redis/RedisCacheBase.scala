@@ -51,7 +51,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
   protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] =
     mode.M.delay {
       withJedis { jedis =>
-        val keyBytes = key.utf8bytes
+        val keyBytes   = key.utf8bytes
         val valueBytes = codec.encode(value)
         ttl match {
           case None                => jedis.set(keyBytes, valueBytes)
@@ -59,7 +59,8 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
           case Some(d) if d < 1.second =>
             if (logger.isWarnEnabled) {
               logger.warn(
-                s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second")
+                s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
+              )
             }
             jedis.setex(keyBytes, 1, valueBytes)
           case Some(d) =>

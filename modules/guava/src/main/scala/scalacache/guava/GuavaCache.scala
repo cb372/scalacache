@@ -14,9 +14,10 @@ import scala.language.higherKinds
 /*
  * Thin wrapper around Google Guava.
  */
-class GuavaCache[V](val underlying: GCache[String, Entry[V]])(implicit val config: CacheConfig,
-                                                              clock: Clock = Clock.systemUTC())
-    extends AbstractCache[V] {
+class GuavaCache[V](val underlying: GCache[String, Entry[V]])(
+    implicit val config: CacheConfig,
+    clock: Clock = Clock.systemUTC()
+) extends AbstractCache[V] {
 
   override protected final val logger =
     Logger.getLogger(getClass.getName)

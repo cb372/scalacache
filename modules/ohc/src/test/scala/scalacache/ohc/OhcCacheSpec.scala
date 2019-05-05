@@ -56,7 +56,7 @@ class OhcCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with Scala
 
   it should "store the given key-value pair in the underlying cache with the given TTL" in {
     val underlying = newOHCache
-    val ohcCache = new OhcCache(underlying)(implicitly[CacheConfig])
+    val ohcCache   = new OhcCache(underlying)(implicitly[CacheConfig])
     ohcCache.put("key1")("hello", Some(1.nanosecond))
     Thread.sleep(100)
     underlying.get("key1") should be(null)

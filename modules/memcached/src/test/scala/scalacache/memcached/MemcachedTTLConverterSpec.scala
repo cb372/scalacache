@@ -35,7 +35,7 @@ class MemcachedTTLConverterSpec extends FlatSpec with Matchers with MemcachedTTL
   }
 
   it should "convert a duration longer than 30 days to the expiry time expressed as UNIX epoch seconds" in {
-    val now = Instant.now()
+    val now   = Instant.now()
     val clock = Clock.fixed(now, ZoneOffset.UTC)
     toMemcachedExpiry(Some(31.days))(clock) should be(now.plus(31, ChronoUnit.DAYS).toEpochMilli / 1000)
   }

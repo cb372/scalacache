@@ -11,7 +11,7 @@ import scalacache.serialization.Codec
 class SentinelRedisCacheSpec extends RedisCacheSpecBase {
 
   type JClient = Jedis
-  type JPool = JedisSentinelPool
+  type JPool   = JedisSentinelPool
 
   val withJedis = assumingRedisSentinelIsRunning _
 
@@ -27,7 +27,7 @@ class SentinelRedisCacheSpec extends RedisCacheSpecBase {
   def assumingRedisSentinelIsRunning(f: (JedisSentinelPool, Jedis) => Unit): Unit = {
     Try {
       val jedisPool = new JedisSentinelPool("master", Set("127.0.0.1:26379").asJava, new GenericObjectPoolConfig)
-      val jedis = jedisPool.getResource()
+      val jedis     = jedisPool.getResource()
       jedis.ping()
       (jedisPool, jedis)
     } match {

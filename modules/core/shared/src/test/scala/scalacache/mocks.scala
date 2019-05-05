@@ -105,7 +105,8 @@ trait LoggingCache[V] extends AbstractCache[V] {
   }
 
   protected abstract override def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(
-      implicit mode: Mode[F]): F[Any] = {
+      implicit mode: Mode[F]
+  ): F[Any] = {
     putCalledWithArgs.append((key, value, ttl))
     super.doPut(key, value, ttl)
   }

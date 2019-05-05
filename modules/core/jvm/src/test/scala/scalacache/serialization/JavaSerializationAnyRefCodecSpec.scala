@@ -7,7 +7,7 @@ class JavaSerializationAnyRefCodecSpec extends FlatSpec with Matchers {
   import scalacache.serialization.binary._
 
   it should "serialize and deserialize case classes" in {
-    val hello = Phone(1, "Apple")
+    val hello      = Phone(1, "Apple")
     val phoneCodec = implicitly[Codec[Phone]]
     val serialised = phoneCodec.encode(hello)
     phoneCodec.decode(serialised) shouldBe Right(hello)
@@ -15,7 +15,7 @@ class JavaSerializationAnyRefCodecSpec extends FlatSpec with Matchers {
 
   it should "return a Left if the bytes cannot be deserialised to a case class" in {
     val invalidBytes = Array[Byte](1, 2, 3, 4)
-    val phoneCodec = implicitly[Codec[Phone]]
+    val phoneCodec   = implicitly[Codec[Phone]]
     phoneCodec.decode(invalidBytes) shouldBe 'left
   }
 

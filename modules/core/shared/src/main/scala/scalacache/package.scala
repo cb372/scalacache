@@ -37,9 +37,9 @@ package object scalacache {
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V The type of the corresponding value
     */
-  def put[F[_], V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[V],
-                                                                           mode: Mode[F],
-                                                                           flags: Flags): F[Any] =
+  def put[F[_], V](
+      keyParts: Any*
+  )(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[Any] =
     cache.put(keyParts: _*)(value, ttl)
 
   /**
@@ -90,8 +90,9 @@ package object scalacache {
     * @tparam V the type of the block's result
     * @return The result, either retrived from the cache or returned by the block
     */
-  def caching[F[_], V](keyParts: Any*)(ttl: Option[Duration])(
-      f: => V)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+  def caching[F[_], V](
+      keyParts: Any*
+  )(ttl: Option[Duration])(f: => V)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     cache.caching(keyParts: _*)(ttl)(f)
 
   /**
@@ -114,8 +115,9 @@ package object scalacache {
     * @tparam V the type of the block's result
     * @return The result, either retrived from the cache or returned by the block
     */
-  def cachingF[F[_], V](keyParts: Any*)(ttl: Option[Duration])(
-      f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+  def cachingF[F[_], V](
+      keyParts: Any*
+  )(ttl: Option[Duration])(f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     cache.cachingF(keyParts: _*)(ttl)(f)
 
   /**
@@ -144,16 +146,17 @@ package object scalacache {
     def get[V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): Option[V] =
       cache.get[Id](keyParts: _*)
 
-    def put[V](keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[V],
-                                                                       mode: Mode[Id],
-                                                                       flags: Flags): Any =
+    def put[V](
+        keyParts: Any*
+    )(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): Any =
       cache.put[Id](keyParts: _*)(value, ttl)
 
     def remove[V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[Id]): Any =
       cache.remove[Id](keyParts: _*)
 
-    def caching[V](keyParts: Any*)(ttl: Option[Duration])(
-        f: => V)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): V =
+    def caching[V](
+        keyParts: Any*
+    )(ttl: Option[Duration])(f: => V)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): V =
       cache.caching[Id](keyParts: _*)(ttl)(f)
   }
 

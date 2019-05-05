@@ -52,8 +52,9 @@ package object memoization {
     * @tparam V The type of the value to be cached
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoizeF[F[_], V](ttl: Option[Duration])(
-      f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+  def memoizeF[F[_], V](
+      ttl: Option[Duration]
+  )(f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     macro Macros.memoizeFImpl[F, V]
 
   /**

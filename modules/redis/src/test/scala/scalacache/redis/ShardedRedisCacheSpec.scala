@@ -10,7 +10,7 @@ import scalacache.serialization.Codec
 class ShardedRedisCacheSpec extends RedisCacheSpecBase {
 
   type JClient = ShardedJedis
-  type JPool = ShardedJedisPool
+  type JPool   = ShardedJedisPool
 
   val withJedis = assumingMultipleRedisAreRunning _
 

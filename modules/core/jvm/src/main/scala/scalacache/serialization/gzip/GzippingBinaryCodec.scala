@@ -18,7 +18,7 @@ object CompressingCodec {
     */
   object Headers {
     val Uncompressed: Byte = 0
-    val Gzipped: Byte = 1
+    val Gzipped: Byte      = 1
   }
 
 }
@@ -56,7 +56,9 @@ trait GZippingBinaryCodec[A] extends Codec[A] {
       case unexpected =>
         Left(
           FailedToDecode(
-            new RuntimeException(s"Expected either ${Headers.Uncompressed} or ${Headers.Gzipped} but got $unexpected")))
+            new RuntimeException(s"Expected either ${Headers.Uncompressed} or ${Headers.Gzipped} but got $unexpected")
+          )
+        )
     }
   }
 

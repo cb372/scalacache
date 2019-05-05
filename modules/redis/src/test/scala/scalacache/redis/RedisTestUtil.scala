@@ -10,7 +10,7 @@ trait RedisTestUtil { self: Alerting =>
   def assumingRedisIsRunning(f: (JedisPool, Jedis) => Unit): Unit = {
     Try {
       val jedisPool = new JedisPool("localhost", 6379)
-      val jedis = jedisPool.getResource()
+      val jedis     = jedisPool.getResource()
       jedis.ping()
       (jedisPool, jedis)
     } match {

@@ -12,7 +12,7 @@ class EhcacheCacheSpec extends FlatSpec with Matchers with Eventually with Befor
 
   private val underlying = {
     val cacheManager = new CacheManager
-    val cache = new Ehcache("test", 1000, false, false, 0, 0)
+    val cache        = new Ehcache("test", 1000, false, false, 0, 0)
     cacheManager.addCache(cache)
     cache
   }

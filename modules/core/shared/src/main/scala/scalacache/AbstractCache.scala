@@ -39,8 +39,10 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
 
   protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any]
 
-  private def checkFlagsAndPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F],
-                                                                                   flags: Flags): F[Any] = {
+  private def checkFlagsAndPut[F[_]](key: String, value: V, ttl: Option[Duration])(
+      implicit mode: Mode[F],
+      flags: Flags
+  ): F[Any] = {
     if (flags.writesEnabled) {
       doPut(key, value, ttl)
     } else {
@@ -51,9 +53,10 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
     }
   }
 
-  final override def put[F[_]](keyParts: Any*)(value: V, ttl: Option[Duration])(implicit mode: Mode[F],
-                                                                                flags: Flags): F[Any] = {
-    val key = toKey(keyParts: _*)
+  final override def put[F[_]](
+      keyParts: Any*
+  )(value: V, ttl: Option[Duration])(implicit mode: Mode[F], flags: Flags): F[Any] = {
+    val key       = toKey(keyParts: _*)
     val finiteTtl = ttl.filter(_.isFinite()) // discard Duration.Inf, Duration.Undefined
     checkFlagsAndPut(key, value, finiteTtl)
   }
@@ -74,34 +77,40 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
 
   // CACHING
 
-  final override def caching[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F],
-                                                                                          flags: Flags): F[V] = {
+  final override def caching[F[_]](
+      keyParts: Any*
+  )(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F], flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
     _caching(key, ttl, f)
   }
 
-  override def cachingF[F[_]](keyParts: Any*)(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F],
-                                                                                        flags: Flags): F[V] = {
+  override def cachingF[F[_]](
+      keyParts: Any*
+  )(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F], flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
     _cachingF(key, ttl, f)
   }
 
   // MEMOIZE
 
-  override def cachingForMemoize[F[_]](baseKey: String)(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F],
-                                                                                               flags: Flags): F[V] = {
+  override def cachingForMemoize[F[_]](
+      baseKey: String
+  )(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F], flags: Flags): F[V] = {
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     _caching(key, ttl, f)
   }
 
-  override def cachingForMemoizeF[F[_]](baseKey: String)(ttl: Option[Duration])(f: => F[V])(implicit mode: Mode[F],
-                                                                                            flags: Flags): F[V] = {
+  override def cachingForMemoizeF[F[_]](
+      baseKey: String
+  )(ttl: Option[Duration])(f: => F[V])(implicit mode: Mode[F], flags: Flags): F[V] = {
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     _cachingF(key, ttl, f)
   }
 
-  private def _caching[F[_]](key: String, ttl: Option[Duration], f: => V)(implicit mode: Mode[F],
-                                                                          flags: Flags): F[V] = {
+  private def _caching[F[_]](key: String, ttl: Option[Duration], f: => V)(
+      implicit mode: Mode[F],
+      flags: Flags
+  ): F[V] = {
     import mode._
 
     M.flatMap {
@@ -128,8 +137,10 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
     }
   }
 
-  private def _cachingF[F[_]](key: String, ttl: Option[Duration], f: => F[V])(implicit mode: Mode[F],
-                                                                              flags: Flags): F[V] = {
+  private def _cachingF[F[_]](key: String, ttl: Option[Duration], f: => F[V])(
+      implicit mode: Mode[F],
+      flags: Flags
+  ): F[V] = {
     import mode._
 
     M.flatMap {

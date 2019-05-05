@@ -9,7 +9,7 @@ import scalacache.serialization.Codec
 class RedisCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
   type JClient = Jedis
-  type JPool = JedisPool
+  type JPool   = JedisPool
 
   val withJedis = assumingRedisIsRunning _
 
