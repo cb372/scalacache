@@ -49,7 +49,7 @@ class Cache2kCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with S
   behavior of "put with TTL"
 
   it should "store the given key-value pair in the underlying cache with the given TTL" in {
-    val underlying = newCCache
+    val underlying   = newCCache
     val cache2kCache = new Cache2kCache(underlying)(implicitly[CacheConfig])
     cache2kCache.put("key1")("hello", Some(1.nanosecond))
     Thread.sleep(100)

@@ -19,7 +19,7 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
   it should "return the value stored in the underlying cache" in {
     val underlying = newCCache
-    val entry = Entry("hello", expiresAt = None)
+    val entry      = Entry("hello", expiresAt = None)
     underlying.put("key1", entry)
     CaffeineCache(underlying).get("key1") should be(Some("hello"))
   }
@@ -48,7 +48,7 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
   behavior of "put with TTL"
 
   it should "store the given key-value pair in the underlying cache with the given TTL" in {
-    val now = Instant.now()
+    val now   = Instant.now()
     val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newCCache
@@ -57,7 +57,7 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
   }
 
   it should "support a TTL greater than Int.MaxValue millis" in {
-    val now = Instant.parse("2015-10-01T00:00:00Z")
+    val now   = Instant.parse("2015-10-01T00:00:00Z")
     val clock = Clock.fixed(now, ZoneOffset.UTC)
 
     val underlying = newCCache
@@ -69,7 +69,7 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
 
   it should "delete the given key and its value from the underlying cache" in {
     val underlying = newCCache
-    val entry = Entry("hello", expiresAt = None)
+    val entry      = Entry("hello", expiresAt = None)
     underlying.put("key1", entry)
     underlying.getIfPresent("key1") should be(entry)
 

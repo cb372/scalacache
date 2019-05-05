@@ -56,7 +56,7 @@ class MemoizeSpec extends FlatSpec with Matchers {
 
   it should "execute the block if cache reads are disabled" in {
     implicit val fullCache = new FullCache[String]("cache hit") with LoggingCache[String]
-    implicit val flags = Flags(readsEnabled = false)
+    implicit val flags     = Flags(readsEnabled = false)
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -76,7 +76,7 @@ class MemoizeSpec extends FlatSpec with Matchers {
 
   it should "not cache the result if cache writes are disabled" in {
     implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
-    implicit val flags = Flags(writesEnabled = false)
+    implicit val flags      = Flags(writesEnabled = false)
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -152,7 +152,7 @@ class MemoizeSpec extends FlatSpec with Matchers {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
     implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
-    implicit val mode = scalacache.modes.try_.mode
+    implicit val mode       = scalacache.modes.try_.mode
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -175,7 +175,7 @@ class MemoizeSpec extends FlatSpec with Matchers {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
     implicit val fullCache = new FullCache[String]("cache hit") with LoggingCache[String]
-    implicit val mode = scalacache.modes.try_.mode
+    implicit val mode      = scalacache.modes.try_.mode
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -198,7 +198,7 @@ class MemoizeSpec extends FlatSpec with Matchers {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
     implicit val dodgyCache = new ErrorRaisingCache[String] with LoggingCache[String]
-    implicit val mode = scalacache.modes.try_.mode
+    implicit val mode       = scalacache.modes.try_.mode
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -223,7 +223,7 @@ class MemoizeSpec extends FlatSpec with Matchers {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.withTTL(123, abc)"
 
     implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
-    implicit val mode = scalacache.modes.try_.mode
+    implicit val mode       = scalacache.modes.try_.mode
 
     val mockDbCall = new MockDbCall("hello")
 

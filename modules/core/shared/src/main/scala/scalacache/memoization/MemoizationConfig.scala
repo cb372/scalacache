@@ -6,4 +6,5 @@ package scalacache.memoization
   * @param toStringConverter converter for generating a String cache key from information about a method call
   */
 case class MemoizationConfig(
-    toStringConverter: MethodCallToStringConverter = MethodCallToStringConverter.excludeClassConstructorParams)
+    toStringConverter: MethodCallToStringConverter = MethodCallToStringConverter.excludeClassConstructorParams
+)

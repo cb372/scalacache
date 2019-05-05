@@ -26,9 +26,11 @@ class SquerylIntegrationSpec
   override def beforeAll() = {
     Class.forName("org.h2.Driver")
     SessionFactory.concreteFactory = Some(
-      () => Session.create(java.sql.DriverManager.getConnection("jdbc:h2:mem:test"), new H2Adapter))
+      () => Session.create(java.sql.DriverManager.getConnection("jdbc:h2:mem:test"), new H2Adapter)
+    )
     SessionFactory.externalTransactionManagementAdapter = Some(
-      () => Some(Session.create(java.sql.DriverManager.getConnection("jdbc:h2:mem:test"), new H2Adapter)))
+      () => Some(Session.create(java.sql.DriverManager.getConnection("jdbc:h2:mem:test"), new H2Adapter))
+    )
 
     inTransaction {
       // create the DB table

@@ -19,10 +19,12 @@ trait MethodCallToStringConverter {
     *                This is a `[IndexedSeq[IndexedSeq[Any]]` because there may be multiple parameter lists
     * @return
     */
-  def toString(fullClassName: String,
-               constructorParamss: IndexedSeq[IndexedSeq[Any]],
-               methodName: String,
-               paramss: IndexedSeq[IndexedSeq[Any]]): String
+  def toString(
+      fullClassName: String,
+      constructorParamss: IndexedSeq[IndexedSeq[Any]],
+      methodName: String,
+      paramss: IndexedSeq[IndexedSeq[Any]]
+  ): String
 
 }
 
@@ -37,7 +39,8 @@ object MethodCallToStringConverter {
   }
 
   private def appendClassNameAndParamsPart(
-      sb: JStringBuilder)(className: String, constructorParamss: IndexedSeq[IndexedSeq[Any]]): Unit = {
+      sb: JStringBuilder
+  )(className: String, constructorParamss: IndexedSeq[IndexedSeq[Any]]): Unit = {
     if (className.nonEmpty) {
       sb.append(className)
       appendParamssPart(sb)(constructorParamss)
@@ -79,10 +82,12 @@ object MethodCallToStringConverter {
     */
   val excludeClassConstructorParams: MethodCallToStringConverter =
     new MethodCallToStringConverter {
-      def toString(fullClassName: String,
-                   constructorParamss: IndexedSeq[IndexedSeq[Any]],
-                   methodName: String,
-                   paramss: IndexedSeq[IndexedSeq[Any]]): String = {
+      def toString(
+          fullClassName: String,
+          constructorParamss: IndexedSeq[IndexedSeq[Any]],
+          methodName: String,
+          paramss: IndexedSeq[IndexedSeq[Any]]
+      ): String = {
         val sb = new JStringBuilder(128)
         appendClassNamePart(sb)(fullClassName)
         sb.append(methodName)
@@ -98,10 +103,12 @@ object MethodCallToStringConverter {
     * Note that this converter includes the class's constructor params in the cache key, where applicable.
     */
   val includeClassConstructorParams = new MethodCallToStringConverter {
-    def toString(fullClassName: String,
-                 constructorParamss: IndexedSeq[IndexedSeq[Any]],
-                 methodName: String,
-                 paramss: IndexedSeq[IndexedSeq[Any]]): String = {
+    def toString(
+        fullClassName: String,
+        constructorParamss: IndexedSeq[IndexedSeq[Any]],
+        methodName: String,
+        paramss: IndexedSeq[IndexedSeq[Any]]
+    ): String = {
       val sb = new JStringBuilder(128)
       appendClassNameAndParamsPart(sb)(fullClassName, constructorParamss)
       sb.append(methodName)
@@ -119,10 +126,12 @@ object MethodCallToStringConverter {
     * e.g. the results of `Foo.bar(123)` and `Baz.wow(123)` would be cached with the same key `123`.
     */
   val onlyMethodParams = new MethodCallToStringConverter {
-    def toString(fullClassName: String,
-                 constructorParamss: IndexedSeq[IndexedSeq[Any]],
-                 methodName: String,
-                 paramss: IndexedSeq[IndexedSeq[Any]]): String = {
+    def toString(
+        fullClassName: String,
+        constructorParamss: IndexedSeq[IndexedSeq[Any]],
+        methodName: String,
+        paramss: IndexedSeq[IndexedSeq[Any]]
+    ): String = {
       val sb = new JStringBuilder(128)
       appendParamssPart(sb)(paramss)
       sb.toString

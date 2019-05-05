@@ -117,12 +117,12 @@ trait BinaryPrimitiveCodecs {
   }
 
   implicit object StringBinaryCodec extends Codec[String] {
-    def encode(value: String): Array[Byte] = value.getBytes("UTF-8")
+    def encode(value: String): Array[Byte]                = value.getBytes("UTF-8")
     def decode(data: Array[Byte]): DecodingResult[String] = tryDecode(new String(data, "UTF-8"))
   }
 
   implicit object ArrayByteBinaryCodec extends Codec[Array[Byte]] {
-    def encode(value: Array[Byte]): Array[Byte] = value
+    def encode(value: Array[Byte]): Array[Byte]                = value
     def decode(data: Array[Byte]): DecodingResult[Array[Byte]] = Right(data)
   }
 }

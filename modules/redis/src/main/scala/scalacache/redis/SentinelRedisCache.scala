@@ -36,8 +36,10 @@ object SentinelRedisCache {
     * @param sentinels set of sentinels in format [host1:port, host2:port]
     * @param password password of the cluster
     */
-  def apply[V](clusterName: String, sentinels: Set[String], password: String)(implicit config: CacheConfig,
-                                                                              codec: Codec[V]): SentinelRedisCache[V] =
+  def apply[V](clusterName: String, sentinels: Set[String], password: String)(
+      implicit config: CacheConfig,
+      codec: Codec[V]
+  ): SentinelRedisCache[V] =
     apply(new JedisSentinelPool(clusterName, sentinels.asJava, new GenericObjectPoolConfig, password))
 
   /**
@@ -50,7 +52,8 @@ object SentinelRedisCache {
     */
   def apply[V](clusterName: String, sentinels: Set[String], poolConfig: GenericObjectPoolConfig, password: String)(
       implicit config: CacheConfig,
-      codec: Codec[V]): SentinelRedisCache[V] =
+      codec: Codec[V]
+  ): SentinelRedisCache[V] =
     apply(new JedisSentinelPool(clusterName, sentinels.asJava, poolConfig, password))
 
   /**
@@ -58,8 +61,9 @@ object SentinelRedisCache {
     *
     * @param jedisSentinelPool a JedisSentinelPool
     */
-  def apply[V](jedisSentinelPool: JedisSentinelPool)(implicit config: CacheConfig,
-                                                     codec: Codec[V]): SentinelRedisCache[V] =
+  def apply[V](
+      jedisSentinelPool: JedisSentinelPool
+  )(implicit config: CacheConfig, codec: Codec[V]): SentinelRedisCache[V] =
     new SentinelRedisCache[V](jedisSentinelPool)
 
 }

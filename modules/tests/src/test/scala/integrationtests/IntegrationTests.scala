@@ -22,7 +22,7 @@ import scalacache.redis.RedisCache
 class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   private val memcachedClient = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
-  private val jedisPool = new JedisPool("localhost", 6379)
+  private val jedisPool       = new JedisPool("localhost", 6379)
 
   override def afterAll(): Unit = {
     memcachedClient.shutdown()
@@ -91,18 +91,18 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
     s"$name ⇔ (cats-effect IO)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
-      implicit val mode: Mode[CatsIO] = CatsEffect.modes.async
+      implicit val mode: Mode[CatsIO]      = CatsEffect.modes.async
 
-      val key = UUID.randomUUID().toString
+      val key          = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString
 
       import cats.syntax.all._
       val program =
         for {
-          _ <- put(key)(initialValue)
+          _             <- put(key)(initialValue)
           readFromCache <- get(key)
           updatedValue = "prepended " + readFromCache.getOrElse("couldn't find in cache!")
-          _ <- put(key)(updatedValue)
+          _                   <- put(key)(updatedValue)
           finalValueFromCache <- get(key)
         } yield finalValueFromCache
 
@@ -114,17 +114,17 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
     s"$name ⇔ (Monix Task)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
-      implicit val mode: Mode[MonixTask] = Monix.modes.task
+      implicit val mode: Mode[MonixTask]   = Monix.modes.task
 
-      val key = UUID.randomUUID().toString
+      val key          = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString
 
       val program =
         for {
-          _ <- put(key)(initialValue)
+          _             <- put(key)(initialValue)
           readFromCache <- get(key)
           updatedValue = "prepended " + readFromCache.getOrElse("couldn't find in cache!")
-          _ <- put(key)(updatedValue)
+          _                   <- put(key)(updatedValue)
           finalValueFromCache <- get(key)
         } yield finalValueFromCache
 
@@ -137,17 +137,17 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
     s"$name ⇔ (Scalaz Task)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
-      implicit val mode: Mode[ScalazTask] = Scalaz72.modes.task
+      implicit val mode: Mode[ScalazTask]  = Scalaz72.modes.task
 
-      val key = UUID.randomUUID().toString
+      val key          = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString
 
       val program =
         for {
-          _ <- put(key)(initialValue)
+          _             <- put(key)(initialValue)
           readFromCache <- get(key)
           updatedValue = "prepended " + readFromCache.getOrElse("couldn't find in cache!")
-          _ <- put(key)(updatedValue)
+          _                   <- put(key)(updatedValue)
           finalValueFromCache <- get(key)
         } yield finalValueFromCache
 
@@ -158,18 +158,18 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
     }
 
     s"$name ⇔ (Twitter Future)" should "defer the computation and give the correct result" in {
-      implicit val theCache: Cache[String] = cache
+      implicit val theCache: Cache[String]   = cache
       implicit val mode: Mode[TwitterFuture] = TwitterUtil.modes.future
 
-      val key = UUID.randomUUID().toString
+      val key          = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString
 
       val program =
         for {
-          _ <- put(key)(initialValue)
+          _             <- put(key)(initialValue)
           readFromCache <- get(key)
           updatedValue = "prepended " + readFromCache.getOrElse("couldn't find in cache!")
-          _ <- put(key)(updatedValue)
+          _                   <- put(key)(updatedValue)
           finalValueFromCache <- get(key)
         } yield finalValueFromCache
 

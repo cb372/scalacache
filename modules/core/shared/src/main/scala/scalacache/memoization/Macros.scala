@@ -9,46 +9,51 @@ import scalacache.{Flags, Cache, Mode}
 class Macros(val c: blackbox.Context) {
   import c.universe._
 
-  def memoizeImpl[F[_], V: c.WeakTypeTag](ttl: c.Expr[Option[Duration]])(
-      f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
+  def memoizeImpl[F[_], V: c.WeakTypeTag](
+      ttl: c.Expr[Option[Duration]]
+  )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
       q"""$cache.cachingForMemoize($keyName)($ttl)($f)($mode, $flags)"""
     })
   }
 
-  def memoizeFImpl[F[_], V: c.WeakTypeTag](ttl: c.Expr[Option[Duration]])(
-      f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
+  def memoizeFImpl[F[_], V: c.WeakTypeTag](
+      ttl: c.Expr[Option[Duration]]
+  )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
       q"""$cache.cachingForMemoizeF($keyName)($ttl)($f)($mode, $flags)"""
     })
   }
 
-  def memoizeSyncImpl[V: c.WeakTypeTag](ttl: c.Expr[Option[Duration]])(
-      f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[scalacache.Id]], flags: c.Expr[Flags]): c.Tree = {
+  def memoizeSyncImpl[V: c.WeakTypeTag](
+      ttl: c.Expr[Option[Duration]]
+  )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[scalacache.Id]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
       q"""$cache.cachingForMemoize($keyName)($ttl)($f)($mode, $flags)"""
     })
   }
 
-  private def commonMacroImpl[F[_], V: c.WeakTypeTag](cache: c.Expr[Cache[V]],
-                                                      keyNameToCachingCall: (c.TermName) => c.Tree): Tree = {
+  private def commonMacroImpl[F[_], V: c.WeakTypeTag](
+      cache: c.Expr[Cache[V]],
+      keyNameToCachingCall: (c.TermName) => c.Tree
+  ): Tree = {
 
     val enclosingMethodSymbol = getMethodSymbol()
-    val classSymbol = getClassSymbol()
+    val classSymbol           = getClassSymbol()
 
     /*
      * Gather all the info needed to build the cache key:
      * class name, method name and the method parameters lists
      */
-    val classNameTree = getFullClassName(classSymbol)
-    val classParamssTree = getConstructorParams(classSymbol)
-    val methodNameTree = getMethodName(enclosingMethodSymbol)
+    val classNameTree        = getFullClassName(classSymbol)
+    val classParamssTree     = getConstructorParams(classSymbol)
+    val methodNameTree       = getMethodName(enclosingMethodSymbol)
     val methodParamssSymbols = c.internal.enclosingOwner.info.paramLists
-    val methodParamssTree = paramListsToTree(methodParamssSymbols)
+    val methodParamssTree    = paramListsToTree(methodParamssSymbols)
 
-    val keyName = createKeyName()
+    val keyName     = createKeyName()
     val cachingCall = keyNameToCachingCall(keyName)
-    val tree = q"""
+    val tree        = q"""
           val $keyName = $cache.config.memoization.toStringConverter.toString($classNameTree, $classParamssTree, $methodNameTree, $methodParamssTree)
           $cachingCall
         """
@@ -130,10 +135,12 @@ class Macros(val c: blackbox.Context) {
     def shouldExclude(s: c.Symbol) = {
       s.annotations.exists(a => a.tree.tpe == cacheKeyExcludeType)
     }
-    val identss: List[List[Ident]] = symbolss.map(ss =>
-      ss.collect {
-        case s if !shouldExclude(s) => Ident(s.name)
-    })
+    val identss: List[List[Ident]] = symbolss.map(
+      ss =>
+        ss.collect {
+          case s if !shouldExclude(s) => Ident(s.name)
+        }
+    )
     listToTree(identss.map(is => listToTree(is)))
   }
 

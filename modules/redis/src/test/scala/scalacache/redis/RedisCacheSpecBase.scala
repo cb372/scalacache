@@ -43,7 +43,7 @@ trait RedisCacheSpecBase
     import scalacache.modes.scalaFuture._
 
     withJedis { (pool, client) =>
-      val cache = constructCache[Int](pool)
+      val cache        = constructCache[Int](pool)
       val failingCache = constructCache[AlwaysFailing.type](pool)
 
       before {

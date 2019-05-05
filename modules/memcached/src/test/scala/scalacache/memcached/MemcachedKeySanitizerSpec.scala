@@ -40,7 +40,7 @@ class HashingMemcachedKeySanitizerSpec extends FlatSpec with Matchers with Scala
     val hashedValues = for {
       algo <- Seq(MD5, SHA1, SHA256, SHA512)
       hashingSanitizer = HashingMemcachedKeySanitizer(algo)
-      hashed = hashingSanitizer.toValidMemcachedKey(longString)
+      hashed           = hashingSanitizer.toValidMemcachedKey(longString)
     } yield hashed
     hashedValues.foreach(hexToBytes) // should work
     hashedValues.forall(_.length < 250) should be(true)
@@ -52,8 +52,8 @@ class HashingMemcachedKeySanitizerSpec extends FlatSpec with Matchers with Scala
     val hashedPairs = for {
       algo <- Seq(MD5, SHA1, SHA256, SHA512)
       hashingSanitizer = HashingMemcachedKeySanitizer(algo)
-      h1 = hashingSanitizer.toValidMemcachedKey(s1)
-      h2 = hashingSanitizer.toValidMemcachedKey(s2)
+      h1               = hashingSanitizer.toValidMemcachedKey(s1)
+      h2               = hashingSanitizer.toValidMemcachedKey(s2)
     } yield (h1, h2)
     hashedPairs.forall(pair => pair._1 != pair._2) should be(true)
   }
