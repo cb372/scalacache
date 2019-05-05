@@ -1,6 +1,6 @@
-import org.scalajs.sbtplugin.cross.CrossProject
 import sbtrelease.ReleaseStateTransformations._
 import xerial.sbt.Sonatype.sonatypeSettings
+import sbtcrossproject.CrossProject
 
 import scala.sys.process.Process
 
@@ -47,7 +47,7 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
              tests)
 
 lazy val core =
-  CrossProject(id = "core", file("modules/core"), CrossType.Full)
+  CrossProject(id = "core", file("modules/core"))(JSPlatform, JVMPlatform)
     .settings(commonSettings)
     .settings(
       moduleName := "scalacache-core",
