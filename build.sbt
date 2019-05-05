@@ -31,20 +31,22 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
       pushChanges
     )
   )
-  .aggregate(coreJS,
-             coreJVM,
-             guava,
-             memcached,
-             ehcache,
-             redis,
-             cache2k,
-             caffeine,
-             ohc,
-             catsEffect,
-             monix,
-             scalaz72,
-             circe,
-             tests)
+  .aggregate(
+    coreJS,
+    coreJVM,
+    guava,
+    memcached,
+    ehcache,
+    redis,
+    cache2k,
+    caffeine,
+    ohc,
+    catsEffect,
+    monix,
+    scalaz72,
+    circe,
+    tests
+  )
 
 lazy val core =
   CrossProject(id = "core", file("modules/core"))(JSPlatform, JVMPlatform)
@@ -53,8 +55,8 @@ lazy val core =
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-        "org.scalatest" %%% "scalatest" % "3.0.7" % Test,
-        "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test
+        "org.scalatest"  %%% "scalatest"   % "3.0.7" % Test,
+        "org.scalacheck" %%% "scalacheck"  % "1.14.0" % Test
       ),
       coverageMinimum := 79,
       coverageFailOnMinimum := true
@@ -64,13 +66,13 @@ lazy val core =
         "org.slf4j" % "slf4j-api" % "1.7.26"
       ),
       scala211OnlyDeps(
-        "org.squeryl" %% "squeryl" % "0.9.9" % Test,
-        "com.h2database" % "h2" % "1.4.196" % Test
+        "org.squeryl"    %% "squeryl" % "0.9.9"   % Test,
+        "com.h2database" % "h2"       % "1.4.196" % Test
       )
     )
 
 lazy val coreJVM = core.jvm
-lazy val coreJS = core.js.settings(coverageEnabled := false)
+lazy val coreJS  = core.js.settings(coverageEnabled := false)
 
 def jvmOnlyModule(name: String) =
   Project(id = name, base = file(s"modules/$name"))
@@ -84,7 +86,7 @@ def jvmOnlyModule(name: String) =
 lazy val guava = jvmOnlyModule("guava")
   .settings(
     libraryDependencies ++= Seq(
-      "com.google.guava" % "guava" % "27.1-jre",
+      "com.google.guava"         % "guava"  % "27.1-jre",
       "com.google.code.findbugs" % "jsr305" % "3.0.2"
     )
   )
@@ -99,8 +101,8 @@ lazy val memcached = jvmOnlyModule("memcached")
 lazy val ehcache = jvmOnlyModule("ehcache")
   .settings(
     libraryDependencies ++= Seq(
-      "net.sf.ehcache" % "ehcache" % "2.10.6",
-      "javax.transaction" % "jta" % "1.1"
+      "net.sf.ehcache"    % "ehcache" % "2.10.6",
+      "javax.transaction" % "jta"     % "1.1"
     ),
     coverageMinimum := 80,
     coverageFailOnMinimum := true
@@ -119,7 +121,7 @@ lazy val cache2k = jvmOnlyModule("cache2k")
   .settings(
     libraryDependencies ++= Seq(
       "org.cache2k" % "cache2k-core" % "1.2.1.Final",
-      "org.cache2k" % "cache2k-api" % "1.2.1.Final"
+      "org.cache2k" % "cache2k-api"  % "1.2.1.Final"
     )
   )
 
@@ -127,7 +129,7 @@ lazy val caffeine = jvmOnlyModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine" % "2.7.0",
-      "com.google.code.findbugs" % "jsr305" % "3.0.2" % Provided
+      "com.google.code.findbugs"      % "jsr305"   % "3.0.2" % Provided
     ),
     coverageMinimum := 80,
     coverageFailOnMinimum := true
@@ -180,8 +182,8 @@ lazy val twitterUtil = jvmOnlyModule("twitter-util")
 lazy val circe = jvmOnlyModule("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core" % "0.11.1",
-      "io.circe" %% "circe-parser" % "0.11.1",
+      "io.circe" %% "circe-core"    % "0.11.1",
+      "io.circe" %% "circe-parser"  % "0.11.1",
       "io.circe" %% "circe-generic" % "0.11.1" % Test,
       scalacheck
     ),
@@ -209,19 +211,21 @@ lazy val doc = jvmOnlyModule("doc")
     micrositeTwitterCreator := "@cbirchall",
     micrositeShareOnSocial := true
   )
-  .dependsOn(coreJVM,
-             guava,
-             memcached,
-             ehcache,
-             redis,
-             cache2k,
-             caffeine,
-             ohc,
-             catsEffect,
-             monix,
-             scalaz72,
-             twitterUtil,
-             circe)
+  .dependsOn(
+    coreJVM,
+    guava,
+    memcached,
+    ehcache,
+    redis,
+    cache2k,
+    caffeine,
+    ohc,
+    catsEffect,
+    monix,
+    scalaz72,
+    twitterUtil,
+    circe
+  )
 
 lazy val benchmarks = jvmOnlyModule("benchmarks")
   .enablePlugins(JmhPlugin)
@@ -291,7 +295,7 @@ lazy val mavenSettings = Seq(
 )
 
 lazy val updateVersionInDocs = ReleaseStep(action = st => {
-  val extracted = Project.extract(st)
+  val extracted      = Project.extract(st)
   val projectVersion = extracted.get(Keys.version)
 
   println(s"Updating project version to $projectVersion in the docs")
@@ -299,7 +303,8 @@ lazy val updateVersionInDocs = ReleaseStep(action = st => {
   val find = Process(Seq("find", "modules/doc/src/main/tut", "-name", "*.md"))
 
   val sed = Process(
-    Seq("xargs", "sed", "-i", "", "-E", "-e", s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g"""))
+    Seq("xargs", "sed", "-i", "", "-E", "-e", s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""")
+  )
 
   (find #| sed).!
 
@@ -307,13 +312,14 @@ lazy val updateVersionInDocs = ReleaseStep(action = st => {
 })
 
 lazy val commitUpdatedDocFiles = ReleaseStep(action = st => {
-  val extracted = Project.extract(st)
+  val extracted      = Project.extract(st)
   val projectVersion = extracted.get(Keys.version)
 
   println("Committing docs")
 
   Process(
-    Seq("git", "commit", "modules/doc/src/main/tut/*", "-m", s"Update project version in docs to $projectVersion")).!
+    Seq("git", "commit", "modules/doc/src/main/tut/*", "-m", s"Update project version in docs to $projectVersion")
+  ).!
 
   st
 })
