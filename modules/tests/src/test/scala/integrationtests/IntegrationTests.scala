@@ -4,8 +4,7 @@ import java.util.UUID
 
 import org.scalatest._
 import cats.effect.{IO => CatsIO}
-import com.twitter.util.{Future => TwitterFuture, Await => TwitterAwait}
-import monix.eval.{Task => MonixTask}
+//import monix.eval.{Task => MonixTask}
 import scalaz.concurrent.{Task => ScalazTask}
 import net.spy.memcached.{AddrUtil, MemcachedClient}
 import redis.clients.jedis.JedisPool
@@ -112,28 +111,29 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
       assert(result.contains("prepended " + initialValue))
     }
 
-    s"$name ⇔ (Monix Task)" should "defer the computation and give the correct result" in {
-      implicit val theCache: Cache[String] = cache
-      implicit val mode: Mode[MonixTask]   = Monix.modes.task
+    // TODO uncomment once Monix is released for 2.13.x
+    //s"$name ⇔ (Monix Task)" should "defer the computation and give the correct result" in {
+      //implicit val theCache: Cache[String] = cache
+      //implicit val mode: Mode[MonixTask]   = Monix.modes.task
 
-      val key          = UUID.randomUUID().toString
-      val initialValue = UUID.randomUUID().toString
+      //val key          = UUID.randomUUID().toString
+      //val initialValue = UUID.randomUUID().toString
 
-      val program =
-        for {
-          _             <- put(key)(initialValue)
-          readFromCache <- get(key)
-          updatedValue = "prepended " + readFromCache.getOrElse("couldn't find in cache!")
-          _                   <- put(key)(updatedValue)
-          finalValueFromCache <- get(key)
-        } yield finalValueFromCache
+      //val program =
+        //for {
+          //_             <- put(key)(initialValue)
+          //readFromCache <- get(key)
+          //updatedValue = "prepended " + readFromCache.getOrElse("couldn't find in cache!")
+          //_                   <- put(key)(updatedValue)
+          //finalValueFromCache <- get(key)
+        //} yield finalValueFromCache
 
-      checkComputationHasNotRun(key)
+      //checkComputationHasNotRun(key)
 
-      val future = program.runAsync(monix.execution.Scheduler.global)
-      val result = Await.result(future, Duration.Inf)
-      assert(result.contains("prepended " + initialValue))
-    }
+      //val future = program.runAsync(monix.execution.Scheduler.global)
+      //val result = Await.result(future, Duration.Inf)
+      //assert(result.contains("prepended " + initialValue))
+    //}
 
     s"$name ⇔ (Scalaz Task)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
@@ -154,26 +154,6 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
       checkComputationHasNotRun(key)
 
       val result: Option[String] = program.unsafePerformSync
-      assert(result.contains("prepended " + initialValue))
-    }
-
-    s"$name ⇔ (Twitter Future)" should "defer the computation and give the correct result" in {
-      implicit val theCache: Cache[String]   = cache
-      implicit val mode: Mode[TwitterFuture] = TwitterUtil.modes.future
-
-      val key          = UUID.randomUUID().toString
-      val initialValue = UUID.randomUUID().toString
-
-      val program =
-        for {
-          _             <- put(key)(initialValue)
-          readFromCache <- get(key)
-          updatedValue = "prepended " + readFromCache.getOrElse("couldn't find in cache!")
-          _                   <- put(key)(updatedValue)
-          finalValueFromCache <- get(key)
-        } yield finalValueFromCache
-
-      val result: Option[String] = TwitterAwait.result(program)
       assert(result.contains("prepended " + initialValue))
     }
 
