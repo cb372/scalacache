@@ -9,7 +9,7 @@ services:
   - memcached
   - redis
 script:
-  - sbt +coverage +test +doc/tut
+  - sbt scalafmtCheckAll scalafmtSbtCheck +coverage +test +doc/tut
   - sbt +coverageReport
 cache:
   directories:
