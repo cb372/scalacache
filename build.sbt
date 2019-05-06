@@ -44,6 +44,7 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
     catsEffect,
     monix,
     scalaz72,
+    twitterUtil,
     circe,
     tests
   )
@@ -173,7 +174,7 @@ lazy val scalaz72 = jvmOnlyModule("scalaz72")
 lazy val twitterUtil = jvmOnlyModule("twitter-util")
   .settings(
     libraryDependencies ++= Seq(
-      "com.twitter" %% "util-core" % "18.10.0"
+      "com.twitter" %% "util-core" % "19.4.0"
     ),
     coverageMinimum := 40,
     coverageFailOnMinimum := true
