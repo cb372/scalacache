@@ -42,7 +42,6 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
     caffeine,
     ohc,
     catsEffect,
-    monix,
     scalaz72,
     circe,
     tests
@@ -151,16 +150,6 @@ lazy val catsEffect = jvmOnlyModule("cats-effect")
     coverageFailOnMinimum := true
   )
 
-lazy val monix = jvmOnlyModule("monix")
-  .settings(
-    libraryDependencies ++= Seq(
-      "io.monix" %% "monix" % "3.0.0-RC2"
-    ),
-    coverageMinimum := 80,
-    coverageFailOnMinimum := true
-  )
-  .dependsOn(catsEffect)
-
 lazy val scalaz72 = jvmOnlyModule("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
@@ -193,7 +182,7 @@ lazy val circe = jvmOnlyModule("circe")
 
 lazy val tests = jvmOnlyModule("tests")
   .settings(publishArtifact := false)
-  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, monix, scalaz72, twitterUtil, circe)
+  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, scalaz72, twitterUtil, circe)
 
 lazy val doc = jvmOnlyModule("doc")
   .enablePlugins(MicrositesPlugin)
@@ -221,7 +210,6 @@ lazy val doc = jvmOnlyModule("doc")
     caffeine,
     ohc,
     catsEffect,
-    monix,
     scalaz72,
     twitterUtil,
     circe
