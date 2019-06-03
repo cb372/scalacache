@@ -3,16 +3,15 @@ package scalacache.redis
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Inside, Matchers}
-import redis.clients.jedis.{BinaryJedisCommands, JedisCommands}
+import scalacache._
+import scalacache.serialization.Codec.DecodingResult
+import scalacache.serialization.binary._
+import scalacache.serialization.{Codec, FailedToDecode}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scalacache._
-import scalacache.serialization.{Codec, FailedToDecode}
-import scalacache.serialization.Codec.DecodingResult
-import scalacache.serialization.binary._
 
 trait RedisCacheSpecBase
     extends FlatSpec
@@ -25,7 +24,7 @@ trait RedisCacheSpecBase
     with IntegrationPatience {
 
   type JPool
-  type JClient <: JedisCommands with BinaryJedisCommands
+  type JClient <: BaseJedisClient
 
   case object AlwaysFailing
   implicit val alwaysFailingCodec: Codec[AlwaysFailing.type] = new Codec[AlwaysFailing.type] {
