@@ -10,7 +10,7 @@ import scalacache.{AbstractCache, CacheConfig, Mode}
 import scala.concurrent.duration.{Duration, _}
 import scala.language.higherKinds
 
-class RedisCluster[V](val jedisCluster: JedisCluster)(implicit val config: CacheConfig, val codec: Codec[V])
+class RedisClusterCache[V](val jedisCluster: JedisCluster)(implicit val config: CacheConfig, val codec: Codec[V])
     extends AbstractCache[V] {
 
   override protected final val logger = Logger.getLogger(getClass.getName)
@@ -60,8 +60,8 @@ class RedisCluster[V](val jedisCluster: JedisCluster)(implicit val config: Cache
     "JedisCluster doesn't support this operation, scheduled to be removed with the next jedis major release",
     "0.28.0"
   )
-  override protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] = mode.M.delay {
-    throw new JedisClusterException("No way to dispatch this command to Redis Cluster.")
+  override protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] = mode.M.raiseError {
+    new JedisClusterException("No way to dispatch this command to Redis Cluster.")
   }
 
   override def close[F[_]]()(implicit mode: Mode[F]): F[Any] = mode.M.delay(jedisCluster.close())

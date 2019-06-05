@@ -8,7 +8,7 @@ import scala.collection.JavaConverters._
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
-class RedisClusterSpec extends RedisCacheSpecBase with RedisTestUtil {
+class RedisClusterCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
   type JClient = JedisClusterClient
   type JPool   = JedisCluster
@@ -16,7 +16,7 @@ class RedisClusterSpec extends RedisCacheSpecBase with RedisTestUtil {
   override val withJedis = assumingRedisClusterIsRunning _
 
   def constructCache[V](jedisCluster: JedisCluster)(implicit codec: Codec[V]): CacheAlg[V] =
-    new RedisCluster[V](jedisCluster)
+    new RedisClusterCache[V](jedisCluster)
 
   def flushRedis(client: JClient): Unit =
     client.underlying.getClusterNodes.asScala.mapValues(_.getResource.flushDB())
