@@ -1,15 +1,15 @@
 package scalacache.redis
 
-import redis.clients.jedis.{JedisPoolConfig, JedisShardInfo, ShardedJedis, ShardedJedisPool}
-
-import scala.util.{Failure, Success, Try}
-import scala.collection.JavaConverters._
+import redis.clients.jedis.{JedisPoolConfig, JedisShardInfo, ShardedJedisPool}
 import scalacache._
 import scalacache.serialization.Codec
 
+import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
+
 class ShardedRedisCacheSpec extends RedisCacheSpecBase {
 
-  type JClient = ShardedJedis
+  type JClient = ShardedJedisClient
   type JPool   = ShardedJedisPool
 
   val withJedis = assumingMultipleRedisAreRunning _
@@ -18,9 +18,9 @@ class ShardedRedisCacheSpec extends RedisCacheSpecBase {
     new ShardedRedisCache[V](jedisPool = pool)
 
   def flushRedis(client: JClient): Unit =
-    client.getAllShards.asScala.foreach(_.flushDB())
+    client.underlying.getAllShards.asScala.foreach(_.flushDB())
 
-  def assumingMultipleRedisAreRunning(f: (ShardedJedisPool, ShardedJedis) => Unit): Unit = {
+  def assumingMultipleRedisAreRunning(f: (ShardedJedisPool, ShardedJedisClient) => Unit): Unit = {
     Try {
       val shard1 = new JedisShardInfo("localhost", 6379)
       val shard2 = new JedisShardInfo("localhost", 6380)
@@ -31,7 +31,7 @@ class ShardedRedisCacheSpec extends RedisCacheSpecBase {
 
       jedis.getAllShards.asScala.foreach(_.ping())
 
-      (jedisPool, jedis)
+      (jedisPool, new ShardedJedisClient(jedis))
     } match {
       case Failure(_) =>
         alert("Skipping tests because it does not appear that multiple instances of Redis are running on localhost.")

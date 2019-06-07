@@ -8,6 +8,10 @@ jdk:
 services:
   - memcached
   - redis
+install:
+  - make travis-install
+before_script:
+  - make travis-run
 script:
   - sbt scalafmtCheckAll scalafmtSbtCheck +coverage +test +doc/tut
   - sbt +coverageReport
@@ -18,3 +22,5 @@ cache:
 before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete -print
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete -print
+after_script:
+  - make stop
