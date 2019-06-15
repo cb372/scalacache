@@ -42,7 +42,7 @@ class RedisClusterCache[V](val jedisCluster: JedisCluster)(implicit val config: 
         case Some(d) if d < 1.second =>
           if (logger.isWarnEnabled) {
             logger.warn(
-              "Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
+              s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
             )
           }
           jedisCluster.setex(keyBytes, 1, valueBytes)
