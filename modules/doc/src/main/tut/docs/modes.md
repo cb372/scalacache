@@ -57,24 +57,30 @@ libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.27.0"
 ```
 
 ```tut:silent
-import scalacache.CatsEffect.modes._
+import scalacache.Mode
+import cats.effect.IO
+implicit val mode: Mode[IO] = scalacache.CatsEffect.modes.async
 ```
 
 * Wraps the operation in `IO`, deferring execution until it is explicitly run
 
-#### Monix Task
+#### Monix Task (Monix 3.x)
 
-You will need a dependency on the `scalacache-monix` module:
+You will need a dependency on the `scalacache-cats-effect` module:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-monix" % "0.27.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.27.0"
 ```
 
-```tut:silent
-import scalacache.Monix.modes._
+```scala
+import monix.eval.Task
+implicit val mode: Mode[Task] = scalacache.CatsEffect.modes.async
 ```
 
-* Wraps the operation in `Task`, deferring execution until it is explicitly run
+* Wraps the operation in Monix `Task`, deferring execution until it is explicitly run
+
+Note: There used to a `scalacache-monix` module but it was removed because it
+didn't do very much.
 
 #### Scalaz Task
 
