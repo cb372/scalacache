@@ -144,7 +144,7 @@ lazy val ohc = jvmOnlyModule("ohc")
 lazy val catsEffect = jvmOnlyModule("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "1.3.0"
+      "org.typelevel" %% "cats-effect" % "1.3.1"
     ),
     coverageMinimum := 50,
     coverageFailOnMinimum := true
