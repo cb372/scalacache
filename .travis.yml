@@ -14,7 +14,7 @@ install:
 before_script:
   - make travis-run
 script:
-  - sbt scalafmtCheckAll scalafmtSbtCheck +coverage +test +doc/tut
+  - sbt scalafmtCheckAll scalafmtSbtCheck +coverage +test ++2.12.8 doc/tut
   - sbt +coverageReport
 cache:
   directories:
