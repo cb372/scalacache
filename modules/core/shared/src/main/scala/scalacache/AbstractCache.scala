@@ -57,7 +57,7 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
       keyParts: Any*
   )(value: V, ttl: Option[Duration])(implicit mode: Mode[F], flags: Flags): F[Any] = {
     val key       = toKey(keyParts: _*)
-    val finiteTtl = ttl.filter(_.isFinite()) // discard Duration.Inf, Duration.Undefined
+    val finiteTtl = ttl.filter(_.isFinite) // discard Duration.Inf, Duration.Undefined
     checkFlagsAndPut(key, value, finiteTtl)
   }
 

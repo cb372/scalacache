@@ -3,6 +3,7 @@ language: scala
 scala:
   - 2.11.12
   - 2.12.8
+  - 2.13.0
 jdk:
   - oraclejdk8
 services:
@@ -13,8 +14,8 @@ install:
 before_script:
   - make travis-run
 script:
-  - sbt scalafmtCheckAll scalafmtSbtCheck +coverage +test +doc/tut
-  - sbt +coverageReport
+  - sbt ++$TRAVIS_SCALA_VERSION scalafmtCheckAll scalafmtSbtCheck coverage test ++2.12.8 doc/tut
+  - sbt ++$TRAVIS_SCALA_VERSION coverageReport
 cache:
   directories:
   - $HOME/.sbt

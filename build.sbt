@@ -54,7 +54,7 @@ lazy val core =
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-        "org.scalatest"  %%% "scalatest"   % "3.0.7" % Test,
+        "org.scalatest"  %%% "scalatest"   % "3.0.8" % Test,
         "org.scalacheck" %%% "scalacheck"  % "1.14.0" % Test
       ),
       coverageMinimum := 79,
@@ -144,7 +144,7 @@ lazy val ohc = jvmOnlyModule("ohc")
 lazy val catsEffect = jvmOnlyModule("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "1.3.0"
+      "org.typelevel" %% "cats-effect" % "2.0.0-M4"
     ),
     coverageMinimum := 50,
     coverageFailOnMinimum := true
@@ -159,21 +159,12 @@ lazy val scalaz72 = jvmOnlyModule("scalaz72")
     coverageFailOnMinimum := true
   )
 
-lazy val twitterUtil = jvmOnlyModule("twitter-util")
-  .settings(
-    libraryDependencies ++= Seq(
-      "com.twitter" %% "util-core" % "18.10.0"
-    ),
-    coverageMinimum := 40,
-    coverageFailOnMinimum := true
-  )
-
 lazy val circe = jvmOnlyModule("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core"    % "0.11.1",
-      "io.circe" %% "circe-parser"  % "0.11.1",
-      "io.circe" %% "circe-generic" % "0.11.1" % Test,
+      "io.circe" %% "circe-core"    % "0.12.0-M3",
+      "io.circe" %% "circe-parser"  % "0.12.0-M3",
+      "io.circe" %% "circe-generic" % "0.12.0-M3" % Test,
       scalacheck
     ),
     coverageMinimum := 80,
@@ -182,7 +173,7 @@ lazy val circe = jvmOnlyModule("circe")
 
 lazy val tests = jvmOnlyModule("tests")
   .settings(publishArtifact := false)
-  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, scalaz72, twitterUtil, circe)
+  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, scalaz72, circe)
 
 lazy val doc = jvmOnlyModule("doc")
   .enablePlugins(MicrositesPlugin)
@@ -211,7 +202,6 @@ lazy val doc = jvmOnlyModule("doc")
     ohc,
     catsEffect,
     scalaz72,
-    twitterUtil,
     circe
   )
 
@@ -236,7 +226,7 @@ lazy val benchmarks = jvmOnlyModule("benchmarks")
   .dependsOn(caffeine)
   .dependsOn(ohc)
 
-lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.7" % Test
+lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.8" % Test
 
 lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
 
