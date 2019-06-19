@@ -53,7 +53,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 You will need a dependency on the `scalacache-cats-effect` module:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.27.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.28.0"
 ```
 
 ```tut:silent
@@ -69,7 +69,7 @@ implicit val mode: Mode[IO] = scalacache.CatsEffect.modes.async
 You will need a dependency on the `scalacache-cats-effect` module:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.27.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.28.0"
 ```
 
 ```scala
@@ -87,7 +87,7 @@ didn't do very much.
 You will need a dependency on the `scalacache-scalaz72` module:
 
 ```
-libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.27.0"
+libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.28.0"
 ```
 
 ```tut:silent
