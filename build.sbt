@@ -159,16 +159,6 @@ lazy val scalaz72 = jvmOnlyModule("scalaz72")
     coverageFailOnMinimum := true
   )
 
-lazy val twitterUtil = jvmOnlyModule("twitter-util")
-  .settings(
-    crossScalaVersions -= "2.13.0",
-    libraryDependencies ++= Seq(
-      "com.twitter" %% "util-core" % "18.10.0"
-    ),
-    coverageMinimum := 40,
-    coverageFailOnMinimum := true
-  )
-
 lazy val circe = jvmOnlyModule("circe")
   .settings(
     libraryDependencies ++= Seq(
@@ -212,7 +202,6 @@ lazy val doc = jvmOnlyModule("doc")
     ohc,
     catsEffect,
     scalaz72,
-    twitterUtil,
     circe
   )
 

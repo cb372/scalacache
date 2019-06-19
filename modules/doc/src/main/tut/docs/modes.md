@@ -96,12 +96,3 @@ import scalacache.Scalaz72.modes._
 
 * Wraps the operation in `Task`, deferring execution until it is explicitly run
 
-#### Twitter Future mode
-
-You will need a dependency on the `scalacache-twitter-util` module:
-
-```tut:silent
-import scalacache.TwitterUtil.modes._
-```
-
-* Executes the operation and returns a `com.twitter.util.Future`
