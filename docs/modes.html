@@ -49,35 +49,41 @@
 
 <p>You will need a dependency on the <code class="highlighter-rouge">scalacache-cats-effect</code> module:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.27.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.28.0"
 </code></pre></div></div>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache.CatsEffect.modes._</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache.Mode</span>
+<span class="k">import</span> <span class="nn">cats.effect.IO</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">mode</span><span class="k">:</span> <span class="kt">Mode</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span> <span class="k">=</span> <span class="nv">scalacache</span><span class="o">.</span><span class="py">CatsEffect</span><span class="o">.</span><span class="py">modes</span><span class="o">.</span><span class="py">async</span>
 </code></pre></div></div>
 
 <ul>
   <li>Wraps the operation in <code class="highlighter-rouge">IO</code>, deferring execution until it is explicitly run</li>
 </ul>
 
-<h4 id="monix-task">Monix Task</h4>
+<h4 id="monix-task-monix-3x">Monix Task (Monix 3.x)</h4>
 
-<p>You will need a dependency on the <code class="highlighter-rouge">scalacache-monix</code> module:</p>
+<p>You will need a dependency on the <code class="highlighter-rouge">scalacache-cats-effect</code> module:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-monix" % "0.27.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.28.0"
 </code></pre></div></div>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache.Monix.modes._</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">monix.eval.Task</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">mode</span><span class="k">:</span> <span class="kt">Mode</span><span class="o">[</span><span class="kt">Task</span><span class="o">]</span> <span class="k">=</span> <span class="nv">scalacache</span><span class="o">.</span><span class="py">CatsEffect</span><span class="o">.</span><span class="py">modes</span><span class="o">.</span><span class="py">async</span>
 </code></pre></div></div>
 
 <ul>
-  <li>Wraps the operation in <code class="highlighter-rouge">Task</code>, deferring execution until it is explicitly run</li>
+  <li>Wraps the operation in Monix <code class="highlighter-rouge">Task</code>, deferring execution until it is explicitly run</li>
 </ul>
+
+<p>Note: There used to a <code class="highlighter-rouge">scalacache-monix</code> module but it was removed because it
+didn’t do very much.</p>
 
 <h4 id="scalaz-task">Scalaz Task</h4>
 
 <p>You will need a dependency on the <code class="highlighter-rouge">scalacache-scalaz72</code> module:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.27.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.28.0"
 </code></pre></div></div>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache.Scalaz72.modes._</span>
@@ -87,16 +93,6 @@
   <li>Wraps the operation in <code class="highlighter-rouge">Task</code>, deferring execution until it is explicitly run</li>
 </ul>
 
-<h4 id="twitter-future-mode">Twitter Future mode</h4>
-
-<p>You will need a dependency on the <code class="highlighter-rouge">scalacache-twitter-util</code> module:</p>
-
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache.TwitterUtil.modes._</span>
-</code></pre></div></div>
-
-<ul>
-  <li>Executes the operation and returns a <code class="highlighter-rouge">com.twitter.util.Future</code></li>
-</ul>
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/scalacache/highlight/highlight.pack.js"></script><script>hljs.configure({
 languages:['scala','java','bash']
 });

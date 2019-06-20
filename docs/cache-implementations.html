@@ -4,7 +4,7 @@
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.27.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.28.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -12,7 +12,7 @@
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache._</span>
 <span class="k">import</span> <span class="nn">scalacache.guava._</span>
 
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">guavaCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">GuavaCache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">guavaCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">GuavaCache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
 </code></pre></div></div>
 
 <p>This will build a Guava cache with all the default settings. If you want to customize your Guava cache, then build it yourself and pass it to <code class="highlighter-rouge">GuavaCache</code> like this:</p>
@@ -21,15 +21,15 @@
 <span class="k">import</span> <span class="nn">scalacache.guava._</span>
 <span class="k">import</span> <span class="nn">com.google.common.cache.CacheBuilder</span>
 
-<span class="k">val</span> <span class="n">underlyingGuavaCache</span> <span class="k">=</span> <span class="nc">CacheBuilder</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">maximumSize</span><span class="o">(</span><span class="mi">10000L</span><span class="o">).</span><span class="n">build</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Entry</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span>
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">guavaCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">GuavaCache</span><span class="o">(</span><span class="n">underlyingGuavaCache</span><span class="o">)</span>
+<span class="k">val</span> <span class="nv">underlyingGuavaCache</span> <span class="k">=</span> <span class="nv">CacheBuilder</span><span class="o">.</span><span class="py">newBuilder</span><span class="o">().</span><span class="py">maximumSize</span><span class="o">(</span><span class="mi">10000L</span><span class="o">).</span><span class="py">build</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Entry</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">guavaCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">GuavaCache</span><span class="o">(</span><span class="n">underlyingGuavaCache</span><span class="o">)</span>
 </code></pre></div></div>
 
 <h3 id="memcached">Memcached</h3>
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.27.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.28.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -38,7 +38,7 @@
 <span class="k">import</span> <span class="nn">scalacache.memcached._</span>
 <span class="k">import</span> <span class="nn">scalacache.serialization.binary._</span>
 
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">memcachedCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">MemcachedCache</span><span class="o">(</span><span class="s">"localhost:11211"</span><span class="o">)</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">memcachedCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">MemcachedCache</span><span class="o">(</span><span class="s">"localhost:11211"</span><span class="o">)</span>
 </code></pre></div></div>
 
 <p>or provide your own Memcached client, like this:</p>
@@ -48,11 +48,11 @@
 <span class="k">import</span> <span class="nn">scalacache.serialization.binary._</span>
 <span class="k">import</span> <span class="nn">net.spy.memcached._</span>
 
-<span class="k">val</span> <span class="n">memcachedClient</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MemcachedClient</span><span class="o">(</span>
+<span class="k">val</span> <span class="nv">memcachedClient</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MemcachedClient</span><span class="o">(</span>
   <span class="k">new</span> <span class="nc">BinaryConnectionFactory</span><span class="o">(),</span> 
-  <span class="nc">AddrUtil</span><span class="o">.</span><span class="n">getAddresses</span><span class="o">(</span><span class="s">"localhost:11211"</span><span class="o">)</span>
+  <span class="nv">AddrUtil</span><span class="o">.</span><span class="py">getAddresses</span><span class="o">(</span><span class="s">"localhost:11211"</span><span class="o">)</span>
 <span class="o">)</span>
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">customisedMemcachedCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">MemcachedCache</span><span class="o">(</span><span class="n">memcachedClient</span><span class="o">)</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">customisedMemcachedCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">MemcachedCache</span><span class="o">(</span><span class="n">memcachedClient</span><span class="o">)</span>
 </code></pre></div></div>
 
 <h4 id="keys">Keys</h4>
@@ -74,7 +74,7 @@
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.27.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.28.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -85,17 +85,17 @@
 
 <span class="c1">// We assume you've already taken care of Ehcache config, 
 // and you have an initialized Ehcache cache.
-</span><span class="k">val</span> <span class="n">cacheManager</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CacheManager</span>
-<span class="k">val</span> <span class="n">underlying</span><span class="k">:</span> <span class="kt">UnderlyingCache</span> <span class="o">=</span> <span class="n">cacheManager</span><span class="o">.</span><span class="n">getCache</span><span class="o">(</span><span class="s">"myCache"</span><span class="o">)</span>
+</span><span class="k">val</span> <span class="nv">cacheManager</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CacheManager</span>
+<span class="k">val</span> <span class="nv">underlying</span><span class="k">:</span> <span class="kt">UnderlyingCache</span> <span class="o">=</span> <span class="nv">cacheManager</span><span class="o">.</span><span class="py">getCache</span><span class="o">(</span><span class="s">"myCache"</span><span class="o">)</span>
 
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">ehcacheCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">EhcacheCache</span><span class="o">(</span><span class="n">underlying</span><span class="o">)</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">ehcacheCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">EhcacheCache</span><span class="o">(</span><span class="n">underlying</span><span class="o">)</span>
 </code></pre></div></div>
 
 <h3 id="redis">Redis</h3>
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.27.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.28.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -104,7 +104,7 @@
 <span class="k">import</span> <span class="nn">scalacache.redis._</span>
 <span class="k">import</span> <span class="nn">scalacache.serialization.binary._</span>
 
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">redisCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">RedisCache</span><span class="o">(</span><span class="s">"host1"</span><span class="o">,</span> <span class="mi">6379</span><span class="o">)</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">redisCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">RedisCache</span><span class="o">(</span><span class="s">"host1"</span><span class="o">,</span> <span class="mi">6379</span><span class="o">)</span>
 </code></pre></div></div>
 
 <p>or provide your own <a href="https://github.com/xetorthio/jedis">Jedis</a> client, like this:</p>
@@ -114,8 +114,8 @@
 <span class="k">import</span> <span class="nn">scalacache.serialization.binary._</span>
 <span class="k">import</span> <span class="nn">_root_.redis.clients.jedis._</span>
 
-<span class="k">val</span> <span class="n">jedisPool</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">JedisPool</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span> <span class="mi">6379</span><span class="o">)</span>
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">customisedRedisCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">RedisCache</span><span class="o">(</span><span class="n">jedisPool</span><span class="o">)</span>
+<span class="k">val</span> <span class="nv">jedisPool</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">JedisPool</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span> <span class="mi">6379</span><span class="o">)</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">customisedRedisCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">RedisCache</span><span class="o">(</span><span class="n">jedisPool</span><span class="o">)</span>
 </code></pre></div></div>
 
 <p>ScalaCache also supports <a href="https://github.com/xetorthio/jedis/wiki/AdvancedUsage#shardedjedis">sharded Redis</a> and <a href="http://redis.io/topics/sentinel">Redis Sentinel</a>. Just create a <code class="highlighter-rouge">ShardedRedisCache</code> or <code class="highlighter-rouge">SentinelRedisCache</code> respectively.</p>
@@ -124,7 +124,7 @@
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.27.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.28.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -132,7 +132,7 @@
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">scalacache._</span>
 <span class="k">import</span> <span class="nn">scalacache.caffeine._</span>
 
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">caffeineCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">CaffeineCache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">caffeineCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">CaffeineCache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
 </code></pre></div></div>
 
 <p>This will build a Caffeine cache with all the default settings. If you want to customize your Caffeine cache, then build it yourself and pass it to <code class="highlighter-rouge">CaffeineCache</code> like this:</p>
@@ -141,15 +141,15 @@
 <span class="k">import</span> <span class="nn">scalacache.caffeine._</span>
 <span class="k">import</span> <span class="nn">com.github.benmanes.caffeine.cache.Caffeine</span>
 
-<span class="k">val</span> <span class="n">underlyingCaffeineCache</span> <span class="k">=</span> <span class="nc">Caffeine</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">().</span><span class="n">maximumSize</span><span class="o">(</span><span class="mi">10000L</span><span class="o">).</span><span class="n">build</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Entry</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span>
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">customisedCaffeineCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">CaffeineCache</span><span class="o">(</span><span class="n">underlyingCaffeineCache</span><span class="o">)</span>
+<span class="k">val</span> <span class="nv">underlyingCaffeineCache</span> <span class="k">=</span> <span class="nv">Caffeine</span><span class="o">.</span><span class="py">newBuilder</span><span class="o">().</span><span class="py">maximumSize</span><span class="o">(</span><span class="mi">10000L</span><span class="o">).</span><span class="py">build</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Entry</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">customisedCaffeineCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">CaffeineCache</span><span class="o">(</span><span class="n">underlyingCaffeineCache</span><span class="o">)</span>
 </code></pre></div></div>
 
 <h3 id="cache2k">cache2k</h3>
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-cache2k" % "0.27.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-cache2k" % "0.28.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -161,15 +161,15 @@
 
 <span class="c1">// You have to configure the cache with a ExpiryPolicy or Cache2kBuilder.expireAfterWrite
 // if you want to set expiry on individual values.
-</span><span class="k">val</span> <span class="n">underlyingCache2kCache</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Cache2kBuilder</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">]()</span> <span class="o">{}.</span><span class="n">expireAfterWrite</span><span class="o">(</span><span class="mi">1L</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">MINUTES</span><span class="o">).</span><span class="n">build</span>
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">customisedCache2kCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Cache2kCache</span><span class="o">(</span><span class="n">underlyingCache2kCache</span><span class="o">)</span>
+</span><span class="k">val</span> <span class="nv">underlyingCache2kCache</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Cache2kBuilder</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">]()</span> <span class="o">{}.</span><span class="py">expireAfterWrite</span><span class="o">(</span><span class="mi">1L</span><span class="o">,</span> <span class="nv">TimeUnit</span><span class="o">.</span><span class="py">MINUTES</span><span class="o">).</span><span class="py">build</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">customisedCache2kCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Cache2kCache</span><span class="o">(</span><span class="n">underlyingCache2kCache</span><span class="o">)</span>
 </code></pre></div></div>
 
 <h3 id="ohc">OHC</h3>
 
 <p>SBT:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-ohc" % "0.27.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-ohc" % "0.28.0"
 </code></pre></div></div>
 
 <p>Usage:</p>
@@ -178,8 +178,8 @@
 <span class="k">import</span> <span class="nn">scalacache.ohc._</span>
 <span class="k">import</span> <span class="nn">org.caffinitas.ohc.CacheSerializer</span>
 
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">valueSerializer</span><span class="k">:</span> <span class="kt">CacheSerializer</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">OhcCache</span><span class="o">.</span><span class="n">stringSerializer</span>
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">ohcCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">OhcCache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">valueSerializer</span><span class="k">:</span> <span class="kt">CacheSerializer</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nv">OhcCache</span><span class="o">.</span><span class="py">stringSerializer</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">ohcCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">OhcCache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
 </code></pre></div></div>
 
 <p>This will build a OHC cache with almost default settings. If you want to customize your OHC cache, then build it yourself and pass it to <code class="highlighter-rouge">OhcCache</code> like this:</p>
@@ -190,14 +190,14 @@
 
 <span class="c1">// You have to configure the cache with OHCacheBuilder.timeouts(true)
 // if you want to set expiry on individual values.
-</span><span class="k">val</span> <span class="n">underlyingOhcCache</span> <span class="k">=</span>
+</span><span class="k">val</span> <span class="nv">underlyingOhcCache</span> <span class="k">=</span>
   <span class="nc">OHCacheBuilder</span><span class="o">.</span>
-    <span class="n">newBuilder</span><span class="o">().</span>
-    <span class="n">keySerializer</span><span class="o">(</span><span class="nc">OhcCache</span><span class="o">.</span><span class="n">stringSerializer</span><span class="o">).</span>
-    <span class="n">valueSerializer</span><span class="o">(</span><span class="nc">OhcCache</span><span class="o">.</span><span class="n">stringSerializer</span><span class="o">).</span>
-    <span class="n">timeouts</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span>
-    <span class="n">build</span><span class="o">()</span>
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">customisedOhcCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">OhcCache</span><span class="o">(</span><span class="n">underlyingOhcCache</span><span class="o">)</span>
+    <span class="nf">newBuilder</span><span class="o">().</span>
+    <span class="nf">keySerializer</span><span class="o">(</span><span class="nv">OhcCache</span><span class="o">.</span><span class="py">stringSerializer</span><span class="o">).</span>
+    <span class="nf">valueSerializer</span><span class="o">(</span><span class="nv">OhcCache</span><span class="o">.</span><span class="py">stringSerializer</span><span class="o">).</span>
+    <span class="nf">timeouts</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span>
+    <span class="nf">build</span><span class="o">()</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">customisedOhcCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">OhcCache</span><span class="o">(</span><span class="n">underlyingOhcCache</span><span class="o">)</span>
 </code></pre></div></div>
 
 </section></div></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script><script src="/scalacache/highlight/highlight.pack.js"></script><script>hljs.configure({

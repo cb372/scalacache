@@ -17,7 +17,7 @@
 
 <p>You will need to add a dependency on the scalacache-circe module:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-circe" % "0.27.0"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>libraryDependencies += "com.github.cb372" %% "scalacache-circe" % "0.28.0"
 </code></pre></div></div>
 
 <p>Then import the codec:</p>
@@ -34,8 +34,8 @@
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">io.circe._</span>
 <span class="k">import</span> <span class="nn">io.circe.generic.semiauto._</span>
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">catEncoder</span><span class="k">:</span> <span class="kt">Encoder</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="n">deriveEncoder</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span>
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">catDecoder</span><span class="k">:</span> <span class="kt">Decoder</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="n">deriveDecoder</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">catEncoder</span><span class="k">:</span> <span class="kt">Encoder</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="n">deriveEncoder</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">catDecoder</span><span class="k">:</span> <span class="kt">Decoder</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="n">deriveDecoder</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span>
 </code></pre></div></div>
 
 <p>For more information, please consult the <a href="https://circe.github.io/circe/">circe docs</a>.</p>

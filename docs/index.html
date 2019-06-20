@@ -24,17 +24,17 @@
 
 <span class="k">final</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">Cat</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">colour</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
 
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">catsCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="nc">MemcachedCache</span><span class="o">(</span><span class="s">"localhost:11211"</span><span class="o">)</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">catsCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="nc">MemcachedCache</span><span class="o">(</span><span class="s">"localhost:11211"</span><span class="o">)</span>
 </code></pre></div></div>
 
 <p>Note that we made the cache <code class="highlighter-rouge">implicit</code> so that the ScalaCache API can find it.</p>
 
 <h3 id="basic-cache-operations">Basic cache operations</h3>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">ericTheCat</span> <span class="k">=</span> <span class="nc">Cat</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="s">"Eric"</span><span class="o">,</span> <span class="s">"tuxedo"</span><span class="o">)</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="nv">ericTheCat</span> <span class="k">=</span> <span class="nc">Cat</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="s">"Eric"</span><span class="o">,</span> <span class="s">"tuxedo"</span><span class="o">)</span>
 <span class="n">ericTheCat</span><span class="k">:</span> <span class="kt">Cat</span> <span class="o">=</span> <span class="nc">Cat</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="nc">Eric</span><span class="o">,</span><span class="n">tuxedo</span><span class="o">)</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">doraemon</span> <span class="k">=</span> <span class="nc">Cat</span><span class="o">(</span><span class="mi">99</span><span class="o">,</span> <span class="s">"Doraemon"</span><span class="o">,</span> <span class="s">"blue"</span><span class="o">)</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="nv">doraemon</span> <span class="k">=</span> <span class="nc">Cat</span><span class="o">(</span><span class="mi">99</span><span class="o">,</span> <span class="s">"Doraemon"</span><span class="o">,</span> <span class="s">"blue"</span><span class="o">)</span>
 <span class="n">doraemon</span><span class="k">:</span> <span class="kt">Cat</span> <span class="o">=</span> <span class="nc">Cat</span><span class="o">(</span><span class="mi">99</span><span class="o">,</span><span class="nc">Doraemon</span><span class="o">,</span><span class="n">blue</span><span class="o">)</span>
 
 <span class="n">scala</span><span class="o">&gt;</span> <span class="c1">// Choose the Try mode (more on this later)
@@ -42,22 +42,22 @@
 <span class="k">import</span> <span class="nn">scalacache.modes.try_._</span>
 
 <span class="n">scala</span><span class="o">&gt;</span> <span class="c1">// Add an item to the cache
-</span>     <span class="o">|</span> <span class="n">put</span><span class="o">(</span><span class="s">"eric"</span><span class="o">)(</span><span class="n">ericTheCat</span><span class="o">)</span>
+</span>     <span class="o">|</span> <span class="nf">put</span><span class="o">(</span><span class="s">"eric"</span><span class="o">)(</span><span class="n">ericTheCat</span><span class="o">)</span>
 <span class="n">res3</span><span class="k">:</span> <span class="kt">scala.util.Try</span><span class="o">[</span><span class="kt">Any</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Success</span><span class="o">(())</span>
 
 <span class="n">scala</span><span class="o">&gt;</span> <span class="c1">// Add an item to the cache with a Time To Live
 </span>     <span class="o">|</span> <span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
 <span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
 
-<span class="n">scala</span><span class="o">&gt;</span> <span class="n">put</span><span class="o">(</span><span class="s">"doraemon"</span><span class="o">)(</span><span class="n">doraemon</span><span class="o">,</span> <span class="n">ttl</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="mf">10.</span><span class="n">seconds</span><span class="o">))</span>
+<span class="n">scala</span><span class="o">&gt;</span> <span class="nf">put</span><span class="o">(</span><span class="s">"doraemon"</span><span class="o">)(</span><span class="n">doraemon</span><span class="o">,</span> <span class="n">ttl</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="mf">10.</span><span class="n">seconds</span><span class="o">))</span>
 <span class="n">res5</span><span class="k">:</span> <span class="kt">scala.util.Try</span><span class="o">[</span><span class="kt">Any</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Success</span><span class="o">(())</span>
 
 <span class="n">scala</span><span class="o">&gt;</span> <span class="c1">// Retrieve the added item
-</span>     <span class="o">|</span> <span class="n">get</span><span class="o">(</span><span class="s">"eric"</span><span class="o">)</span>
+</span>     <span class="o">|</span> <span class="nf">get</span><span class="o">(</span><span class="s">"eric"</span><span class="o">)</span>
 <span class="n">res7</span><span class="k">:</span> <span class="kt">scala.util.Try</span><span class="o">[</span><span class="kt">Option</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]]</span> <span class="k">=</span> <span class="nc">Success</span><span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="nc">Cat</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="nc">Eric</span><span class="o">,</span><span class="n">tuxedo</span><span class="o">)))</span>
 
 <span class="n">scala</span><span class="o">&gt;</span> <span class="c1">// Remove it from the cache
-</span>     <span class="o">|</span> <span class="n">remove</span><span class="o">(</span><span class="s">"doraemon"</span><span class="o">)</span>
+</span>     <span class="o">|</span> <span class="nf">remove</span><span class="o">(</span><span class="s">"doraemon"</span><span class="o">)</span>
 <span class="n">res9</span><span class="k">:</span> <span class="kt">scala.util.Try</span><span class="o">[</span><span class="kt">Any</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Success</span><span class="o">(())</span>
 
 <span class="n">scala</span><span class="o">&gt;</span> <span class="c1">// Flush the cache
@@ -66,14 +66,14 @@
 
 <span class="n">scala</span><span class="o">&gt;</span> <span class="c1">// Wrap any block with caching: if the key is not present in the cache,
 </span>     <span class="o">|</span> <span class="c1">// the block will be executed and the value will be cached and returned
-</span>     <span class="o">|</span> <span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">caching</span><span class="o">(</span><span class="s">"benjamin"</span><span class="o">)(</span><span class="n">ttl</span> <span class="k">=</span> <span class="nc">None</span><span class="o">)</span> <span class="o">{</span>
+</span>     <span class="o">|</span> <span class="k">val</span> <span class="nv">result</span> <span class="k">=</span> <span class="nf">caching</span><span class="o">(</span><span class="s">"benjamin"</span><span class="o">)(</span><span class="n">ttl</span> <span class="k">=</span> <span class="nc">None</span><span class="o">)</span> <span class="o">{</span>
      <span class="o">|</span>   <span class="c1">// e.g. call an external API ...
 </span>     <span class="o">|</span>   <span class="nc">Cat</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="s">"Benjamin"</span><span class="o">,</span> <span class="s">"ginger"</span><span class="o">)</span>
      <span class="o">|</span> <span class="o">}</span>
 <span class="n">result</span><span class="k">:</span> <span class="kt">scala.util.Try</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Success</span><span class="o">(</span><span class="nc">Cat</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span><span class="nc">Benjamin</span><span class="o">,</span><span class="n">ginger</span><span class="o">))</span>
 
 <span class="n">scala</span><span class="o">&gt;</span> <span class="c1">// If the result of the block is wrapped in an effect, use cachingF
-</span>     <span class="o">|</span> <span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">cachingF</span><span class="o">(</span><span class="s">"benjamin"</span><span class="o">)(</span><span class="n">ttl</span> <span class="k">=</span> <span class="nc">None</span><span class="o">)</span> <span class="o">{</span>
+</span>     <span class="o">|</span> <span class="k">val</span> <span class="nv">result</span> <span class="k">=</span> <span class="nf">cachingF</span><span class="o">(</span><span class="s">"benjamin"</span><span class="o">)(</span><span class="n">ttl</span> <span class="k">=</span> <span class="nc">None</span><span class="o">)</span> <span class="o">{</span>
      <span class="o">|</span> 	<span class="k">import</span> <span class="nn">scala.util.Try</span>
      <span class="o">|</span>   <span class="nc">Try</span> <span class="o">{</span> 
      <span class="o">|</span>     <span class="c1">// e.g. call an external API ...
@@ -83,7 +83,7 @@
 <span class="n">result</span><span class="k">:</span> <span class="kt">scala.util.Try</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Success</span><span class="o">(</span><span class="nc">Cat</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span><span class="nc">Benjamin</span><span class="o">,</span><span class="n">ginger</span><span class="o">))</span>
 
 <span class="n">scala</span><span class="o">&gt;</span> <span class="c1">// You can also pass multiple parts to be combined into one key
-</span>     <span class="o">|</span> <span class="n">put</span><span class="o">(</span><span class="s">"foo"</span><span class="o">,</span> <span class="mi">123</span><span class="o">,</span> <span class="s">"bar"</span><span class="o">)(</span><span class="n">ericTheCat</span><span class="o">)</span> <span class="c1">// Will be cached with key "foo:123:bar"
+</span>     <span class="o">|</span> <span class="nf">put</span><span class="o">(</span><span class="s">"foo"</span><span class="o">,</span> <span class="mi">123</span><span class="o">,</span> <span class="s">"bar"</span><span class="o">)(</span><span class="n">ericTheCat</span><span class="o">)</span> <span class="c1">// Will be cached with key "foo:123:bar"
 </span><span class="n">res16</span><span class="k">:</span> <span class="kt">scala.util.Try</span><span class="o">[</span><span class="kt">Any</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Success</span><span class="o">(())</span>
 </code></pre></div></div>
 

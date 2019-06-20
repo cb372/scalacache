@@ -24,16 +24,16 @@
 
 <span class="k">final</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">Cat</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">colour</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
 
-<span class="k">implicit</span> <span class="k">val</span> <span class="n">catsCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="nc">MemcachedCache</span><span class="o">(</span><span class="s">"localhost:11211"</span><span class="o">)</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">catsCache</span><span class="k">:</span> <span class="kt">Cache</span><span class="o">[</span><span class="kt">Cat</span><span class="o">]</span> <span class="k">=</span> <span class="nc">MemcachedCache</span><span class="o">(</span><span class="s">"localhost:11211"</span><span class="o">)</span>
 
-<span class="k">def</span> <span class="n">getCatWithFlags</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)(</span><span class="k">implicit</span> <span class="n">flags</span><span class="k">:</span> <span class="kt">Flags</span><span class="o">)</span><span class="k">:</span> <span class="kt">Cat</span> <span class="o">=</span> <span class="n">memoizeSync</span><span class="o">(</span><span class="nc">None</span><span class="o">)</span> <span class="o">{</span>
+<span class="k">def</span> <span class="nf">getCatWithFlags</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)(</span><span class="k">implicit</span> <span class="n">flags</span><span class="k">:</span> <span class="kt">Flags</span><span class="o">)</span><span class="k">:</span> <span class="kt">Cat</span> <span class="o">=</span> <span class="nf">memoizeSync</span><span class="o">(</span><span class="nc">None</span><span class="o">)</span> <span class="o">{</span>
   <span class="c1">// Do DB lookup here...
 </span>  <span class="nc">Cat</span><span class="o">(</span><span class="n">id</span><span class="o">,</span> <span class="n">s</span><span class="s">"cat ${id}"</span><span class="o">,</span> <span class="s">"black"</span><span class="o">)</span>
 <span class="o">}</span>
 
-<span class="k">def</span> <span class="n">getCatMaybeSkippingCache</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">skipCache</span><span class="k">:</span> <span class="kt">Boolean</span><span class="o">)</span><span class="k">:</span> <span class="kt">Cat</span> <span class="o">=</span> <span class="o">{</span>
-  <span class="k">implicit</span> <span class="k">val</span> <span class="n">flags</span> <span class="k">=</span> <span class="nc">Flags</span><span class="o">(</span><span class="n">readsEnabled</span> <span class="k">=</span> <span class="o">!</span><span class="n">skipCache</span><span class="o">)</span>
-  <span class="n">getCatWithFlags</span><span class="o">(</span><span class="n">id</span><span class="o">)</span>
+<span class="k">def</span> <span class="nf">getCatMaybeSkippingCache</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">skipCache</span><span class="k">:</span> <span class="kt">Boolean</span><span class="o">)</span><span class="k">:</span> <span class="kt">Cat</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="k">implicit</span> <span class="k">val</span> <span class="nv">flags</span> <span class="k">=</span> <span class="nc">Flags</span><span class="o">(</span><span class="n">readsEnabled</span> <span class="k">=</span> <span class="o">!</span><span class="n">skipCache</span><span class="o">)</span>
+  <span class="nf">getCatWithFlags</span><span class="o">(</span><span class="n">id</span><span class="o">)</span>
 <span class="o">}</span>
 </code></pre></div></div>
 
