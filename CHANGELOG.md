@@ -1,3 +1,23 @@
+0.28.0 (2019/6/19)
+---
+
+* Cross build for Scala 2.13.0
+* Support for Redis Cluster
+* Fix missing string interpolators in log messages (thanks @augi and @taylorwood)
+* Remove Monix integration module
+    * Monix integration is still easy, using the cats-effect module
+* Remove twitter-util Future integration module
+    * This module was never actually published, due to a mistake in build.sbt
+    * Could potentially revive it once twitter-util is cross-built for 2.13, if
+        there is enough interest
+* circe 0.12.0-M3
+* cats-effect 2.0.0-M4
+* jedis 2.10.2
+* caffeine 2.7.0
+* guava 28.0-jre
+* cache2k 1.2.2
+* scala.js 0.6.28
+
 0.27.0 (2018/12/12)
 ---
 
