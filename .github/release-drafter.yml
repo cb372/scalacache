@@ -1,0 +1,7 @@
+template: |
+  ## What’s Changed
+
+  $CHANGES
+
+exclude-labels:
+  - 'skip-changelog'
