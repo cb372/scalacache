@@ -22,6 +22,6 @@ The following cache implementations are supported, and it's easy to plugin your 
 
 ## Compatibility
 
-ScalaCache is available for Scala 2.11.x and 2.12.x.
+ScalaCache is available for Scala 2.11.x, 2.12.x, and 2.13.x.
 
 The JVM must be Java 8 or newer.
