@@ -41,6 +41,7 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
     cache2k,
     caffeine,
     ohc,
+    mapdb,
     catsEffect,
     scalaz72,
     circe,
@@ -138,8 +139,17 @@ lazy val ohc = jvmOnlyModule("ohc")
   .settings(
     libraryDependencies ++= Seq(
       "org.caffinitas.ohc" % "ohc-core" % "0.7.0"
-    )
+    ),
+    coverageMinimum := 80,
+    coverageFailOnMinimum := true
   )
+
+lazy val mapdb = jvmOnlyModule("mapdb")
+  .settings(
+    libraryDependencies ++= Seq(
+        "org.mapdb" % "mapdb" % "3.0.7"
+      )
+)
 
 lazy val catsEffect = jvmOnlyModule("cats-effect")
   .settings(
