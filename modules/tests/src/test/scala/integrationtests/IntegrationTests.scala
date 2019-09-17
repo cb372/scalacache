@@ -5,6 +5,7 @@ import java.util.UUID
 import org.scalatest._
 import cats.effect.{IO => CatsIO}
 import scalaz.concurrent.{Task => ScalazTask}
+import zio.{Task => ZIOTask}
 import net.spy.memcached.{AddrUtil, MemcachedClient}
 import redis.clients.jedis.JedisPool
 
@@ -31,7 +32,7 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
     try {
       memcachedClient.get("foo")
       true
-    } catch { case _: Exception => false }
+    } catch { case _: ExceptionZIO => false }
   }
 
   private def redisIsRunning: Boolean = {
@@ -129,6 +130,29 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
       checkComputationHasNotRun(key)
 
       val result: Option[String] = program.unsafePerformSync
+      assert(result.contains("prepended " + initialValue))
+    }
+
+    s"$name ⇔ (ZIO Task)" should "defer the computation and give the correct result" in {
+      implicit val theCache: Cache[String] = cache
+      implicit val mode: Mode[ZIOTask]     = Zio.modes.task
+
+      val key          = UUID.randomUUID().toString
+      val initialValue = UUID.randomUUID().toString
+
+      val program: ZIOTask[Option[String]] =
+        for {
+          _             <- put(key)(initialValue)
+          readFromCache <- get(key)
+          updatedValue = "prepended " + readFromCache.getOrElse("couldn't find in cache!")
+          _                   <- put(key)(updatedValue)
+          finalValueFromCache <- get(key)
+        } yield finalValueFromCache
+
+      checkComputationHasNotRun(key)
+
+      object runtime extends zio.DefaultRuntime
+      val result: Option[String] = runtime.unsafeRun(program)
       assert(result.contains("prepended " + initialValue))
     }
 
