@@ -43,6 +43,7 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
     ohc,
     catsEffect,
     scalaz72,
+    zio,
     circe,
     tests
   )
@@ -159,6 +160,15 @@ lazy val scalaz72 = jvmOnlyModule("scalaz72")
     coverageFailOnMinimum := true
   )
 
+lazy val zio = jvmOnlyModule("zio")
+  .settings(
+    libraryDependencies ++= Seq(
+      "dev.zio" %%% "zio" % "1.0.0-RC13"
+    ),
+    coverageMinimum := 40,
+    coverageFailOnMinimum := true
+  )
+
 lazy val circe = jvmOnlyModule("circe")
   .settings(
     libraryDependencies ++= Seq(
@@ -173,7 +183,7 @@ lazy val circe = jvmOnlyModule("circe")
 
 lazy val tests = jvmOnlyModule("tests")
   .settings(publishArtifact := false)
-  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, scalaz72, circe)
+  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, scalaz72, zio, circe)
 
 lazy val doc = jvmOnlyModule("doc")
   .enablePlugins(MicrositesPlugin)
