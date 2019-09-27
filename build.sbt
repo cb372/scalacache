@@ -145,7 +145,7 @@ lazy val ohc = jvmOnlyModule("ohc")
 lazy val catsEffect = jvmOnlyModule("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "2.0.0-M4"
+      "org.typelevel" %% "cats-effect" % "2.0.0"
     ),
     coverageMinimum := 50,
     coverageFailOnMinimum := true
@@ -168,13 +168,21 @@ lazy val zio = jvmOnlyModule("zio")
     coverageMinimum := 40,
     coverageFailOnMinimum := true
   )
+  
+def circeVersion(scalaVersion: String) =
+  CrossVersion.partialVersion(scalaVersion) match {
+    case Some((2, scalaMajor)) if scalaMajor >= 12 => "0.12.1"
+    case Some((2, scalaMajor)) if scalaMajor >= 11 => "0.11.1"
+    case _ =>
+      throw new IllegalArgumentException(s"Unsupported Scala version $scalaVersion")
+  }
 
 lazy val circe = jvmOnlyModule("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core"    % "0.12.0-M3",
-      "io.circe" %% "circe-parser"  % "0.12.0-M3",
-      "io.circe" %% "circe-generic" % "0.12.0-M3" % Test,
+      "io.circe" %% "circe-core"    % circeVersion(scalaVersion.value),
+      "io.circe" %% "circe-parser"  % circeVersion(scalaVersion.value),
+      "io.circe" %% "circe-generic" % circeVersion(scalaVersion.value) % Test,
       scalacheck
     ),
     coverageMinimum := 80,
