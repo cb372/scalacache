@@ -163,12 +163,12 @@ lazy val scalaz72 = jvmOnlyModule("scalaz72")
 lazy val zio = jvmOnlyModule("zio")
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio" % "1.0.0-RC13"
+      "dev.zio" %%% "zio" % "1.0.0-RC16"
     ),
     coverageMinimum := 40,
     coverageFailOnMinimum := true
   )
-  
+
 def circeVersion(scalaVersion: String) =
   CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, scalaMajor)) if scalaMajor >= 12 => "0.12.1"

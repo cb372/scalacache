@@ -95,4 +95,3 @@ import scalacache.Scalaz72.modes._
 ```
 
 * Wraps the operation in `Task`, deferring execution until it is explicitly run
-

@@ -5,7 +5,7 @@ import java.util.UUID
 import org.scalatest._
 import cats.effect.{IO => CatsIO}
 import scalaz.concurrent.{Task => ScalazTask}
-import _root_.zio.{Task => ZIOTask}
+import zio.{Task => ZIOTask}
 import net.spy.memcached.{AddrUtil, MemcachedClient}
 import redis.clients.jedis.JedisPool
 
@@ -32,7 +32,7 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
     try {
       memcachedClient.get("foo")
       true
-    } catch { case _: ExceptionZIO => false }
+    } catch { case _: Exception => false }
   }
 
   private def redisIsRunning: Boolean = {
@@ -135,7 +135,7 @@ class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
     s"$name ⇔ (ZIO Task)" should "defer the computation and give the correct result" in {
       implicit val theCache: Cache[String] = cache
-      implicit val mode: Mode[ZIOTask]     = zio.modes.task
+      import ZioEffect.modes._
 
       val key          = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString

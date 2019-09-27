@@ -1,13 +1,16 @@
 package scalacache
 
-import _root_.zio.Task
+import zio.Task
 
 import scala.util.control.NonFatal
 
-object zio {
+object ZioEffect {
 
   object modes {
 
+    /**
+      * A mode that wraps results of async operations in `zio.Task`.
+      */
     implicit val task: Mode[Task] = new Mode[Task] {
       val M: Async[Task] = AsyncForZIOTask
     }
