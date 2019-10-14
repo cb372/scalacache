@@ -153,7 +153,7 @@ lazy val catsEffect = jvmOnlyModule("cats-effect")
 lazy val scalaz72 = jvmOnlyModule("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-concurrent" % "7.2.27"
+      "org.scalaz" %% "scalaz-concurrent" % "7.2.29"
     ),
     coverageMinimum := 40,
     coverageFailOnMinimum := true
