@@ -62,7 +62,7 @@ lazy val core =
     )
     .jvmSettings(
       libraryDependencies ++= Seq(
-        "org.slf4j" % "slf4j-api" % "1.7.26"
+        "org.slf4j" % "slf4j-api" % "1.7.29"
       ),
       scala211OnlyDeps(
         "org.squeryl"    %% "squeryl" % "0.9.9"   % Test,
