@@ -54,7 +54,7 @@ lazy val core =
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-        "org.scalatest"  %%% "scalatest"   % "3.0.8" % Test,
+        "org.scalatest"  %%% "scalatest"   % "3.1.0" % Test,
         "org.scalacheck" %%% "scalacheck"  % "1.14.0" % Test
       ),
       coverageMinimum := 79,
@@ -234,7 +234,7 @@ lazy val benchmarks = jvmOnlyModule("benchmarks")
   .dependsOn(caffeine)
   .dependsOn(ohc)
 
-lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.8" % Test
+lazy val scalatest = "org.scalatest" %% "scalatest" % "3.1.0" % Test
 
 lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
 

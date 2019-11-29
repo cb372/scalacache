@@ -3,13 +3,14 @@ package scalacache.guava
 import java.time.{Clock, Instant, ZoneOffset}
 
 import scalacache._
-import org.scalatest.{FlatSpec, Matchers}
 import com.google.common.cache.CacheBuilder
 
 import scala.concurrent.duration._
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class GuavaCacheSpec extends FlatSpec with Matchers with ScalaFutures {
+class GuavaCacheSpec extends AnyFlatSpec with Matchers with ScalaFutures {
 
   private def newGCache = CacheBuilder.newBuilder.build[String, Entry[String]]
 

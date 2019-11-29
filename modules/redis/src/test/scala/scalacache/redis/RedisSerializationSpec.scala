@@ -2,9 +2,10 @@ package scalacache.redis
 
 import java.nio.charset.StandardCharsets
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class RedisSerializationSpec extends FlatSpec with Matchers with RedisSerialization {
+class RedisSerializationSpec extends AnyFlatSpec with Matchers with RedisSerialization {
 
   behavior of "serialization"
 

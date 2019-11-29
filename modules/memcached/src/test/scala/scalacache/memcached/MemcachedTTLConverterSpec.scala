@@ -3,11 +3,12 @@ package scalacache.memcached
 import java.time.temporal.ChronoUnit
 import java.time.{Clock, Instant, ZoneOffset}
 
-import org.scalatest.{FlatSpec, Matchers}
 
 import scala.concurrent.duration._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class MemcachedTTLConverterSpec extends FlatSpec with Matchers with MemcachedTTLConverter {
+class MemcachedTTLConverterSpec extends AnyFlatSpec with Matchers with MemcachedTTLConverter {
   behavior of "MemcachedTTLConverter"
 
   it should "convert None to 0" in {

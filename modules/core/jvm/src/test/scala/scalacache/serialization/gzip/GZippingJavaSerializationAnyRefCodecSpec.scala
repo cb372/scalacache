@@ -1,11 +1,12 @@
 package scalacache.serialization.gzip
 
-import org.scalatest.{FlatSpec, Matchers}
 
 import scala.util.Random
 import scalacache.serialization.{Codec, Phone}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class GZippingJavaSerializationAnyRefCodecSpec extends FlatSpec with Matchers {
+class GZippingJavaSerializationAnyRefCodecSpec extends AnyFlatSpec with Matchers {
 
   import GZippingJavaSerializationAnyRefCodec._
 

@@ -9,9 +9,11 @@ import org.scalatest.time.{Span, Seconds}
 import scala.language.postfixOps
 import scalacache.serialization.Codec
 import scalacache.serialization.binary._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 class MemcachedCacheSpec
-    extends FlatSpec
+    extends AnyFlatSpec
     with Matchers
     with Eventually
     with BeforeAndAfter
