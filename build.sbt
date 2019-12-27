@@ -85,7 +85,7 @@ def jvmOnlyModule(name: String) =
 lazy val guava = jvmOnlyModule("guava")
   .settings(
     libraryDependencies ++= Seq(
-      "com.google.guava"         % "guava"  % "28.0-jre",
+      "com.google.guava"         % "guava"  % "28.2-jre",
       "com.google.code.findbugs" % "jsr305" % "3.0.2"
     )
   )
