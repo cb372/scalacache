@@ -23,7 +23,7 @@ Documentation is available on [the ScalaCache website](https://cb372.github.io/s
 
 ## Compatibility
 
-ScalaCache is available for Scala 2.11.x and 2.12.x.
+ScalaCache is available for Scala 2.11.x, 2.12.x, and 2.13.x.
 
 The JVM must be Java 8 or newer.
 
