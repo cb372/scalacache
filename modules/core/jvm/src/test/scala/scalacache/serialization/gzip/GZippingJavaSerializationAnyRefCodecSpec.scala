@@ -1,6 +1,5 @@
 package scalacache.serialization.gzip
 
-
 import scala.util.Random
 import scalacache.serialization.{Codec, Phone}
 import org.scalatest.flatspec.AnyFlatSpec
