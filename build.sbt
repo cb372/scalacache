@@ -55,7 +55,7 @@ lazy val core =
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "org.scalatest"  %%% "scalatest"   % "3.0.8" % Test,
-        "org.scalacheck" %%% "scalacheck"  % "1.14.0" % Test
+        "org.scalacheck" %%% "scalacheck"  % "1.14.3" % Test
       ),
       coverageMinimum := 79,
       coverageFailOnMinimum := true
@@ -236,7 +236,7 @@ lazy val benchmarks = jvmOnlyModule("benchmarks")
 
 lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.8" % Test
 
-lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
+lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3" % Test
 
 lazy val commonSettings =
   mavenSettings ++
