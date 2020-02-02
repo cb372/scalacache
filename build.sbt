@@ -66,7 +66,7 @@ lazy val core =
       ),
       scala211OnlyDeps(
         "org.squeryl"    %% "squeryl" % "0.9.9"   % Test,
-        "com.h2database" % "h2"       % "1.4.196" % Test
+        "com.h2database" % "h2"       % "1.4.200" % Test
       )
     )
 
@@ -127,7 +127,7 @@ lazy val cache2k = jvmOnlyModule("cache2k")
 lazy val caffeine = jvmOnlyModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.7.0",
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.8.1",
       "com.google.code.findbugs"      % "jsr305"   % "3.0.2" % Provided
     ),
     coverageMinimum := 80,
