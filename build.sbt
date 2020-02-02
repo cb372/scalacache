@@ -62,11 +62,11 @@ lazy val core =
     )
     .jvmSettings(
       libraryDependencies ++= Seq(
-        "org.slf4j" % "slf4j-api" % "1.7.26"
+        "org.slf4j" % "slf4j-api" % "1.7.30"
       ),
       scala211OnlyDeps(
         "org.squeryl"    %% "squeryl" % "0.9.9"   % Test,
-        "com.h2database" % "h2"       % "1.4.196" % Test
+        "com.h2database" % "h2"       % "1.4.200" % Test
       )
     )
 
@@ -127,7 +127,7 @@ lazy val cache2k = jvmOnlyModule("cache2k")
 lazy val caffeine = jvmOnlyModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.7.0",
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.8.1",
       "com.google.code.findbugs"      % "jsr305"   % "3.0.2" % Provided
     ),
     coverageMinimum := 80,
@@ -153,7 +153,7 @@ lazy val catsEffect = jvmOnlyModule("cats-effect")
 lazy val scalaz72 = jvmOnlyModule("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-concurrent" % "7.2.27"
+      "org.scalaz" %% "scalaz-concurrent" % "7.2.30"
     ),
     coverageMinimum := 40,
     coverageFailOnMinimum := true
