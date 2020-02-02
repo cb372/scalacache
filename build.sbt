@@ -66,7 +66,7 @@ lazy val core =
       ),
       scala211OnlyDeps(
         "org.squeryl"    %% "squeryl" % "0.9.9"   % Test,
-        "com.h2database" % "h2"       % "1.4.196" % Test
+        "com.h2database" % "h2"       % "1.4.200" % Test
       )
     )
 
