@@ -55,14 +55,14 @@ lazy val core =
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "org.scalatest"  %%% "scalatest"   % "3.0.8" % Test,
-        "org.scalacheck" %%% "scalacheck"  % "1.14.0" % Test
+        "org.scalacheck" %%% "scalacheck"  % "1.14.3" % Test
       ),
       coverageMinimum := 79,
       coverageFailOnMinimum := true
     )
     .jvmSettings(
       libraryDependencies ++= Seq(
-        "org.slf4j" % "slf4j-api" % "1.7.26"
+        "org.slf4j" % "slf4j-api" % "1.7.30"
       ),
       scala211OnlyDeps(
         "org.squeryl"    %% "squeryl" % "0.9.9"   % Test,
@@ -85,7 +85,7 @@ def jvmOnlyModule(name: String) =
 lazy val guava = jvmOnlyModule("guava")
   .settings(
     libraryDependencies ++= Seq(
-      "com.google.guava"         % "guava"  % "28.0-jre",
+      "com.google.guava"         % "guava"  % "28.2-jre",
       "com.google.code.findbugs" % "jsr305" % "3.0.2"
     )
   )
@@ -236,7 +236,7 @@ lazy val benchmarks = jvmOnlyModule("benchmarks")
 
 lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.8" % Test
 
-lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
+lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3" % Test
 
 lazy val commonSettings =
   mavenSettings ++
