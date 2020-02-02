@@ -1,5 +1,5 @@
 addSbtPlugin("pl.project13.scala" % "sbt-jmh"                  % "0.3.7")
-addSbtPlugin("com.47deg"          % "sbt-microsites"           % "0.7.17")
+addSbtPlugin("com.47deg"          % "sbt-microsites"           % "0.7.27")
 addSbtPlugin("com.jsuereth"       % "sbt-pgp"                  % "1.1.2")
 addSbtPlugin("com.github.gseitz"  % "sbt-release"              % "1.0.13")
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "0.6.1")
