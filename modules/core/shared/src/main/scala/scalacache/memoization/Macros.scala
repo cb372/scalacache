@@ -135,11 +135,10 @@ class Macros(val c: blackbox.Context) {
     def shouldExclude(s: c.Symbol) = {
       s.annotations.exists(a => a.tree.tpe == cacheKeyExcludeType)
     }
-    val identss: List[List[Ident]] = symbolss.map(
-      ss =>
-        ss.collect {
-          case s if !shouldExclude(s) => Ident(s.name)
-        }
+    val identss: List[List[Ident]] = symbolss.map(ss =>
+      ss.collect {
+        case s if !shouldExclude(s) => Ident(s.name)
+      }
     )
     listToTree(identss.map(is => listToTree(is)))
   }

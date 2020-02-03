@@ -65,7 +65,7 @@ lazy val core =
         "org.slf4j" % "slf4j-api" % "1.7.30"
       ),
       scala211OnlyDeps(
-        "org.squeryl"    %% "squeryl" % "0.9.9"   % Test,
+        "org.squeryl"    %% "squeryl" % "0.9.14"  % Test,
         "com.h2database" % "h2"       % "1.4.200" % Test
       )
     )
@@ -153,7 +153,7 @@ lazy val catsEffect = jvmOnlyModule("cats-effect")
 lazy val scalaz72 = jvmOnlyModule("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-concurrent" % "7.2.27"
+      "org.scalaz" %% "scalaz-concurrent" % "7.2.30"
     ),
     coverageMinimum := 40,
     coverageFailOnMinimum := true
