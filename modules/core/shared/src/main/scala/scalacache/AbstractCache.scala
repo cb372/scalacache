@@ -3,6 +3,10 @@ package scalacache
 import scala.concurrent.duration.Duration
 
 import scala.language.higherKinds
+import cats.Monad
+import cats.implicits._
+import cats.MonadError
+import cats.Defer
 
 /**
   * An abstract implementation of [[CacheAlg]] that takes care of
@@ -13,34 +17,36 @@ import scala.language.higherKinds
   *
   * @tparam V The value of types stored in the cache.
   */
-trait AbstractCache[V] extends Cache[V] with LoggingSupport {
+trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
 
+  protected implicit def F: MonadError[F, Throwable]
+  protected implicit def Defer: Defer[F]
   // GET
 
-  protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]]
+  protected def doGet(key: String): F[Option[V]]
 
-  private def checkFlagsAndGet[F[_]](key: String)(implicit mode: Mode[F], flags: Flags): F[Option[V]] = {
+  private def checkFlagsAndGet(key: String)(implicit flags: Flags): F[Option[V]] = {
     if (flags.readsEnabled) {
       doGet(key)
     } else {
       if (logger.isDebugEnabled) {
         logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
       }
-      mode.M.pure(None)
+      F.pure(None)
     }
   }
 
-  final override def get[F[_]](keyParts: Any*)(implicit mode: Mode[F], flags: Flags): F[Option[V]] = {
+  final override def get(keyParts: Any*)(implicit flags: Flags): F[Option[V]] = {
     val key = toKey(keyParts: _*)
     checkFlagsAndGet(key)
   }
 
   // PUT
 
-  protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any]
+  protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Any]
 
-  private def checkFlagsAndPut[F[_]](key: String, value: V, ttl: Option[Duration])(
-      implicit mode: Mode[F],
+  private def checkFlagsAndPut(key: String, value: V, ttl: Option[Duration])(
+      implicit
       flags: Flags
   ): F[Any] = {
     if (flags.writesEnabled) {
@@ -49,13 +55,13 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
       if (logger.isDebugEnabled) {
         logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
       }
-      mode.M.pure(())
+      F.pure(())
     }
   }
 
-  final override def put[F[_]](
+  final override def put(
       keyParts: Any*
-  )(value: V, ttl: Option[Duration])(implicit mode: Mode[F], flags: Flags): F[Any] = {
+  )(value: V, ttl: Option[Duration])(implicit flags: Flags): F[Any] = {
     val key       = toKey(keyParts: _*)
     val finiteTtl = ttl.filter(_.isFinite) // discard Duration.Inf, Duration.Undefined
     checkFlagsAndPut(key, value, finiteTtl)
@@ -63,109 +69,78 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
 
   // REMOVE
 
-  protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any]
+  protected def doRemove(key: String): F[Any]
 
-  final override def remove[F[_]](keyParts: Any*)(implicit mode: Mode[F]): F[Any] =
+  final override def remove(keyParts: Any*): F[Any] =
     doRemove(toKey(keyParts: _*))
 
   // REMOVE ALL
 
-  protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any]
+  protected def doRemoveAll: F[Any]
 
-  final override def removeAll[F[_]]()(implicit mode: Mode[F]): F[Any] =
-    doRemoveAll()
+  final override def removeAll: F[Any] =
+    doRemoveAll
 
   // CACHING
 
-  final override def caching[F[_]](
+  final override def caching(
       keyParts: Any*
-  )(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F], flags: Flags): F[V] = {
+  )(ttl: Option[Duration] = None)(f: => V)(implicit flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
     _caching(key, ttl, f)
   }
 
-  override def cachingF[F[_]](
+  override def cachingF(
       keyParts: Any*
-  )(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F], flags: Flags): F[V] = {
+  )(ttl: Option[Duration] = None)(f: F[V])(implicit flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
     _cachingF(key, ttl, f)
   }
 
   // MEMOIZE
 
-  override def cachingForMemoize[F[_]](
+  override def cachingForMemoize(
       baseKey: String
-  )(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F], flags: Flags): F[V] = {
+  )(ttl: Option[Duration] = None)(f: => V)(implicit flags: Flags): F[V] = {
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     _caching(key, ttl, f)
   }
 
-  override def cachingForMemoizeF[F[_]](
+  override def cachingForMemoizeF(
       baseKey: String
-  )(ttl: Option[Duration])(f: => F[V])(implicit mode: Mode[F], flags: Flags): F[V] = {
+  )(ttl: Option[Duration])(f: F[V])(implicit flags: Flags): F[V] = {
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
     _cachingF(key, ttl, f)
   }
 
-  private def _caching[F[_]](key: String, ttl: Option[Duration], f: => V)(
-      implicit mode: Mode[F],
+  private def _caching(key: String, ttl: Option[Duration], f: => V)(
+      implicit
+      flags: Flags
+  ): F[V] = _cachingF(key, ttl, Defer.defer(F.pure(f)))
+
+  private def _cachingF(key: String, ttl: Option[Duration], f: => F[V])(
+      implicit
       flags: Flags
   ): F[V] = {
-    import mode._
-
-    M.flatMap {
-      M.handleNonFatal(checkFlagsAndGet(key)) { e =>
+    checkFlagsAndGet(key)
+      .handleError { e =>
         if (logger.isWarnEnabled) {
           logger.warn(s"Failed to read from cache. Key = $key", e)
         }
         None
       }
-    } {
-      case Some(valueFromCache) =>
-        M.pure(valueFromCache)
-      case None =>
-        val calculatedValue = f
-        M.map {
-          M.handleNonFatal {
+      .flatMap {
+        case Some(valueFromCache) => F.pure(valueFromCache)
+        case None =>
+          f.flatTap { calculatedValue =>
             checkFlagsAndPut(key, calculatedValue, ttl)
-          } { e =>
-            if (logger.isWarnEnabled) {
-              logger.warn(s"Failed to write to cache. Key = $key", e)
-            }
-          }
-        }(_ => calculatedValue)
-    }
-  }
-
-  private def _cachingF[F[_]](key: String, ttl: Option[Duration], f: => F[V])(
-      implicit mode: Mode[F],
-      flags: Flags
-  ): F[V] = {
-    import mode._
-
-    M.flatMap {
-      M.handleNonFatal(checkFlagsAndGet(key)) { e =>
-        if (logger.isWarnEnabled) {
-          logger.warn(s"Failed to read from cache. Key = $key", e)
-        }
-        None
-      }
-    } {
-      case Some(valueFromCache) =>
-        M.pure(valueFromCache)
-      case None =>
-        M.flatMap(f) { calculatedValue =>
-          M.map {
-            M.handleNonFatal {
-              checkFlagsAndPut(key, calculatedValue, ttl)
-            } { e =>
-              if (logger.isWarnEnabled) {
-                logger.warn(s"Failed to write to cache. Key = $key", e)
+              .handleError { e =>
+                if (logger.isWarnEnabled) {
+                  logger.warn(s"Failed to write to cache. Key = $key", e)
+                }
               }
-            }
-          }(_ => calculatedValue)
-        }
-    }
+          }
+      }
   }
 
   private def toKey(keyParts: Any*): String =
