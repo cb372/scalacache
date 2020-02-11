@@ -33,6 +33,8 @@ val underlyingGuavaCache = CacheBuilder.newBuilder().maximumSize(10000L).build[S
 implicit val guavaCache: Cache[String] = GuavaCache(underlyingGuavaCache)
 ```
 
+Cache eviction is handled by the underlying guava cache. The ScalaCache API's will never return an expired item, but they will stay in Guava untill either the max elements or time based expiration occurs. To keep memory down consider using `expireAfterWrite` in the CacheBuilder.
+
 ### Memcached
 
 SBT:
