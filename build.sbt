@@ -55,18 +55,18 @@ lazy val core =
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "org.scalatest"  %%% "scalatest"   % "3.0.8" % Test,
-        "org.scalacheck" %%% "scalacheck"  % "1.14.0" % Test
+        "org.scalacheck" %%% "scalacheck"  % "1.14.3" % Test
       ),
       coverageMinimum := 79,
       coverageFailOnMinimum := true
     )
     .jvmSettings(
       libraryDependencies ++= Seq(
-        "org.slf4j" % "slf4j-api" % "1.7.26"
+        "org.slf4j" % "slf4j-api" % "1.7.30"
       ),
       scala211OnlyDeps(
-        "org.squeryl"    %% "squeryl" % "0.9.9"   % Test,
-        "com.h2database" % "h2"       % "1.4.196" % Test
+        "org.squeryl"    %% "squeryl" % "0.9.14"  % Test,
+        "com.h2database" % "h2"       % "1.4.200" % Test
       )
     )
 
@@ -85,7 +85,7 @@ def jvmOnlyModule(name: String) =
 lazy val guava = jvmOnlyModule("guava")
   .settings(
     libraryDependencies ++= Seq(
-      "com.google.guava"         % "guava"  % "28.0-jre",
+      "com.google.guava"         % "guava"  % "28.2-jre",
       "com.google.code.findbugs" % "jsr305" % "3.0.2"
     )
   )
@@ -127,7 +127,7 @@ lazy val cache2k = jvmOnlyModule("cache2k")
 lazy val caffeine = jvmOnlyModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.7.0",
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.8.1",
       "com.google.code.findbugs"      % "jsr305"   % "3.0.2" % Provided
     ),
     coverageMinimum := 80,
@@ -144,7 +144,7 @@ lazy val ohc = jvmOnlyModule("ohc")
 lazy val catsEffect = jvmOnlyModule("cats-effect")
   .settings(
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "2.0.0-M4"
+      "org.typelevel" %% "cats-effect" % "2.0.0"
     ),
     coverageMinimum := 50,
     coverageFailOnMinimum := true
@@ -153,18 +153,26 @@ lazy val catsEffect = jvmOnlyModule("cats-effect")
 lazy val scalaz72 = jvmOnlyModule("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-concurrent" % "7.2.27"
+      "org.scalaz" %% "scalaz-concurrent" % "7.2.30"
     ),
     coverageMinimum := 40,
     coverageFailOnMinimum := true
   )
 
+def circeVersion(scalaVersion: String) =
+  CrossVersion.partialVersion(scalaVersion) match {
+    case Some((2, scalaMajor)) if scalaMajor >= 12 => "0.12.1"
+    case Some((2, scalaMajor)) if scalaMajor >= 11 => "0.11.1"
+    case _ =>
+      throw new IllegalArgumentException(s"Unsupported Scala version $scalaVersion")
+  }
+
 lazy val circe = jvmOnlyModule("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core"    % "0.12.0-M3",
-      "io.circe" %% "circe-parser"  % "0.12.0-M3",
-      "io.circe" %% "circe-generic" % "0.12.0-M3" % Test,
+      "io.circe" %% "circe-core"    % circeVersion(scalaVersion.value),
+      "io.circe" %% "circe-parser"  % circeVersion(scalaVersion.value),
+      "io.circe" %% "circe-generic" % circeVersion(scalaVersion.value) % Test,
       scalacheck
     ),
     coverageMinimum := 80,
@@ -228,7 +236,7 @@ lazy val benchmarks = jvmOnlyModule("benchmarks")
 
 lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.8" % Test
 
-lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
+lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3" % Test
 
 lazy val commonSettings =
   mavenSettings ++
