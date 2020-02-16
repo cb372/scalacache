@@ -30,10 +30,10 @@ final case class Cat(id: Int, name: String, colour: String)
 
 implicit val catsCache: Cache[Cat] = MemcachedCache("localhost:11211")
 
-def getCatWithFlags(id: Int)(implicit flags: Flags): Cat = memoizeSync(None) {
+def getCatWithFlags(id: Int)(implicit flags: Flags): Cat = memoizeSync {
   // Do DB lookup here...
   Cat(id, s"cat ${id}", "black")
-}
+}(_ => None)
 
 def getCatMaybeSkippingCache(id: Int, skipCache: Boolean): Cat = {
   implicit val flags = Flags(readsEnabled = !skipCache)

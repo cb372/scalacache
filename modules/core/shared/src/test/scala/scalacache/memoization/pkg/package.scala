@@ -6,8 +6,9 @@ import scalacache.modes.sync._
 package object pkg {
   implicit var cache: Cache[Int] = null
 
-  def insidePackageObject(a: Int): Int = memoizeSync(None) {
-    123
-  }
+  def insidePackageObject(a: Int): Int =
+    memoizeSync {
+      123
+    }(_ => None)
 
 }

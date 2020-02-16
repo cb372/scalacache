@@ -80,10 +80,10 @@ class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
 
   it should "run the block and cache its result with no TTL if the value is not found in the cache" in {
     var called = false
-    val result = cache.caching("myKey")(None) {
+    val result = cache.caching("myKey") {
       called = true
       "result of block"
-    }
+    }(_ => None)
 
     cache.getCalledWithArgs(0) should be("myKey")
     cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
@@ -93,10 +93,10 @@ class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
 
   it should "run the block and cache its result with a TTL if the value is not found in the cache" in {
     var called = false
-    val result = cache.caching("myKey")(Some(5 seconds)) {
+    val result = cache.caching("myKey") {
       called = true
       "result of block"
-    }
+    }(_ => Some(5 seconds))
 
     cache.getCalledWithArgs(0) should be("myKey")
     cache.putCalledWithArgs(0) should be("myKey", "result of block", Some(5 seconds))
@@ -108,10 +108,10 @@ class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
     cache.mmap.put("myKey", "value from cache")
 
     var called = false
-    val result = cache.caching("myKey")(None) {
+    val result = cache.caching("myKey") {
       called = true
       "result of block"
-    }
+    }(_ => None)
 
     cache.getCalledWithArgs(0) should be("myKey")
     called should be(false)
@@ -124,12 +124,12 @@ class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
     import scalacache.modes.try_.mode
 
     var called = false
-    val tResult = cache.cachingF("myKey")(None) {
+    val tResult = cache.cachingF("myKey") {
       Try {
         called = true
         "result of block"
       }
-    }
+    }(_ => None)
 
     cache.getCalledWithArgs(0) should be("myKey")
     cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
@@ -143,12 +143,12 @@ class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
     cache.mmap.put("myKey", "value from cache")
 
     var called = false
-    val tResult = cache.cachingF("myKey")(None) {
+    val tResult = cache.cachingF("myKey") {
       Try {
         called = true
         "result of block"
       }
-    }
+    }(_ => None)
 
     cache.getCalledWithArgs(0) should be("myKey")
     called should be(false)
@@ -159,10 +159,10 @@ class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
 
   it should "run the block and cache its result if the value is not found in the cache" in {
     var called = false
-    val result = cache.caching("myKey")(None) {
+    val result = cache.caching("myKey") {
       called = true
       "result of block"
-    }
+    }(_ => None)
 
     cache.getCalledWithArgs(0) should be("myKey")
     cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
@@ -174,10 +174,10 @@ class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
     cache.mmap.put("myKey", "value from cache")
 
     var called = false
-    val result = cache.caching("myKey")(None) {
+    val result = cache.caching("myKey") {
       called = true
       "result of block"
-    }
+    }(_ => None)
 
     cache.getCalledWithArgs(0) should be("myKey")
     called should be(false)
@@ -192,10 +192,10 @@ class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
     implicit val flags: Flags = Flags(readsEnabled = false)
 
     var called = false
-    val result = cache.caching("myKey")(None) {
+    val result = cache.caching("myKey") {
       called = true
       "result of block"
-    }
+    }(_ => None)
 
     cache.getCalledWithArgs should be(empty)
     called should be(true)
@@ -208,10 +208,10 @@ class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
     implicit val flags: Flags = Flags(writesEnabled = false)
 
     var called = false
-    val result = cache.caching("myKey")(None) {
+    val result = cache.caching("myKey") {
       called = true
       "result of block"
-    }
+    }(_ => None)
 
     cache.getCalledWithArgs(0) should be("myKey")
     called should be(true)
@@ -227,10 +227,10 @@ class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
     implicit val flags: Flags = Flags(readsEnabled = false)
 
     var called = false
-    val result = cache.cachingF[Id]("myKey")(None) {
+    val result = cache.cachingF[Id]("myKey") {
       called = true
       "result of block"
-    }
+    }(_ => None)
 
     cache.getCalledWithArgs should be(empty)
     called should be(true)
@@ -243,10 +243,10 @@ class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
     implicit val flags: Flags = Flags(writesEnabled = false)
 
     var called = false
-    val result = cache.cachingF[Id]("myKey")(None) {
+    val result = cache.cachingF[Id]("myKey") {
       called = true
       "result of block"
-    }
+    }(_ => None)
 
     cache.getCalledWithArgs(0) should be("myKey")
     called should be(true)

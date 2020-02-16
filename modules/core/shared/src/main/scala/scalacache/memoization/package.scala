@@ -1,5 +1,4 @@
 package scalacache
-package memoization
 
 import scala.language.experimental.macros
 import scala.concurrent.duration._
@@ -10,7 +9,7 @@ import scala.language.higherKinds
   * The cache key is generated from the method arguments using a macro,
   * so that you don't have to bother passing them manually.
   */
-package object legacy {
+package object memoization {
 
   /**
     * Perform the given operation and memoize its result to a cache before returning it.
@@ -22,8 +21,8 @@ package object legacy {
     * Note that if the result is currently in the cache, changing the TTL has no effect.
     * TTL is only set once, when the result is added to the cache.
     *
-    * @param ttl Time-To-Live
     * @param f A function that computes some result. This result is the value that will be cached.
+    * @param calculateTtl Time-To-Live calculated from the Value
     * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param cache The cache
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
@@ -31,7 +30,9 @@ package object legacy {
     * @tparam V The type of the value to be cached
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoize[F[_], V](ttl: Option[Duration])(f: => V)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+  def memoize[F[_], V](f: => V)(
+      calculateTtl: V => Option[Duration]
+  )(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     macro Macros.memoizeImpl[F, V]
 
   /**
@@ -44,8 +45,8 @@ package object legacy {
     * Note that if the result is currently in the cache, changing the TTL has no effect.
     * TTL is only set once, when the result is added to the cache.
     *
-    * @param ttl Time-To-Live
     * @param f A function that computes some result wrapped in an [[F]]. This result is the value that will be cached.
+    * @param calculateTtl Time-To-Live calculated from the Value
     * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param cache The cache
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
@@ -53,9 +54,9 @@ package object legacy {
     * @tparam V The type of the value to be cached
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoizeF[F[_], V](
-      ttl: Option[Duration]
-  )(f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+  def memoizeF[F[_], V](f: => F[V])(
+      calculateTtl: V => Option[Duration]
+  )(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
     macro Macros.memoizeFImpl[F, V]
 
   /**
@@ -72,14 +73,16 @@ package object legacy {
     * Note that if the result is currently in the cache, changing the TTL has no effect.
     * TTL is only set once, when the result is added to the cache.
     *
-    * @param ttl Time-To-Live
     * @param f A function that computes some result. This result is the value that will be cached.
+    * @param calculateTtl Time-To-Live calculated from the Value
     * @param cache The cache
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam V The type of the value to be cached
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoizeSync[V](ttl: Option[Duration])(f: => V)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): V =
+  def memoizeSync[V](f: => V)(
+      calculateTtl: V => Option[Duration]
+  )(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): V =
     macro Macros.memoizeSyncImpl[V]
 
 }

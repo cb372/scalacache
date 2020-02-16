@@ -19,13 +19,15 @@ class Issue42Spec extends FlatSpec with Matchers {
 
   def generateNewName() = Random.alphanumeric.take(10).mkString
 
-  def getUser(id: Int)(implicit flags: Flags): User = memoizeSync(None) {
-    User(id, generateNewName())
-  }
+  def getUser(id: Int)(implicit flags: Flags): User =
+    memoizeSync {
+      User(id, generateNewName())
+    }(_ => None)
 
-  def getUserWithTtl(id: Int)(implicit flags: Flags): User = memoizeSync(Some(1 days)) {
-    User(id, generateNewName())
-  }
+  def getUserWithTtl(id: Int)(implicit flags: Flags): User =
+    memoizeSync {
+      User(id, generateNewName())
+    }(_ => Some(1 days))
 
   "memoize without TTL" should "respect implicit flags" in {
     val user1before = getUser(1)

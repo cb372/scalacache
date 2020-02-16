@@ -1,5 +1,4 @@
 package scalacache.memoization
-package legacy
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
@@ -10,27 +9,27 @@ import scalacache.{Flags, Cache, Mode}
 class Macros(val c: blackbox.Context) {
   import c.universe._
 
-  def memoizeImpl[F[_], V: c.WeakTypeTag](
-      ttl: c.Expr[Option[Duration]]
-  )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
+  def memoizeImpl[F[_], V: c.WeakTypeTag](f: c.Tree)(
+      calculateTtl: c.Expr[V => Option[Duration]]
+  )(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoizeLegacy($keyName)($ttl)($f)($mode, $flags)"""
+      q"""$cache.cachingForMemoize($keyName)($f)($calculateTtl)($mode, $flags)"""
     })
   }
 
-  def memoizeFImpl[F[_], V: c.WeakTypeTag](
-      ttl: c.Expr[Option[Duration]]
-  )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
+  def memoizeFImpl[F[_], V: c.WeakTypeTag](f: c.Tree)(
+      calculateTtl: c.Expr[V => Option[Duration]]
+  )(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoizeFLegacy($keyName)($ttl)($f)($mode, $flags)"""
+      q"""$cache.cachingForMemoizeF($keyName)($f)($calculateTtl)($mode, $flags)"""
     })
   }
 
-  def memoizeSyncImpl[V: c.WeakTypeTag](
-      ttl: c.Expr[Option[Duration]]
-  )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[scalacache.Id]], flags: c.Expr[Flags]): c.Tree = {
+  def memoizeSyncImpl[V: c.WeakTypeTag](f: c.Tree)(
+      calculateTtl: c.Expr[V => Option[Duration]]
+  )(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[scalacache.Id]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoizeLegacy($keyName)($ttl)($f)($mode, $flags)"""
+      q"""$cache.cachingForMemoize($keyName)($f)($calculateTtl)($mode, $flags)"""
     })
   }
 

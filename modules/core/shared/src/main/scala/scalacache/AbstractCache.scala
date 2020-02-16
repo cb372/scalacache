@@ -79,35 +79,35 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
 
   final override def caching[F[_]](
       keyParts: Any*
-  )(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F], flags: Flags): F[V] = {
+  )(f: => V)(calculateTtl: V => Option[Duration] = _ => None)(implicit mode: Mode[F], flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
-    _caching(key, ttl, f)
+    _caching(key, f, calculateTtl)
   }
 
   override def cachingF[F[_]](
       keyParts: Any*
-  )(ttl: Option[Duration] = None)(f: => F[V])(implicit mode: Mode[F], flags: Flags): F[V] = {
+  )(f: => F[V])(calculateTtl: V => Option[Duration] = _ => None)(implicit mode: Mode[F], flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
-    _cachingF(key, ttl, f)
+    _cachingF(key, f, calculateTtl)
   }
 
   // MEMOIZE
 
   override def cachingForMemoize[F[_]](
       baseKey: String
-  )(ttl: Option[Duration] = None)(f: => V)(implicit mode: Mode[F], flags: Flags): F[V] = {
+  )(f: => V)(calculateTtl: V => Option[Duration] = _ => None)(implicit mode: Mode[F], flags: Flags): F[V] = {
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
-    _caching(key, ttl, f)
+    _caching(key, f, calculateTtl)
   }
 
   override def cachingForMemoizeF[F[_]](
       baseKey: String
-  )(ttl: Option[Duration])(f: => F[V])(implicit mode: Mode[F], flags: Flags): F[V] = {
+  )(f: => F[V])(calculateTtl: V => Option[Duration] = _ => None)(implicit mode: Mode[F], flags: Flags): F[V] = {
     val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
-    _cachingF(key, ttl, f)
+    _cachingF(key, f, calculateTtl)
   }
 
-  private def _caching[F[_]](key: String, ttl: Option[Duration], f: => V)(
+  private def _caching[F[_]](key: String, f: => V, calculateTtl: V => Option[Duration])(
       implicit mode: Mode[F],
       flags: Flags
   ): F[V] = {
@@ -127,7 +127,7 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
         val calculatedValue = f
         M.map {
           M.handleNonFatal {
-            checkFlagsAndPut(key, calculatedValue, ttl)
+            checkFlagsAndPut(key, calculatedValue, calculateTtl(calculatedValue))
           } { e =>
             if (logger.isWarnEnabled) {
               logger.warn(s"Failed to write to cache. Key = $key", e)
@@ -137,7 +137,7 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
     }
   }
 
-  private def _cachingF[F[_]](key: String, ttl: Option[Duration], f: => F[V])(
+  private def _cachingF[F[_]](key: String, f: => F[V], calculateTtl: V => Option[Duration])(
       implicit mode: Mode[F],
       flags: Flags
   ): F[V] = {
@@ -157,7 +157,7 @@ trait AbstractCache[V] extends Cache[V] with LoggingSupport {
         M.flatMap(f) { calculatedValue =>
           M.map {
             M.handleNonFatal {
-              checkFlagsAndPut(key, calculatedValue, ttl)
+              checkFlagsAndPut(key, calculatedValue, calculateTtl(calculatedValue))
             } { e =>
               if (logger.isWarnEnabled) {
                 logger.warn(s"Failed to write to cache. Key = $key", e)

@@ -80,8 +80,8 @@ package object scalacache {
     * @param keyParts Data to be used to generate the cache key.
     *                 This could be as simple as just a single String.
     *                 See [[CacheKeyBuilder]].
-    * @param ttl The time-to-live to use when inserting into the cache.
-    *            If specified, the cache entry will expire after this time has elapsed.
+    * @param calculateTtl The time-to-live calculated from the value to use when inserting into the cache.
+    *                     If specified, the cache entry will expire after this time has elapsed.
     * @param f The block to run
     * @param cache The cache
     * @param mode The operation mode, which decides the type of container in which to wrap the result
@@ -92,8 +92,8 @@ package object scalacache {
     */
   def caching[F[_], V](
       keyParts: Any*
-  )(ttl: Option[Duration])(f: => V)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
-    cache.caching(keyParts: _*)(ttl)(f)
+  )(f: => V)(calculateTtl: V => Option[Duration])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+    cache.caching(keyParts: _*)(f)(calculateTtl)
 
   /**
     * Wrap the given block with a caching decorator.
@@ -105,8 +105,8 @@ package object scalacache {
     * @param keyParts Data to be used to generate the cache key.
     *                 This could be as simple as just a single String.
     *                 See [[CacheKeyBuilder]].
-    * @param ttl The time-to-live to use when inserting into the cache.
-    *            If specified, the cache entry will expire after this time has elapsed.
+    * @param calculateTtl The time-to-live calculated from the value to use when inserting into the cache.
+    *                     If specified, the cache entry will expire after this time has elapsed.
     * @param f The block to run
     * @param cache The cache
     * @param mode The operation mode, which decides the type of container in which to wrap the result
@@ -117,8 +117,8 @@ package object scalacache {
     */
   def cachingF[F[_], V](
       keyParts: Any*
-  )(ttl: Option[Duration])(f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
-    cache.cachingF(keyParts: _*)(ttl)(f)
+  )(f: => F[V])(calculateTtl: V => Option[Duration])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+    cache.cachingF(keyParts: _*)(f)(calculateTtl)
 
   /**
     * A version of the API that is specialised to [[Id]].
@@ -156,8 +156,8 @@ package object scalacache {
 
     def caching[V](
         keyParts: Any*
-    )(ttl: Option[Duration])(f: => V)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): V =
-      cache.caching[Id](keyParts: _*)(ttl)(f)
+    )(f: => V)(calculateTtl: V => Option[Duration])(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): V =
+      cache.caching[Id](keyParts: _*)(f)(calculateTtl)
   }
 
 }

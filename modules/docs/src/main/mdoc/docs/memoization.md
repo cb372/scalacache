@@ -77,10 +77,10 @@ For example, given the following method:
 package foo
 
 object Bar {
-  def baz(a: Int, b: String)(c: String): Int = memoizeSync(None) {
+  def baz(a: Int, b: String)(c: String): Int = memoizeSync {
     // Reticulating splines...   
     123
-  }
+  }(_ => None)
 }
 ```
 
@@ -105,9 +105,9 @@ package foo
 
 class Bar(a: Int) {
 
-  def baz(b: Int): Int = memoizeSync(None) {
+  def baz(b: Int): Int = memoizeSync {
     a + b
-  }
+  }(_ => None)
   
 }
 ```

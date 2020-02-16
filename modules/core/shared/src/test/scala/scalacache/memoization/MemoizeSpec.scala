@@ -98,9 +98,9 @@ class MemoizeSpec extends FlatSpec with Matchers {
     // Reproduces https://github.com/cb372/scalacache/issues/13
     """
     implicit val emptyCache = new EmptyCache[Int] with LoggingCache[Int]
-    def foo(key: Int): Int = memoizeSync(None) {
+    def foo(key: Int): Int = memoizeSync {
       key + 1
-    }
+    }(_ => None)
     """ should compile
   }
 
@@ -252,25 +252,29 @@ class MemoizeSpec extends FlatSpec with Matchers {
 
   class MyMockClass(dbCall: Int => String)(implicit val cache: Cache[String], mode: Mode[Id], flags: Flags) {
 
-    def myLongRunningMethod(a: Int, b: String): String = memoizeSync(None) {
-      dbCall(a)
-    }
+    def myLongRunningMethod(a: Int, b: String): String =
+      memoizeSync {
+        dbCall(a)
+      }(_ => None)
 
-    def withTTL(a: Int, b: String): String = memoizeSync(Some(10 seconds)) {
-      dbCall(a)
-    }
+    def withTTL(a: Int, b: String): String =
+      memoizeSync {
+        dbCall(a)
+      }(_ => Some(10 seconds))
 
   }
 
   class MyMockClassWithTry(dbCall: Int => String)(implicit cache: Cache[String], mode: Mode[Try], flags: Flags) {
 
-    def myLongRunningMethod(a: Int, b: String): Try[String] = memoizeF(None) {
-      Try { dbCall(a) }
-    }
+    def myLongRunningMethod(a: Int, b: String): Try[String] =
+      memoizeF {
+        Try { dbCall(a) }
+      }(_ => None)
 
-    def withTTL(a: Int, b: String): Try[String] = memoizeF(Some(10 seconds)) {
-      Try { dbCall(a) }
-    }
+    def withTTL(a: Int, b: String): Try[String] =
+      memoizeF {
+        Try { dbCall(a) }
+      }(_ => Some(10 seconds))
 
   }
 
