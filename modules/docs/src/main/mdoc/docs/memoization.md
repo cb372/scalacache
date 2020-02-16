@@ -22,10 +22,10 @@ implicit val catsCache: Cache[Cat] = MemcachedCache("localhost:11211")
 
 // You wouldn't normally need to specify the type params for memoize.
 // This is an artifact of the way this README is generated using tut.
-def getCat(id: Int): Try[Cat] = memoize[Try, Cat](Some(10.seconds)) {
+def getCat(id: Int): Try[Cat] = memoize[Try, Cat] {
   // Retrieve data from a remote API here ...
   Cat(id, s"cat ${id}", "black")
-}
+}(_ => Some(10.seconds))
 
 getCat(123)
 ```
@@ -36,12 +36,12 @@ The next time you call the method with the same arguments the result will be ret
 If the result of your block is wrapped in an effect container, use `memoizeF`:
 
 ```scala mdoc
-def getCatF(id: Int): Try[Cat] = memoizeF[Try, Cat](Some(10.seconds)) {
+def getCatF(id: Int): Try[Cat] = memoizeF[Try, Cat] {
   Try {
     // Retrieve data from a remote API here ...
     Cat(id, s"cat ${id}", "black")
   }
-}
+}(_ => Some(10.seconds))
 
 getCatF(123)
 ```
@@ -53,10 +53,10 @@ Again, there is a synchronous memoization method for convient use of the synchro
 ```scala mdoc:nest
 import scalacache.modes.sync._
 
-def getCatSync(id: Int): Cat = memoizeSync(Some(10.seconds)) {
+def getCatSync(id: Int): Cat = memoizeSync {
   // Do DB lookup here ...
   Cat(id, s"cat ${id}", "black")
-}
+}(_ => Some(10.seconds))
 
 getCatSync(123)
 ```
