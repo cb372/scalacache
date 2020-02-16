@@ -54,9 +54,9 @@ trait CacheAlg[V] {
     * Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
     *
     * @param keyParts The cache key
+    * @param f A block that computes the value
     * @param calculateTtl The time-to-live to use when inserting into the cache, calculated using the value.
     *                     The cache entry will expire after this time has elapsed.
-    * @param f A block that computes the value
     * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
