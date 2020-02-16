@@ -14,7 +14,7 @@ class Macros(val c: blackbox.Context) {
       ttl: c.Expr[Option[Duration]]
   )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoize($keyName)($ttl)($f)($mode, $flags)"""
+      q"""$cache.cachingForMemoizeLegacy($keyName)($ttl)($f)($mode, $flags)"""
     })
   }
 
@@ -22,7 +22,7 @@ class Macros(val c: blackbox.Context) {
       ttl: c.Expr[Option[Duration]]
   )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoizeF($keyName)($ttl)($f)($mode, $flags)"""
+      q"""$cache.cachingForMemoizeFLegacy($keyName)($ttl)($f)($mode, $flags)"""
     })
   }
 
@@ -30,7 +30,7 @@ class Macros(val c: blackbox.Context) {
       ttl: c.Expr[Option[Duration]]
   )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[scalacache.Id]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoize($keyName)($ttl)($f)($mode, $flags)"""
+      q"""$cache.cachingForMemoizeLegacy($keyName)($ttl)($f)($mode, $flags)"""
     })
   }
 
