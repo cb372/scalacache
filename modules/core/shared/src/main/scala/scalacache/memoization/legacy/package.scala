@@ -1,4 +1,5 @@
 package scalacache
+package memoization
 
 import scala.language.experimental.macros
 import scala.concurrent.duration._
@@ -9,7 +10,7 @@ import scala.language.higherKinds
   * The cache key is generated from the method arguments using a macro,
   * so that you don't have to bother passing them manually.
   */
-package object memoization {
+package object legacy {
 
   /**
     * Perform the given operation and memoize its result to a cache before returning it.

@@ -1,4 +1,5 @@
 package scalacache.memoization
+package legacy
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
