@@ -69,13 +69,13 @@ caching("benjamin")(ttl = None) {
 }
 
 // If the result of the block is wrapped in an effect, use cachingF
-cachingF("benjamin")(ttl = None) {
+cachingF("benjamin") {
 	import scala.util.Try
   Try { 
     // e.g. call an external API ...
     Cat(2, "Benjamin", "ginger")
   }
-}
+}(calculateTtl = _ => None)
 
 // You can also pass multiple parts to be combined into one key
 put("foo", 123, "bar")(ericTheCat) // Will be cached with key "foo:123:bar"
