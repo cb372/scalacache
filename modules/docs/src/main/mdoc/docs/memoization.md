@@ -144,5 +144,5 @@ will only include the `userId` argument's value in its cache keys.
 ```scala mdoc:invisible
 for (cache <- List(catsCache)) {
   cache.close()(scalacache.modes.sync.mode)
-} 
+}
 ```
