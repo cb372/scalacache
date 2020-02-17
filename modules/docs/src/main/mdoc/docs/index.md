@@ -63,10 +63,10 @@ removeAll[Cat]
 
 // Wrap any block with caching: if the key is not present in the cache,
 // the block will be executed and the value will be cached and returned
-caching("benjamin")(ttl = None) {
+caching("benjamin") {
   // e.g. call an external API ...
   Cat(2, "Benjamin", "ginger")
-}
+}(calculateTtl = _ => None)
 
 // If the result of the block is wrapped in an effect, use cachingF
 cachingF("benjamin") {
