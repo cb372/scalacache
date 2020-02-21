@@ -16,8 +16,10 @@ import scalacache._
 import scalacache.caffeine.CaffeineCache
 import scalacache.memcached.MemcachedCache
 import scalacache.redis.RedisCache
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
+class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
   private val memcachedClient = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
   private val jedisPool       = new JedisPool("localhost", 6379)

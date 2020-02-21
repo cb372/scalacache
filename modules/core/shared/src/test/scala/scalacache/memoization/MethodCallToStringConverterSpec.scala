@@ -1,11 +1,11 @@
 package scalacache.memoization
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
 
 import scalacache.memoization.MethodCallToStringConverter._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class MethodCallToStringConverterSpec extends FlatSpec with Matchers {
+class MethodCallToStringConverterSpec extends AnyFlatSpec with Matchers {
 
   behavior of "excludeClassConstructorParams"
 

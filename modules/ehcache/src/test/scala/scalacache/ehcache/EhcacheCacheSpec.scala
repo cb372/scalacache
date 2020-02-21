@@ -1,14 +1,16 @@
 package scalacache.ehcache
 
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfter
 import net.sf.ehcache.{CacheManager, Element, Cache => Ehcache}
 
 import scala.concurrent.duration._
 import language.postfixOps
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class EhcacheCacheSpec extends FlatSpec with Matchers with Eventually with BeforeAndAfter with ScalaFutures {
+class EhcacheCacheSpec extends AnyFlatSpec with Matchers with Eventually with BeforeAndAfter with ScalaFutures {
 
   private val underlying = {
     val cacheManager = new CacheManager

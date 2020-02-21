@@ -4,12 +4,14 @@ import java.time.Instant
 
 import org.caffinitas.ohc.{OHCache, OHCacheBuilder}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfter
 
 import scala.concurrent.duration._
 import scalacache._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class OhcCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
+class OhcCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
   private def newOHCache: OHCache[String, String] =
     OHCacheBuilder
