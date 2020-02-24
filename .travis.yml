@@ -35,7 +35,8 @@ jobs:
       scala: 2.12.10
       script: sbt ++$TRAVIS_SCALA_VERSION doc/tut
     - stage: release
-      script: sbt ++$TRAVIS_SCALA_VERSION ci-release
+      scala: 2.13.1
+      script: sbt ci-release
 cache:
   directories:
     - $HOME/.sbt
