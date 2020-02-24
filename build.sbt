@@ -1,35 +1,27 @@
-import sbtrelease.ReleaseStateTransformations._
-import xerial.sbt.Sonatype.sonatypeSettings
 import sbtcrossproject.CrossProject
 
-import scala.sys.process.Process
+inThisBuild(
+  List(
+    organization := "com.github.cb372",
+    homepage := Some(url("https://github.com/cb372/scalacache")),
+    licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    developers := List(
+      Developer(
+        "cb372",
+        "Chris Birchall",
+        "chris.birchall@gmail.com",
+        url("https://twitter.com/cbirchall")
+      )
+    )
+  )
+)
 
 scalafmtOnCompile in ThisBuild := true
 
 lazy val root: Project = Project(id = "scalacache", base = file("."))
-  .enablePlugins(ReleasePlugin)
   .settings(
     commonSettings,
-    sonatypeSettings,
-    publishArtifact := false,
-    releaseCrossBuild := true,
-    releaseProcess := Seq[ReleaseStep](
-      checkSnapshotDependencies,
-      inquireVersions,
-      runClean,
-      runTest,
-      setReleaseVersion,
-      updateVersionInDocs,
-      releaseStepTask(tut in doc),
-      commitUpdatedDocFiles,
-      commitReleaseVersion,
-      tagRelease,
-      publishArtifacts,
-      setNextVersion,
-      commitNextVersion,
-      releaseStepCommand("sonatypeReleaseAll"),
-      pushChanges
-    )
+    publishArtifact := false
   )
   .aggregate(
     coreJS,
@@ -240,84 +232,21 @@ lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3" % Test
 
 lazy val commonSettings =
   mavenSettings ++
-    scalafmtSettings ++
     Seq(
       organization := "com.github.cb372",
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
-      resolvers += Resolver.typesafeRepo("releases"),
-      releasePublishArtifactsAction := PgpKeys.publishSigned.value,
       parallelExecution in Test := false
     )
 
 lazy val mavenSettings = Seq(
-  pomExtra :=
-    <url>https://github.com/cb372/scalacache</url>
-    <licenses>
-      <license>
-        <name>Apache License, Version 2.0</name>
-        <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-        <distribution>repo</distribution>
-      </license>
-    </licenses>
-    <developers>
-      <developer>
-        <id>cb372</id>
-        <name>Chris Birchall</name>
-        <url>https://github.com/cb372</url>
-      </developer>
-    </developers>,
-  publishTo := {
-    val nexus = "https://oss.sonatype.org/"
-    if (version.value.trim.endsWith("SNAPSHOT"))
-      Some("snapshots" at nexus + "content/repositories/snapshots")
-    else
-      Some("releases" at nexus + "service/local/staging/deploy/maven2")
-  },
-  publishMavenStyle := true,
   publishArtifact in Test := false,
   pomIncludeRepository := { _ =>
     false
   }
 )
 
-lazy val updateVersionInDocs = ReleaseStep(action = st => {
-  val extracted      = Project.extract(st)
-  val projectVersion = extracted.get(Keys.version)
-
-  println(s"Updating project version to $projectVersion in the docs")
-
-  val find = Process(Seq("find", "modules/doc/src/main/tut", "-name", "*.md"))
-
-  val sed = Process(
-    Seq("xargs", "sed", "-i", "", "-E", "-e", s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""")
-  )
-
-  (find #| sed).!
-
-  st
-})
-
-lazy val commitUpdatedDocFiles = ReleaseStep(action = st => {
-  val extracted      = Project.extract(st)
-  val projectVersion = extracted.get(Keys.version)
-
-  println("Committing docs")
-
-  Process(
-    Seq("git", "commit", "modules/doc/src/main/tut/*", "-m", s"Update project version in docs to $projectVersion")
-  ).!
-
-  st
-})
-
 def scala211OnlyDeps(moduleIDs: ModuleID*) =
   libraryDependencies ++= (scalaBinaryVersion.value match {
     case "2.11" => moduleIDs
     case other  => Nil
   })
-
-lazy val scalafmtSettings = Seq(
-  // work around https://github.com/lucidsoftware/neo-sbt-scalafmt/issues/18
-  sourceDirectories in scalafmt in Compile := (unmanagedSourceDirectories in Compile).value,
-  sourceDirectories in scalafmt in Test := (unmanagedSourceDirectories in Test).value
-)
