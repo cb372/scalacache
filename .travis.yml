@@ -21,11 +21,13 @@ stages:
     if: ((branch = master AND type = push) OR (tag IS present)) AND NOT fork
 jobs:
   include:
-    - name: Run tests
+    - stage: test
+      name: Run tests
       script:
         - sbt ++$TRAVIS_SCALA_VERSION scalafmtCheckAll scalafmtSbtCheck coverage test ++2.12.10 doc/tut
         - sbt ++$TRAVIS_SCALA_VERSION coverageReport
-    - name: Check formatting
+    - stage: test
+      name: Check formatting
       script:
         - sbt ++$TRAVIS_SCALA_VERSION scalafmtCheckAll scalafmtSbtCheck
     - stage: release
