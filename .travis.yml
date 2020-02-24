@@ -15,6 +15,11 @@ install:
   - make travis-install
 before_script:
   - make travis-run
+
+script:
+  - sbt ++$TRAVIS_SCALA_VERSION scalafmtCheckAll scalafmtSbtCheck coverage test
+  - sbt ++$TRAVIS_SCALA_VERSION coverageReport
+
 stages:
   - name: test
   - name: release
@@ -22,20 +27,22 @@ stages:
 jobs:
   include:
     - stage: test
-      name: Run tests
-      script:
-        - sbt ++$TRAVIS_SCALA_VERSION scalafmtCheckAll scalafmtSbtCheck coverage test ++2.12.10 doc/tut
-        - sbt ++$TRAVIS_SCALA_VERSION coverageReport
-    - stage: test
       name: Check formatting
+      scala: 2.13.1
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION scalafmtCheckAll scalafmtSbtCheck
+        - sbt scalafmtCheckAll scalafmtSbtCheck
+    - stage: test
+      name: Compile the docs
+      scala: 2.12.10
+      script:
+        - sbt doc/tut
     - stage: release
       script: sbt ci-release
 cache:
   directories:
     - $HOME/.sbt
     - $HOME/.ivy2
+    - $HOME/.coursier
 before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete -print
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete -print
