@@ -17,7 +17,7 @@ before_script:
   - make travis-run
 
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION scalafmtCheckAll scalafmtSbtCheck coverage test
+  - sbt ++$TRAVIS_SCALA_VERSION coverage test
   - sbt ++$TRAVIS_SCALA_VERSION coverageReport
 
 stages:
@@ -29,15 +29,13 @@ jobs:
     - stage: test
       name: Check formatting
       scala: 2.13.1
-      script:
-        - sbt scalafmtCheckAll scalafmtSbtCheck
+      script: sbt ++$TRAVIS_SCALA_VERSION scalafmtCheckAll scalafmtSbtCheck
     - stage: test
       name: Compile the docs
       scala: 2.12.10
-      script:
-        - sbt doc/tut
+      script: sbt ++$TRAVIS_SCALA_VERSION doc/tut
     - stage: release
-      script: sbt ci-release
+      script: sbt ++$TRAVIS_SCALA_VERSION ci-release
 cache:
   directories:
     - $HOME/.sbt
