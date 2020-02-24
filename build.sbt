@@ -1,18 +1,20 @@
 import sbtcrossproject.CrossProject
 
-inThisBuild(List(
-  organization := "com.github.cb372",
-  homepage := Some(url("https://github.com/cb372/scalacache")),
-  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
-  developers := List(
-    Developer(
-      "cb372",
-      "Chris Birchall",
-      "chris.birchall@gmail.com",
-      url("https://twitter.com/cbirchall")
+inThisBuild(
+  List(
+    organization := "com.github.cb372",
+    homepage := Some(url("https://github.com/cb372/scalacache")),
+    licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    developers := List(
+      Developer(
+        "cb372",
+        "Chris Birchall",
+        "chris.birchall@gmail.com",
+        url("https://twitter.com/cbirchall")
+      )
     )
   )
-))
+)
 
 scalafmtOnCompile in ThisBuild := true
 
