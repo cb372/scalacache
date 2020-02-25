@@ -5,34 +5,6 @@ title: Cache implementations
 
 ## Cache implementations
 
-### Google Guava
-
-SBT:
-
-```
-libraryDependencies += "com.github.cb372" %% "scalacache-guava" % "0.28.0"
-```
-
-Usage:
-
-```tut:silent
-import scalacache._
-import scalacache.guava._
-
-implicit val guavaCache: Cache[String] = GuavaCache[String]
-```
-
-This will build a Guava cache with all the default settings. If you want to customize your Guava cache, then build it yourself and pass it to `GuavaCache` like this:
-
-```tut:silent
-import scalacache._
-import scalacache.guava._
-import com.google.common.cache.CacheBuilder
-
-val underlyingGuavaCache = CacheBuilder.newBuilder().maximumSize(10000L).build[String, Entry[String]]
-implicit val guavaCache: Cache[String] = GuavaCache(underlyingGuavaCache)
-```
-
 ### Memcached
 
 SBT:
@@ -75,29 +47,6 @@ ScalaCache provides two `KeySanitizer` implementations that convert your cache k
 * `ReplaceAndTruncateSanitizer` simply replaces non-ASCII characters with underscores and truncates long keys to 250 chars. This sanitizer is convenient because it keeps your keys human-readable. Use it if you only expect ASCII characters to appear in cache keys and you don't use any massively long keys.
 
 * `HashingMemcachedKeySanitizer` uses a hash of your cache key, so it can turn any string into a valid Memcached key. The only downside is that it turns your keys into gobbledigook, which can make debugging a pain. 
-
-### Ehcache
-
-SBT:
-
-```
-libraryDependencies += "com.github.cb372" %% "scalacache-ehcache" % "0.28.0"
-```
-
-Usage:
-
-```tut:silent
-import scalacache._
-import scalacache.ehcache._
-import net.sf.ehcache.{Cache => UnderlyingCache, _}
-
-// We assume you've already taken care of Ehcache config, 
-// and you have an initialized Ehcache cache.
-val cacheManager = new CacheManager
-val underlying: UnderlyingCache = cacheManager.getCache("myCache")
-
-implicit val ehcacheCache: Cache[String] = EhcacheCache(underlying)
-```
 
 ### Redis
 
@@ -181,46 +130,8 @@ val underlyingCache2kCache = new Cache2kBuilder[String, String]() {}.expireAfter
 implicit val customisedCache2kCache: Cache[String] = Cache2kCache(underlyingCache2kCache)
 ```
 
-### OHC
-
-SBT:
-
-```
-libraryDependencies += "com.github.cb372" %% "scalacache-ohc" % "0.28.0"
-```
-
-Usage:
-
-```tut:silent
-import scalacache._
-import scalacache.ohc._
-import org.caffinitas.ohc.CacheSerializer
-
-implicit val valueSerializer: CacheSerializer[String] = OhcCache.stringSerializer
-implicit val ohcCache: Cache[String] = OhcCache[String]
-```
-
-This will build a OHC cache with almost default settings. If you want to customize your OHC cache, then build it yourself and pass it to `OhcCache` like this:
-
-```tut:silent
-import scalacache._
-import scalacache.ohc._
-import org.caffinitas.ohc.OHCacheBuilder
-
-// You have to configure the cache with OHCacheBuilder.timeouts(true)
-// if you want to set expiry on individual values.
-val underlyingOhcCache =
-  OHCacheBuilder.
-    newBuilder().
-    keySerializer(OhcCache.stringSerializer).
-    valueSerializer(OhcCache.stringSerializer).
-    timeouts(true).
-    build()
-implicit val customisedOhcCache: Cache[String] = OhcCache(underlyingOhcCache)
-```
-
 ```tut:invisible
-for (cache <- List(ehcacheCache, redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache, customisedCache2kCache, ohcCache, customisedOhcCache)) {
+for (cache <- List(redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache)) {
   cache.close()(scalacache.modes.sync.mode)
 } 
 ```
