@@ -26,13 +26,9 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
   .aggregate(
     coreJS,
     coreJVM,
-    guava,
     memcached,
-    ehcache,
     redis,
-    cache2k,
     caffeine,
-    ohc,
     catsEffect,
     scalaz72,
     circe,
@@ -74,29 +70,11 @@ def jvmOnlyModule(name: String) =
     )
     .dependsOn(coreJVM)
 
-lazy val guava = jvmOnlyModule("guava")
-  .settings(
-    libraryDependencies ++= Seq(
-      "com.google.guava"         % "guava"  % "28.2-jre",
-      "com.google.code.findbugs" % "jsr305" % "3.0.2"
-    )
-  )
-
 lazy val memcached = jvmOnlyModule("memcached")
   .settings(
     libraryDependencies ++= Seq(
       "net.spy" % "spymemcached" % "2.12.3"
     )
-  )
-
-lazy val ehcache = jvmOnlyModule("ehcache")
-  .settings(
-    libraryDependencies ++= Seq(
-      "net.sf.ehcache"    % "ehcache" % "2.10.6",
-      "javax.transaction" % "jta"     % "1.1"
-    ),
-    coverageMinimum := 80,
-    coverageFailOnMinimum := true
   )
 
 lazy val redis = jvmOnlyModule("redis")
@@ -108,14 +86,6 @@ lazy val redis = jvmOnlyModule("redis")
     coverageFailOnMinimum := true
   )
 
-lazy val cache2k = jvmOnlyModule("cache2k")
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.cache2k" % "cache2k-core" % "1.2.4.Final",
-      "org.cache2k" % "cache2k-api"  % "1.2.4.Final"
-    )
-  )
-
 lazy val caffeine = jvmOnlyModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
@@ -124,13 +94,6 @@ lazy val caffeine = jvmOnlyModule("caffeine")
     ),
     coverageMinimum := 80,
     coverageFailOnMinimum := true
-  )
-
-lazy val ohc = jvmOnlyModule("ohc")
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.caffinitas.ohc" % "ohc-core" % "0.7.0"
-    )
   )
 
 lazy val catsEffect = jvmOnlyModule("cats-effect")
@@ -173,7 +136,7 @@ lazy val circe = jvmOnlyModule("circe")
 
 lazy val tests = jvmOnlyModule("tests")
   .settings(publishArtifact := false)
-  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, scalaz72, circe)
+  .dependsOn(caffeine, memcached, redis, catsEffect, scalaz72, circe)
 
 lazy val doc = jvmOnlyModule("doc")
   .enablePlugins(MicrositesPlugin)
@@ -193,13 +156,9 @@ lazy val doc = jvmOnlyModule("doc")
   )
   .dependsOn(
     coreJVM,
-    guava,
     memcached,
-    ehcache,
     redis,
-    cache2k,
     caffeine,
-    ohc,
     catsEffect,
     scalaz72,
     circe
@@ -222,9 +181,7 @@ lazy val benchmarks = jvmOnlyModule("benchmarks")
       "-XX:-UseBiasedLocking"
     )
   )
-  .dependsOn(cache2k)
   .dependsOn(caffeine)
-  .dependsOn(ohc)
 
 lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.8" % Test
 
