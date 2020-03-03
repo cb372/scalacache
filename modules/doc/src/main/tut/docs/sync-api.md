@@ -9,7 +9,7 @@ Unfortunately Scala's type inference doesn't play very nicely with ScalaCache's 
 
 If you want to use synchronous mode, the synchronous API is recommended. This works in exactly the same way as the normal API; it is provided merely as a convenience so you don't have to jump through hoops to make your code compile when using the synchronous mode.
 
-```tut
+```scala mdoc:reset-object
 import scalacache._
 import scalacache.memcached._
 import scalacache.modes.sync._
@@ -26,14 +26,14 @@ val ericTheCat = Cat(1, "Eric", "tuxedo")
 
 There is also a synchronous version of `caching`:
 
-```tut
+```scala mdoc
 val result = sync.caching("myKey")(ttl = None) {
   // do stuff...
   ericTheCat
 }
 ```
 
-```tut:invisible
+```scala mdoc:invisible
 for (cache <- List(catsCache)) {
   cache.close()(scalacache.modes.sync.mode)
 } 

@@ -152,7 +152,8 @@ lazy val doc = jvmOnlyModule("doc")
     micrositeGithubRepo := "scalacache",
     micrositeGitterChannel := true,
     micrositeTwitterCreator := "@cbirchall",
-    micrositeShareOnSocial := true
+    micrositeShareOnSocial := true,
+    mdocIn := tutSourceDirectory.value
   )
   .dependsOn(
     coreJVM,

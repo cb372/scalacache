@@ -15,7 +15,7 @@ libraryDependencies += "com.github.cb372" %% "scalacache-memcached" % "0.28.0"
 
 Usage:
 
-```tut:silent
+```scala mdoc:silent
 import scalacache._
 import scalacache.memcached._
 import scalacache.serialization.binary._
@@ -25,7 +25,7 @@ implicit val memcachedCache: Cache[String] = MemcachedCache("localhost:11211")
 
 or provide your own Memcached client, like this:
 
-```tut:silent
+```scala mdoc:silent
 import scalacache._
 import scalacache.memcached._
 import scalacache.serialization.binary._
@@ -58,7 +58,7 @@ libraryDependencies += "com.github.cb372" %% "scalacache-redis" % "0.28.0"
 
 Usage:
 
-```tut:silent
+```scala mdoc:silent
 import scalacache._
 import scalacache.redis._
 import scalacache.serialization.binary._
@@ -68,7 +68,7 @@ implicit val redisCache: Cache[String] = RedisCache("host1", 6379)
 
 or provide your own [Jedis](https://github.com/xetorthio/jedis) client, like this:
 
-```tut:silent
+```scala mdoc:silent
 import scalacache._
 import scalacache.redis._
 import scalacache.serialization.binary._
@@ -90,7 +90,7 @@ libraryDependencies += "com.github.cb372" %% "scalacache-caffeine" % "0.28.0"
 
 Usage:
 
-```tut:silent
+```scala mdoc:silent
 import scalacache._
 import scalacache.caffeine._
 
@@ -99,7 +99,7 @@ implicit val caffeineCache: Cache[String] = CaffeineCache[String]
 
 This will build a Caffeine cache with all the default settings. If you want to customize your Caffeine cache, then build it yourself and pass it to `CaffeineCache` like this:
 
-```tut:silent
+```scala mdoc:silent
 import scalacache._
 import scalacache.caffeine._
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -108,7 +108,7 @@ val underlyingCaffeineCache = Caffeine.newBuilder().maximumSize(10000L).build[St
 implicit val customisedCaffeineCache: Cache[String] = CaffeineCache(underlyingCaffeineCache)
 ```
 
-```tut:invisible
+```scala mdoc:invisible
 for (cache <- List(redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache)) {
   cache.close()(scalacache.modes.sync.mode)
 } 
