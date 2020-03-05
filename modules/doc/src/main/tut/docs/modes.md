@@ -23,7 +23,7 @@ import scalacache.modes.sync._
 * Returns a plain value, not wrapped in any container
 * Throws exceptions in case of failure
 
-Note: If you're using an in-memory cache (e.g. Guava or Caffeine) then it makes sense to use the synchronous mode. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then this mode is not recommended. If the network goes down, your app could hang forever!
+Note: If you're using an in-memory cache (e.g. Caffeine) then it makes sense to use the synchronous mode. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then this mode is not recommended. If the network goes down, your app could hang forever!
 
 #### Try mode
 

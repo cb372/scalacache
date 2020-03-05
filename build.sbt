@@ -1,46 +1,34 @@
-import sbtrelease.ReleaseStateTransformations._
-import xerial.sbt.Sonatype.sonatypeSettings
 import sbtcrossproject.CrossProject
 
-import scala.sys.process.Process
+inThisBuild(
+  List(
+    organization := "com.github.cb372",
+    homepage := Some(url("https://github.com/cb372/scalacache")),
+    licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    developers := List(
+      Developer(
+        "cb372",
+        "Chris Birchall",
+        "chris.birchall@gmail.com",
+        url("https://twitter.com/cbirchall")
+      )
+    )
+  )
+)
 
 scalafmtOnCompile in ThisBuild := true
 
 lazy val root: Project = Project(id = "scalacache", base = file("."))
-  .enablePlugins(ReleasePlugin)
   .settings(
     commonSettings,
-    sonatypeSettings,
-    publishArtifact := false,
-    releaseCrossBuild := true,
-    releaseProcess := Seq[ReleaseStep](
-      checkSnapshotDependencies,
-      inquireVersions,
-      runClean,
-      runTest,
-      setReleaseVersion,
-      updateVersionInDocs,
-      releaseStepTask(tut in doc),
-      commitUpdatedDocFiles,
-      commitReleaseVersion,
-      tagRelease,
-      publishArtifacts,
-      setNextVersion,
-      commitNextVersion,
-      releaseStepCommand("sonatypeReleaseAll"),
-      pushChanges
-    )
+    publishArtifact := false
   )
   .aggregate(
     coreJS,
     coreJVM,
-    guava,
     memcached,
-    ehcache,
     redis,
-    cache2k,
     caffeine,
-    ohc,
     catsEffect,
     scalaz72,
     circe,
@@ -82,29 +70,11 @@ def jvmOnlyModule(name: String) =
     )
     .dependsOn(coreJVM)
 
-lazy val guava = jvmOnlyModule("guava")
-  .settings(
-    libraryDependencies ++= Seq(
-      "com.google.guava"         % "guava"  % "28.2-jre",
-      "com.google.code.findbugs" % "jsr305" % "3.0.2"
-    )
-  )
-
 lazy val memcached = jvmOnlyModule("memcached")
   .settings(
     libraryDependencies ++= Seq(
       "net.spy" % "spymemcached" % "2.12.3"
     )
-  )
-
-lazy val ehcache = jvmOnlyModule("ehcache")
-  .settings(
-    libraryDependencies ++= Seq(
-      "net.sf.ehcache"    % "ehcache" % "2.10.6",
-      "javax.transaction" % "jta"     % "1.1"
-    ),
-    coverageMinimum := 80,
-    coverageFailOnMinimum := true
   )
 
 lazy val redis = jvmOnlyModule("redis")
@@ -116,14 +86,6 @@ lazy val redis = jvmOnlyModule("redis")
     coverageFailOnMinimum := true
   )
 
-lazy val cache2k = jvmOnlyModule("cache2k")
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.cache2k" % "cache2k-core" % "1.2.2.Final",
-      "org.cache2k" % "cache2k-api"  % "1.2.2.Final"
-    )
-  )
-
 lazy val caffeine = jvmOnlyModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
@@ -132,13 +94,6 @@ lazy val caffeine = jvmOnlyModule("caffeine")
     ),
     coverageMinimum := 80,
     coverageFailOnMinimum := true
-  )
-
-lazy val ohc = jvmOnlyModule("ohc")
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.caffinitas.ohc" % "ohc-core" % "0.7.0"
-    )
   )
 
 lazy val catsEffect = jvmOnlyModule("cats-effect")
@@ -181,7 +136,7 @@ lazy val circe = jvmOnlyModule("circe")
 
 lazy val tests = jvmOnlyModule("tests")
   .settings(publishArtifact := false)
-  .dependsOn(cache2k, caffeine, memcached, redis, ohc, catsEffect, scalaz72, circe)
+  .dependsOn(caffeine, memcached, redis, catsEffect, scalaz72, circe)
 
 lazy val doc = jvmOnlyModule("doc")
   .enablePlugins(MicrositesPlugin)
@@ -201,13 +156,9 @@ lazy val doc = jvmOnlyModule("doc")
   )
   .dependsOn(
     coreJVM,
-    guava,
     memcached,
-    ehcache,
     redis,
-    cache2k,
     caffeine,
-    ohc,
     catsEffect,
     scalaz72,
     circe
@@ -230,9 +181,7 @@ lazy val benchmarks = jvmOnlyModule("benchmarks")
       "-XX:-UseBiasedLocking"
     )
   )
-  .dependsOn(cache2k)
   .dependsOn(caffeine)
-  .dependsOn(ohc)
 
 lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.8" % Test
 
@@ -240,84 +189,21 @@ lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3" % Test
 
 lazy val commonSettings =
   mavenSettings ++
-    scalafmtSettings ++
     Seq(
       organization := "com.github.cb372",
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
-      resolvers += Resolver.typesafeRepo("releases"),
-      releasePublishArtifactsAction := PgpKeys.publishSigned.value,
       parallelExecution in Test := false
     )
 
 lazy val mavenSettings = Seq(
-  pomExtra :=
-    <url>https://github.com/cb372/scalacache</url>
-    <licenses>
-      <license>
-        <name>Apache License, Version 2.0</name>
-        <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-        <distribution>repo</distribution>
-      </license>
-    </licenses>
-    <developers>
-      <developer>
-        <id>cb372</id>
-        <name>Chris Birchall</name>
-        <url>https://github.com/cb372</url>
-      </developer>
-    </developers>,
-  publishTo := {
-    val nexus = "https://oss.sonatype.org/"
-    if (version.value.trim.endsWith("SNAPSHOT"))
-      Some("snapshots" at nexus + "content/repositories/snapshots")
-    else
-      Some("releases" at nexus + "service/local/staging/deploy/maven2")
-  },
-  publishMavenStyle := true,
   publishArtifact in Test := false,
   pomIncludeRepository := { _ =>
     false
   }
 )
 
-lazy val updateVersionInDocs = ReleaseStep(action = st => {
-  val extracted      = Project.extract(st)
-  val projectVersion = extracted.get(Keys.version)
-
-  println(s"Updating project version to $projectVersion in the docs")
-
-  val find = Process(Seq("find", "modules/doc/src/main/tut", "-name", "*.md"))
-
-  val sed = Process(
-    Seq("xargs", "sed", "-i", "", "-E", "-e", s"""s/"scalacache-(.*)" % ".*"/"scalacache-\\1" % "$projectVersion"/g""")
-  )
-
-  (find #| sed).!
-
-  st
-})
-
-lazy val commitUpdatedDocFiles = ReleaseStep(action = st => {
-  val extracted      = Project.extract(st)
-  val projectVersion = extracted.get(Keys.version)
-
-  println("Committing docs")
-
-  Process(
-    Seq("git", "commit", "modules/doc/src/main/tut/*", "-m", s"Update project version in docs to $projectVersion")
-  ).!
-
-  st
-})
-
 def scala211OnlyDeps(moduleIDs: ModuleID*) =
   libraryDependencies ++= (scalaBinaryVersion.value match {
     case "2.11" => moduleIDs
     case other  => Nil
   })
-
-lazy val scalafmtSettings = Seq(
-  // work around https://github.com/lucidsoftware/neo-sbt-scalafmt/issues/18
-  sourceDirectories in scalafmt in Compile := (unmanagedSourceDirectories in Compile).value,
-  sourceDirectories in scalafmt in Test := (unmanagedSourceDirectories in Test).value
-)
