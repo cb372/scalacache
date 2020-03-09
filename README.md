@@ -9,13 +9,9 @@ A facade for the most popular cache implementations, with a simple, idiomatic Sc
 Use ScalaCache to add caching to any Scala app with the minimum of fuss.
 
 The following cache implementations are supported, and it's easy to plugin your own implementation:
-* Google Guava
 * Memcached
-* Ehcache
 * Redis
 * [Caffeine](https://github.com/ben-manes/caffeine)
-* [cache2k](https://github.com/cache2k/cache2k)
-* [OHC](https://github.com/snazy/ohc)
 
 ## Documentation
 
