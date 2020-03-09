@@ -1,6 +1,5 @@
 package scalacache.memoization
 
-
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 import scala.language.postfixOps
