@@ -42,7 +42,7 @@ lazy val core =
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-        "org.typelevel"  %% "cats-effect"  % "2.1.0",
+        "org.typelevel"  %% "cats-effect"  % "2.1.2",
         "org.scalatest"  %%% "scalatest"   % "3.0.8" % Test,
         "org.scalacheck" %%% "scalacheck"  % "1.14.3" % Test
       ),
