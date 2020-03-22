@@ -1,0 +1,18 @@
+pull_request_rules:
+  - name: Automatic merge for scala-steward PRs - patch
+    conditions:
+      - author=scala-steward
+      - body~=labels:.*semver-patch
+      - status-success=continuous-integration/travis-ci/pr
+    actions:
+      merge:
+        method: merge
+  - name: Automatic merge for scala-steward PRs - minor
+    conditions:
+      - author=scala-steward
+      - body~=labels:.*semver-minor
+      - status-success=continuous-integration/travis-ci/pr
+      - "#approved-reviews-by>=1"
+    actions:
+      merge:
+        method: merge
