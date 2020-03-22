@@ -6,7 +6,7 @@ import scala.language.higherKinds
 import cats.Monad
 import cats.implicits._
 import cats.MonadError
-import cats.Defer
+import cats.effect.Sync
 
 /**
   * An abstract implementation of [[CacheAlg]] that takes care of
@@ -19,8 +19,7 @@ import cats.Defer
   */
 trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
 
-  protected implicit def F: MonadError[F, Throwable]
-  protected implicit def Defer: Defer[F]
+  protected implicit def F: Sync[F]
   // GET
 
   protected def doGet(key: String): F[Option[V]]
@@ -43,12 +42,12 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
 
   // PUT
 
-  protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Any]
+  protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit]
 
   private def checkFlagsAndPut(key: String, value: V, ttl: Option[Duration])(
       implicit
       flags: Flags
-  ): F[Any] = {
+  ): F[Unit] = {
     if (flags.writesEnabled) {
       doPut(key, value, ttl)
     } else {
@@ -61,7 +60,7 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
 
   final override def put(
       keyParts: Any*
-  )(value: V, ttl: Option[Duration])(implicit flags: Flags): F[Any] = {
+  )(value: V, ttl: Option[Duration])(implicit flags: Flags): F[Unit] = {
     val key       = toKey(keyParts: _*)
     val finiteTtl = ttl.filter(_.isFinite) // discard Duration.Inf, Duration.Undefined
     checkFlagsAndPut(key, value, finiteTtl)
@@ -69,16 +68,16 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
 
   // REMOVE
 
-  protected def doRemove(key: String): F[Any]
+  protected def doRemove(key: String): F[Unit]
 
-  final override def remove(keyParts: Any*): F[Any] =
+  final override def remove(keyParts: Any*): F[Unit] =
     doRemove(toKey(keyParts: _*))
 
   // REMOVE ALL
 
-  protected def doRemoveAll: F[Any]
+  protected def doRemoveAll: F[Unit]
 
-  final override def removeAll: F[Any] =
+  final override def removeAll: F[Unit] =
     doRemoveAll
 
   // CACHING
@@ -116,7 +115,7 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
   private def _caching(key: String, ttl: Option[Duration], f: => V)(
       implicit
       flags: Flags
-  ): F[V] = _cachingF(key, ttl, Defer.defer(F.pure(f)))
+  ): F[V] = _cachingF(key, ttl, Sync[F].delay(f))
 
   private def _cachingF(key: String, ttl: Option[Duration], f: => F[V])(
       implicit

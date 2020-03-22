@@ -40,7 +40,7 @@ package object scalacache {
     */
   def put[F[_], V](
       keyParts: Any*
-  )(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[F, V], flags: Flags): F[Any] =
+  )(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[F, V], flags: Flags): F[Unit] =
     cache.put(keyParts: _*)(value, ttl)
 
   /**
@@ -57,12 +57,11 @@ package object scalacache {
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V The type of the value to be removed
     */
-  def remove[F[_], V](keyParts: Any*)(implicit cache: Cache[F, V]): F[Any] =
+  def remove[F[_], V](keyParts: Any*)(implicit cache: Cache[F, V]): F[Unit] =
     cache.remove(keyParts: _*)
 
-  //todo merge with `removeAll`?
   final class RemoveAll[V] {
-    def apply[F[_]]()(implicit cache: Cache[F, V]): F[Any] = cache.removeAll
+    def apply[F[_]]()(implicit cache: Cache[F, V]): F[Unit] = cache.removeAll
   }
 
   /**

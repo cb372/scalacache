@@ -54,6 +54,6 @@ package object memoization {
     */
   def memoizeF[F[_], V](
       ttl: Option[Duration]
-  )(f: => F[V])(implicit cache: Cache[F, V], flags: Flags): F[V] =
+  )(f: F[V])(implicit cache: Cache[F, V], flags: Flags): F[V] =
     macro Macros.memoizeFImpl[F, V]
 }

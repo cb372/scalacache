@@ -16,7 +16,7 @@ trait Cache[F[_], V] extends CacheAlg[F, V] {
   )(implicit flags: Flags): F[V]
 
   def cachingForMemoizeF(baseKey: String)(ttl: Option[Duration])(
-      f: => F[V]
+      f: F[V]
   )(implicit flags: Flags): F[V]
 
 }

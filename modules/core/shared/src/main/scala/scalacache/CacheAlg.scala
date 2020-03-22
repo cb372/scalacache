@@ -29,7 +29,7 @@ trait CacheAlg[F[_], V] {
     * @param ttl The time-to-live. The cache entry will expire after this time has elapsed.
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     */
-  def put(keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit flags: Flags): F[Any]
+  def put(keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit flags: Flags): F[Unit]
 
   /**
     * Remove the given key and its associated value from the cache, if it exists.
@@ -37,12 +37,12 @@ trait CacheAlg[F[_], V] {
     *
     * @param keyParts data to be used to generate the cache key. This could be as simple as just a single String. See [[CacheKeyBuilder]].
     */
-  def remove(keyParts: Any*): F[Any]
+  def remove(keyParts: Any*): F[Unit]
 
   /**
     * Delete the entire contents of the cache. Use wisely!
     */
-  def removeAll: F[Any]
+  def removeAll: F[Unit]
 
   /**
     * Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
@@ -75,6 +75,6 @@ trait CacheAlg[F[_], V] {
     * Note that you should not try to use this Cache instance after you have called this method.
     */
   //TODO: Replace with Resource-based API?
-  def close: F[Any]
+  def close: F[Unit]
 
 }

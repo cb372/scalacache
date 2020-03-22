@@ -6,9 +6,10 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scalacache._
-import scalacache.modes.sync._
 
 import scala.util.Try
+import cats.effect.SyncIO
+import cats.effect.Sync
 
 class MemoizeSpec extends FlatSpec with Matchers {
 
@@ -17,12 +18,12 @@ class MemoizeSpec extends FlatSpec with Matchers {
   val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClass.myLongRunningMethod(123, abc)"
 
   it should "execute the block and cache the result, if there is a cache miss" in {
-    implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
+    implicit val emptyCache = new EmptyCache[SyncIO, String] with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc")
+    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc").unsafeRunSync()
     result should be("hello")
 
     // should check the cache first
@@ -36,12 +37,12 @@ class MemoizeSpec extends FlatSpec with Matchers {
   }
 
   it should "not execute the block if there is a cache hit" in {
-    implicit val fullCache = new FullCache[String]("cache hit") with LoggingCache[String]
+    implicit val fullCache = new FullCache[SyncIO, String]("cache hit") with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the cached result
-    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc")
+    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc").unsafeRunSync()
     result should be("cache hit")
 
     // should check the cache first
@@ -55,13 +56,13 @@ class MemoizeSpec extends FlatSpec with Matchers {
   }
 
   it should "execute the block if cache reads are disabled" in {
-    implicit val fullCache = new FullCache[String]("cache hit") with LoggingCache[String]
+    implicit val fullCache = new FullCache[SyncIO, String]("cache hit") with LoggingCache[SyncIO, String]
     implicit val flags     = Flags(readsEnabled = false)
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc")
+    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc").unsafeRunSync()
     result should be("hello")
 
     // should NOT check the cache, because reads are disabled
@@ -75,13 +76,13 @@ class MemoizeSpec extends FlatSpec with Matchers {
   }
 
   it should "not cache the result if cache writes are disabled" in {
-    implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
+    implicit val emptyCache = new EmptyCache[SyncIO, String] with LoggingCache[SyncIO, String]
     implicit val flags      = Flags(writesEnabled = false)
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc")
+    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc").unsafeRunSync()
     result should be("hello")
 
     // should check the cache first
@@ -97,20 +98,20 @@ class MemoizeSpec extends FlatSpec with Matchers {
   it should "work with a method argument called 'key'" in {
     // Reproduces https://github.com/cb372/scalacache/issues/13
     """
-    implicit val emptyCache = new EmptyCache[Int] with LoggingCache[Int]
-    def foo(key: Int): Int = memoizeSync(None) {
+    implicit val emptyCache = new EmptyCache[SyncIO, Int] with LoggingCache[SyncIO, Int]
+    def foo(key: Int): SyncIO[Int] = memoize(None) {
       key + 1
     }
     """ should compile
   }
 
   it should "catch exceptions thrown by the cache" in {
-    implicit val dodgyCache = new ErrorRaisingCache[String] with LoggingCache[String]
+    implicit val dodgyCache = new ErrorRaisingCache[SyncIO, String] with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc")
+    val result = new MyMockClass(mockDbCall).myLongRunningMethod(123, "abc").unsafeRunSync()
     result should be("hello")
 
     // should check the cache first
@@ -128,12 +129,12 @@ class MemoizeSpec extends FlatSpec with Matchers {
   it should "pass the TTL parameter to the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClass.withTTL(123, abc)"
 
-    implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
+    implicit val emptyCache = new EmptyCache[SyncIO, String] with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val result = new MyMockClass(mockDbCall).withTTL(123, "abc")
+    val result = new MyMockClass(mockDbCall).withTTL(123, "abc").unsafeRunSync()
     result should be("hello")
 
     // should check the cache first
@@ -151,13 +152,12 @@ class MemoizeSpec extends FlatSpec with Matchers {
   it should "execute the block and cache the result, if there is a cache miss" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
-    implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
-    implicit val mode       = scalacache.modes.try_.mode
+    implicit val emptyCache = new EmptyCache[SyncIO, String] with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val result = new MyMockClassWithTry(mockDbCall).myLongRunningMethod(123, "abc").get
+    val result = new MyMockClassWithTry(mockDbCall).myLongRunningMethod(123, "abc").unsafeRunSync()
 
     result should be("hello")
 
@@ -174,13 +174,12 @@ class MemoizeSpec extends FlatSpec with Matchers {
   it should "not execute the block if there is a cache hit" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
-    implicit val fullCache = new FullCache[String]("cache hit") with LoggingCache[String]
-    implicit val mode      = scalacache.modes.try_.mode
+    implicit val fullCache = new FullCache[SyncIO, String]("cache hit") with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the cached result
-    val result = new MyMockClassWithTry(mockDbCall).myLongRunningMethod(123, "abc").get
+    val result = new MyMockClassWithTry(mockDbCall).myLongRunningMethod(123, "abc").unsafeRunSync()
 
     result should be("cache hit")
 
@@ -197,13 +196,12 @@ class MemoizeSpec extends FlatSpec with Matchers {
   it should "catch exceptions thrown by the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
-    implicit val dodgyCache = new ErrorRaisingCache[String] with LoggingCache[String]
-    implicit val mode       = scalacache.modes.try_.mode
+    implicit val dodgyCache = new ErrorRaisingCache[SyncIO, String] with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val result = new MyMockClassWithTry(mockDbCall).myLongRunningMethod(123, "abc").get
+    val result = new MyMockClassWithTry(mockDbCall).myLongRunningMethod(123, "abc").unsafeRunSync()
 
     result should be("hello")
 
@@ -222,13 +220,12 @@ class MemoizeSpec extends FlatSpec with Matchers {
   it should "pass the TTL parameter to the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.withTTL(123, abc)"
 
-    implicit val emptyCache = new EmptyCache[String] with LoggingCache[String]
-    implicit val mode       = scalacache.modes.try_.mode
+    implicit val emptyCache = new EmptyCache[SyncIO, String] with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
     // should return the block's result
-    val result = new MyMockClassWithTry(mockDbCall).withTTL(123, "abc").get
+    val result = new MyMockClassWithTry(mockDbCall).withTTL(123, "abc").unsafeRunSync()
 
     result should be("hello")
 
@@ -250,26 +247,30 @@ class MemoizeSpec extends FlatSpec with Matchers {
     }
   }
 
-  class MyMockClass(dbCall: Int => String)(implicit val cache: Cache[String], mode: Mode[Id], flags: Flags) {
+  class MyMockClass[F[_]](dbCall: Int => String)(implicit val cache: Cache[F, String], flags: Flags) {
 
-    def myLongRunningMethod(a: Int, b: String): String = memoizeSync(None) {
+    def myLongRunningMethod(a: Int, b: String): F[String] = memoize(None) {
       dbCall(a)
     }
 
-    def withTTL(a: Int, b: String): String = memoizeSync(Some(10 seconds)) {
+    def withTTL(a: Int, b: String): F[String] = memoize(Some(10 seconds)) {
       dbCall(a)
     }
 
   }
 
-  class MyMockClassWithTry(dbCall: Int => String)(implicit cache: Cache[String], mode: Mode[Try], flags: Flags) {
+  class MyMockClassWithTry[F[_]](dbCall: Int => String)(
+      implicit cache: Cache[F, String],
+      F: Sync[F],
+      flags: Flags
+  ) {
 
-    def myLongRunningMethod(a: Int, b: String): Try[String] = memoizeF(None) {
-      Try { dbCall(a) }
+    def myLongRunningMethod(a: Int, b: String): F[String] = memoizeF(None) {
+      F.delay { dbCall(a) }
     }
 
-    def withTTL(a: Int, b: String): Try[String] = memoizeF(Some(10 seconds)) {
-      Try { dbCall(a) }
+    def withTTL(a: Int, b: String): F[String] = memoizeF(Some(10 seconds)) {
+      F.delay { dbCall(a) }
     }
 
   }
