@@ -137,7 +137,7 @@ lazy val circe = jvmOnlyModule("circe")
 
 lazy val tests = jvmOnlyModule("tests")
   .settings(publishArtifact := false)
-  .dependsOn(caffeine, memcached, redis, scalaz72, circe, catsEffect)
+  .dependsOn(caffeine, memcached, redis, catsEffect, scalaz72, circe)
 
 lazy val docs = jvmOnlyModule("docs")
   .enablePlugins(MicrositesPlugin)
