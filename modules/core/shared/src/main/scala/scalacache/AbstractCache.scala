@@ -54,7 +54,7 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
       if (logger.isDebugEnabled) {
         logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
       }
-      F.pure(())
+      F.unit
     }
   }
 
