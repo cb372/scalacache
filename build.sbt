@@ -30,7 +30,6 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
     redis,
     caffeine,
     catsEffect,
-    ohc,
     scalaz72,
     circe,
     tests
@@ -107,13 +106,6 @@ lazy val catsEffect = jvmOnlyModule("cats-effect")
     coverageFailOnMinimum := true
   )
 
-lazy val ohc = jvmOnlyModule("ohc")
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.caffinitas.ohc" % "ohc-core" % "0.7.0"
-    )
-  )
-
 lazy val scalaz72 = jvmOnlyModule("scalaz72")
   .settings(
     libraryDependencies ++= Seq(
@@ -145,7 +137,7 @@ lazy val circe = jvmOnlyModule("circe")
 
 lazy val tests = jvmOnlyModule("tests")
   .settings(publishArtifact := false)
-  .dependsOn(cache2k, caffeine, memcached, redis, ohc, scalaz72, circe, catsEffect)
+  .dependsOn(caffeine, memcached, redis, scalaz72, circe, catsEffect)
 
 lazy val docs = jvmOnlyModule("docs")
   .enablePlugins(MicrositesPlugin)
@@ -170,7 +162,6 @@ lazy val docs = jvmOnlyModule("docs")
     redis,
     caffeine,
     catsEffect,
-    ohc,
     scalaz72,
     circe
   )
