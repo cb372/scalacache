@@ -19,7 +19,7 @@ Note that your memoized method must take an implicit parameter of type `Flags`. 
 
 Example:
 
-```tut:silent
+```scala mdoc:silent:reset-object
 import scalacache._
 import scalacache.memcached._
 import scalacache.memoization._
@@ -43,7 +43,7 @@ def getCatMaybeSkippingCache(id: Int, skipCache: Boolean): Cat = {
 
 Tip: Because the flags are passed as a parameter to your method, they will be included in the generated cache key. This means the cache key will vary depending on the value of the flags, which is probably not what you want. In that case, you should exclude the `implicit flags: Flags` parameter from cache key generation by annotating it with `@cacheKeyExclude`.
 
-```tut:invisible
+```scala mdoc:invisible
 for (cache <- List(catsCache)) {
   cache.close()(scalacache.modes.sync.mode)
 } 

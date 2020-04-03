@@ -138,7 +138,7 @@ lazy val tests = jvmOnlyModule("tests")
   .settings(publishArtifact := false)
   .dependsOn(caffeine, memcached, redis, catsEffect, scalaz72, circe)
 
-lazy val doc = jvmOnlyModule("doc")
+lazy val docs = jvmOnlyModule("docs")
   .enablePlugins(MicrositesPlugin)
   .settings(
     publishArtifact := false,
@@ -152,7 +152,8 @@ lazy val doc = jvmOnlyModule("doc")
     micrositeGithubRepo := "scalacache",
     micrositeGitterChannel := true,
     micrositeTwitterCreator := "@cbirchall",
-    micrositeShareOnSocial := true
+    micrositeShareOnSocial := true,
+    mdocIn := (sourceDirectory in Compile).value / "mdoc"
   )
   .dependsOn(
     coreJVM,
