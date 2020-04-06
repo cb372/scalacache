@@ -33,7 +33,7 @@ jobs:
     - stage: test
       name: Compile the docs
       scala: 2.12.10
-      script: sbt ++$TRAVIS_SCALA_VERSION doc/tut
+      script: sbt ++$TRAVIS_SCALA_VERSION docs/mdoc
     - stage: release
       scala: 2.13.1
       script: sbt ci-release
