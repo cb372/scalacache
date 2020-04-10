@@ -116,7 +116,7 @@ lazy val scalaz72 = jvmOnlyModule("scalaz72")
 
 def circeVersion(scalaVersion: String) =
   CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, scalaMajor)) if scalaMajor >= 12 => "0.12.1"
+    case Some((2, scalaMajor)) if scalaMajor >= 12 => "0.13.0"
     case Some((2, scalaMajor)) if scalaMajor >= 11 => "0.11.1"
     case _ =>
       throw new IllegalArgumentException(s"Unsupported Scala version $scalaVersion")
@@ -138,7 +138,7 @@ lazy val tests = jvmOnlyModule("tests")
   .settings(publishArtifact := false)
   .dependsOn(caffeine, memcached, redis, catsEffect, scalaz72, circe)
 
-lazy val doc = jvmOnlyModule("doc")
+lazy val docs = jvmOnlyModule("docs")
   .enablePlugins(MicrositesPlugin)
   .settings(
     publishArtifact := false,
@@ -152,7 +152,8 @@ lazy val doc = jvmOnlyModule("doc")
     micrositeGithubRepo := "scalacache",
     micrositeGitterChannel := true,
     micrositeTwitterCreator := "@cbirchall",
-    micrositeShareOnSocial := true
+    micrositeShareOnSocial := true,
+    mdocIn := (sourceDirectory in Compile).value / "mdoc"
   )
   .dependsOn(
     coreJVM,
