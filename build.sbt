@@ -118,7 +118,7 @@ lazy val scalaz72 = jvmOnlyModule("scalaz72")
 lazy val zio = jvmOnlyModule("zio")
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio" % "1.0.0-RC16"
+      "dev.zio" %%% "zio" % "1.0.0-RC18-2"
     ),
     coverageMinimum := 40,
     coverageFailOnMinimum := true
