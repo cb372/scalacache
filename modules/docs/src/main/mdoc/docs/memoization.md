@@ -5,7 +5,7 @@ title: Memoization
 
 ### Memoization of method results
 
-```tut
+```scala mdoc:reset-object
 import scalacache._
 import scalacache.memcached._
 import scalacache.memoization._
@@ -35,7 +35,7 @@ The next time you call the method with the same arguments the result will be ret
 
 If the result of your block is wrapped in an effect container, use `memoizeF`:
 
-```tut
+```scala mdoc
 def getCatF(id: Int): Try[Cat] = memoizeF[Try, Cat](Some(10.seconds)) {
   Try {
     // Retrieve data from a remote API here ...
@@ -50,7 +50,7 @@ getCatF(123)
 
 Again, there is a synchronous memoization method for convient use of the synchronous mode:
 
-```tut
+```scala mdoc:nest
 import scalacache.modes.sync._
 
 def getCatSync(id: Int): Cat = memoizeSync(Some(10.seconds)) {
@@ -114,7 +114,7 @@ class Bar(a: Int) {
 
 then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](https://github.com/cb372/scalacache/blob/master/modules/core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
 
-```tut:silent
+```scala mdoc:silent
 implicit val cacheConfig = CacheConfig(
   memoization = MemoizationConfig(MethodCallToStringConverter.includeClassConstructorParams)
 )
@@ -141,7 +141,7 @@ def doSomething(userId: UserId)(implicit @cacheKeyExclude db: DBConnection): Str
 
 will only include the `userId` argument's value in its cache keys.
 
-```tut:invisible
+```scala mdoc:invisible
 for (cache <- List(catsCache)) {
   cache.close()(scalacache.modes.sync.mode)
 } 

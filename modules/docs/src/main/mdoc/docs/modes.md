@@ -15,7 +15,7 @@ ScalaCache comes with a few built-in modes.
 
 #### Synchronous mode
 
-```tut:silent
+```scala mdoc:silent
 import scalacache.modes.sync._
 ```
 
@@ -23,11 +23,11 @@ import scalacache.modes.sync._
 * Returns a plain value, not wrapped in any container
 * Throws exceptions in case of failure
 
-Note: If you're using an in-memory cache (e.g. Guava or Caffeine) then it makes sense to use the synchronous mode. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then this mode is not recommended. If the network goes down, your app could hang forever!
+Note: If you're using an in-memory cache (e.g. Caffeine) then it makes sense to use the synchronous mode. But if you're communicating with a cache over a network (e.g. Redis, Memcached) then this mode is not recommended. If the network goes down, your app could hang forever!
 
 #### Try mode
 
-```tut:silent
+```scala mdoc:silent
 import scalacache.modes.try_._
 ```
 
@@ -36,7 +36,7 @@ import scalacache.modes.try_._
 
 #### Future mode
 
-```tut:silent
+```scala mdoc:silent
 import scalacache.modes.scalaFuture._
 ```
 
@@ -44,7 +44,7 @@ import scalacache.modes.scalaFuture._
 
 You will also need an ExecutionContext in implicit scope:
 
-```tut:silent
+```scala mdoc:silent
 import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
@@ -56,7 +56,7 @@ You will need a dependency on the `scalacache-cats-effect` module:
 libraryDependencies += "com.github.cb372" %% "scalacache-cats-effect" % "0.28.0"
 ```
 
-```tut:silent
+```scala mdoc:silent
 import scalacache.Mode
 import cats.effect.IO
 implicit val mode: Mode[IO] = scalacache.CatsEffect.modes.async
@@ -90,7 +90,7 @@ You will need a dependency on the `scalacache-scalaz72` module:
 libraryDependencies += "com.github.cb372" %% "scalacache-scalaz72" % "0.28.0"
 ```
 
-```tut:silent
+```scala mdoc:silent
 import scalacache.Scalaz72.modes._
 ```
 
