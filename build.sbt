@@ -80,7 +80,7 @@ lazy val memcached = jvmOnlyModule("memcached")
 lazy val redis = jvmOnlyModule("redis")
   .settings(
     libraryDependencies ++= Seq(
-      "redis.clients" % "jedis" % "2.10.2"
+      "redis.clients" % "jedis" % "3.3.0"
     ),
     coverageMinimum := 56,
     coverageFailOnMinimum := true
