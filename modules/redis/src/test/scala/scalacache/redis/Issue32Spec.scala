@@ -1,10 +1,12 @@
 package scalacache.redis
 
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfter
 
 import scalacache.memoization._
 import scalacache.modes.sync._
 import scalacache.serialization.binary._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 case class User(id: Int, name: String)
 
@@ -12,7 +14,7 @@ case class User(id: Int, name: String)
   * Test to check the sample code in issue #32 runs OK
   * (just to isolate the use of the List[User] type from the Play classloader problem)
   */
-class Issue32Spec extends FlatSpec with Matchers with BeforeAndAfter with RedisTestUtil {
+class Issue32Spec extends AnyFlatSpec with Matchers with BeforeAndAfter with RedisTestUtil {
 
   assumingRedisIsRunning { (pool, client) =>
     implicit val cache = RedisCache[List[User]](pool)

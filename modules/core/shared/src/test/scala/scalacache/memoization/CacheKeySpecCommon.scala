@@ -4,6 +4,7 @@ import org.scalatest._
 
 import scalacache._
 import scalacache.modes.sync._
+import org.scalatest.matchers.should.Matchers
 
 trait CacheKeySpecCommon extends Suite with Matchers with BeforeAndAfter {
 

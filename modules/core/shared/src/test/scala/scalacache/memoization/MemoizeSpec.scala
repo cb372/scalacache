@@ -1,6 +1,5 @@
 package scalacache.memoization
 
-import org.scalatest.{FlatSpec, Matchers}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
@@ -9,8 +8,10 @@ import scalacache._
 import scalacache.modes.sync._
 
 import scala.util.Try
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class MemoizeSpec extends FlatSpec with Matchers {
+class MemoizeSpec extends AnyFlatSpec with Matchers {
 
   behavior of "memoize block"
 
