@@ -53,7 +53,7 @@ lazy val core =
         "org.slf4j" % "slf4j-api" % "1.7.30"
       ),
       scala211OnlyDeps(
-        "org.squeryl"    %% "squeryl" % "0.9.14"  % Test,
+        "org.squeryl"    %% "squeryl" % "0.9.15"  % Test,
         "com.h2database" % "h2"       % "1.4.200" % Test
       )
     )
