@@ -7,6 +7,7 @@ import cats.Monad
 import cats.implicits._
 import cats.MonadError
 import cats.effect.Sync
+import cats.Applicative
 
 /**
   * An abstract implementation of [[CacheAlg]] that takes care of
@@ -17,7 +18,7 @@ import cats.effect.Sync
   *
   * @tparam V The value of types stored in the cache.
   */
-trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
+trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
 
   protected implicit def F: Sync[F]
   // GET
@@ -27,12 +28,12 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
   private def checkFlagsAndGet(key: String)(implicit flags: Flags): F[Option[V]] = {
     if (flags.readsEnabled) {
       doGet(key)
-    } else {
-      if (logger.isDebugEnabled) {
-        logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
-      }
-      F.pure(None)
-    }
+    } else
+      logger
+        .ifDebugEnabled {
+          logger.debug(s"Skipping cache GET because cache reads are disabled. Key: $key")
+        }
+        .as(None)
   }
 
   final override def get(keyParts: Any*)(implicit flags: Flags): F[Option[V]] = {
@@ -50,12 +51,10 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
   ): F[Unit] = {
     if (flags.writesEnabled) {
       doPut(key, value, ttl)
-    } else {
-      if (logger.isDebugEnabled) {
+    } else
+      logger.ifDebugEnabled {
         logger.debug(s"Skipping cache PUT because cache writes are disabled. Key: $key")
-      }
-      F.unit
-    }
+      }.void
   }
 
   final override def put(
@@ -122,11 +121,10 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
       flags: Flags
   ): F[V] = {
     checkFlagsAndGet(key)
-      .handleError { e =>
-        if (logger.isWarnEnabled) {
-          logger.warn(s"Failed to read from cache. Key = $key", e)
-        }
-        None
+      .handleErrorWith { e =>
+        logger
+          .ifWarnEnabled(logger.warn(s"Failed to read from cache. Key = $key", e))
+          .as(None)
       }
       .flatMap {
         case Some(valueFromCache) => F.pure(valueFromCache)
@@ -134,7 +132,7 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport {
           f.flatTap { calculatedValue =>
             checkFlagsAndPut(key, calculatedValue, ttl)
               .handleError { e =>
-                if (logger.isWarnEnabled) {
+                logger.ifWarnEnabled {
                   logger.warn(s"Failed to write to cache. Key = $key", e)
                 }
               }

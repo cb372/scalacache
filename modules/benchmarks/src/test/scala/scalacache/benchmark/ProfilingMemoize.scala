@@ -13,9 +13,9 @@ import scalacache.modes.sync._
 object ProfilingMemoize extends App {
 
   val underlyingCache = Caffeine.newBuilder().build[String, Entry[String]]()
-  implicit val cache = CaffeineCache[String](underlyingCache)
+  implicit val cache  = CaffeineCache[String](underlyingCache)
 
-  val key = "key"
+  val key           = "key"
   val value: String = "value"
 
   def itemCachedMemoize(key: String): String = memoizeSync(None) {
@@ -23,7 +23,7 @@ object ProfilingMemoize extends App {
   }
 
   var result: String = _
-  var i = 0L
+  var i              = 0L
 
   while (i < Long.MaxValue) {
     result = itemCachedMemoize(key)

@@ -182,7 +182,7 @@ lazy val commonSettings =
   mavenSettings ++
     Seq(
       organization := "com.github.cb372",
-      scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
+      scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-language:higherKinds"),
       parallelExecution in Test := false
     )
 

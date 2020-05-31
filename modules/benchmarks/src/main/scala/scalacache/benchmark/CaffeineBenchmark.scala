@@ -14,10 +14,10 @@ import scalacache.modes.sync._
 @State(Scope.Thread)
 class CaffeineBenchmark {
 
-  val underlyingCache = Caffeine.newBuilder().build[String, Entry[String]]()
+  val underlyingCache               = Caffeine.newBuilder().build[String, Entry[String]]()
   implicit val cache: Cache[String] = CaffeineCache(underlyingCache)
 
-  val key = "key"
+  val key           = "key"
   val value: String = "value"
 
   def itemCachedNoMemoize(key: String): Id[Option[String]] = {

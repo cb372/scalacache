@@ -13,19 +13,17 @@ import cats.effect.Sync
 import java.util.concurrent.TimeUnit
 import cats.implicits._
 import cats.MonadError
-import cats.Defer
 
 /*
  * Thin wrapper around Caffeine.
  *
  * This cache implementation is synchronous.
  */
-class CaffeineCache[F[_], V](val underlying: CCache[String, Entry[F, V]])(
+class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[F, V]])(
     implicit val config: CacheConfig,
-    clock: Clock[F],
-    val F: Sync[F]
+    clock: Clock[F]
 ) extends AbstractCache[F, V] {
-  protected implicit val Defer: Defer[F] = F
+  protected val F: Sync[F] = Sync[F]
 
   override protected final val logger = Logger.getLogger(getClass.getName)
 
@@ -36,13 +34,11 @@ class CaffeineCache[F[_], V](val underlying: CCache[String, Entry[F, V]])(
       .flatMap(_.filterA(_.isExpired))
       .map(_.map(_.value))
       .flatTap { result =>
-        F.delay {
-          logCacheHitOrMiss(key, result)
-        }
+        logCacheHitOrMiss(key, result)
       }
   }
 
-  def doPut(key: String, value: V, ttl: Option[Duration]): F[Any] = ttl.traverse(toExpiryTime).flatMap { expiry =>
+  def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = ttl.traverse(toExpiryTime).flatMap { expiry =>
     F.delay {
       val entry = Entry[F, V](value, expiry)
       underlying.put(key, entry)
@@ -50,15 +46,15 @@ class CaffeineCache[F[_], V](val underlying: CCache[String, Entry[F, V]])(
     }
   }
 
-  override def doRemove(key: String): F[Any] =
+  override def doRemove(key: String): F[Unit] =
     F.delay(underlying.invalidate(key))
 
-  override def doRemoveAll(): F[Any] =
+  override def doRemoveAll(): F[Unit] =
     F.delay(underlying.invalidateAll())
 
-  override def close: F[Any] = {
+  override def close: F[Unit] = {
     // Nothing to do
-    F.pure(())
+    F.unit
   }
 
   private def toExpiryTime(ttl: Duration): F[Instant] =

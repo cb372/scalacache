@@ -6,29 +6,33 @@ import net.spy.memcached.{AddrUtil, BinaryConnectionFactory, MemcachedClient}
 
 import scalacache.logging.Logger
 import scalacache.serialization.Codec
-import scalacache.{AbstractCache, CacheConfig, Mode}
+import scalacache.{AbstractCache, CacheConfig}
 import scala.concurrent.duration.Duration
 import scala.util.Success
 import scala.language.higherKinds
 import scala.util.control.NonFatal
+import cats.effect.Async
+import cats.effect.Sync
 
 class MemcachedException(message: String) extends Exception(message)
 
 /**
   * Wrapper around spymemcached
   */
-class MemcachedCache[V](
+class MemcachedCache[F[_]: Async, V](
     val client: MemcachedClient,
     val keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer()
 )(implicit val config: CacheConfig, codec: Codec[V])
-    extends AbstractCache[V]
+    extends AbstractCache[F, V]
     with MemcachedTTLConverter {
 
-  override protected final val logger =
-    Logger.getLogger(getClass.getName)
+  protected def F: Async[F] = Async[F]
 
-  override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = {
-    mode.M.async { cb =>
+  override protected final val logger =
+    Logger.getLogger[F](getClass.getName)
+
+  override protected def doGet(key: String): F[Option[V]] = {
+    F.async { cb =>
       val f = client.asyncGet(keySanitizer.toValidMemcachedKey(key))
       f.addListener(new GetCompletionListener {
         def onComplete(g: GetFuture[_]): Unit = {
@@ -52,8 +56,8 @@ class MemcachedCache[V](
     }
   }
 
-  override protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] = {
-    mode.M.async { cb =>
+  override protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = {
+    F.async { cb =>
       val valueToSend = codec.encode(value)
       val f           = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)
       f.addListener(new OperationCompletionListener {
@@ -70,8 +74,8 @@ class MemcachedCache[V](
     }
   }
 
-  override protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] = {
-    mode.M.async { cb =>
+  override protected def doRemove(key: String): F[Unit] = {
+    F.async { cb =>
       val f = client.delete(key)
       f.addListener(new OperationCompletionListener {
         def onComplete(g: OperationFuture[_]): Unit = {
@@ -84,8 +88,8 @@ class MemcachedCache[V](
     }
   }
 
-  override protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] = {
-    mode.M.async { cb =>
+  override protected def doRemoveAll: F[Unit] = {
+    F.async { cb =>
       val f = client.flush()
       f.addListener(new OperationCompletionListener {
         def onComplete(g: OperationFuture[_]): Unit = {
@@ -98,7 +102,7 @@ class MemcachedCache[V](
     }
   }
 
-  override def close[F[_]]()(implicit mode: Mode[F]): F[Any] = mode.M.delay(client.shutdown())
+  override def close: F[Unit] = F.delay(client.shutdown())
 
 }
 
@@ -107,7 +111,7 @@ object MemcachedCache {
   /**
     * Create a Memcached client connecting to localhost:11211 and use it for caching
     */
-  def apply[V](implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[V] =
+  def apply[F[_]: Async, V](implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[F, V] =
     apply("localhost:11211")
 
   /**
@@ -115,7 +119,9 @@ object MemcachedCache {
     *
     * @param addressString Address string, with addresses separated by spaces, e.g. "host1:11211 host2:22322"
     */
-  def apply[V](addressString: String)(implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[V] =
+  def apply[F[_]: Async, V](
+      addressString: String
+  )(implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[F, V] =
     apply(new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(addressString)))
 
   /**
@@ -123,7 +129,9 @@ object MemcachedCache {
     *
     * @param client Memcached client
     */
-  def apply[V](client: MemcachedClient)(implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[V] =
-    new MemcachedCache[V](client)
+  def apply[F[_]: Async, V](
+      client: MemcachedClient
+  )(implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[F, V] =
+    new MemcachedCache[F, V](client)
 
 }
