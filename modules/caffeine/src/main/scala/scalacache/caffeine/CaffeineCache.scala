@@ -19,7 +19,7 @@ import cats.MonadError
  *
  * This cache implementation is synchronous.
  */
-class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[F, V]])(
+class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[V]])(
     implicit val config: CacheConfig,
     clock: Clock[F]
 ) extends AbstractCache[F, V] {
@@ -31,20 +31,20 @@ class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[F, V]])(
     F.delay {
         Option(underlying.getIfPresent(key))
       }
-      .flatMap(_.filterA(_.isExpired))
+      .flatMap(_.filterA(Entry.isExpired[F, V]))
       .map(_.map(_.value))
       .flatTap { result =>
         logCacheHitOrMiss(key, result)
       }
   }
 
-  def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = ttl.traverse(toExpiryTime).flatMap { expiry =>
-    F.delay {
-      val entry = Entry[F, V](value, expiry)
-      underlying.put(key, entry)
-      logCachePut(key, ttl)
+  def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] =
+    ttl.traverse(toExpiryTime).flatMap { expiry =>
+      F.delay {
+        val entry = Entry(value, expiry)
+        underlying.put(key, entry)
+      } *> logCachePut(key, ttl)
     }
-  }
 
   override def doRemove(key: String): F[Unit] =
     F.delay(underlying.invalidate(key))
@@ -68,7 +68,7 @@ object CaffeineCache {
     * Create a new Caffeine cache.
     */
   def apply[F[_]: Sync: Clock, V](implicit config: CacheConfig): F[CaffeineCache[F, V]] =
-    Sync[F].delay(Caffeine.newBuilder().build[String, Entry[F, V]]()).map(apply(_))
+    Sync[F].delay(Caffeine.newBuilder().build[String, Entry[V]]()).map(apply(_))
 
   /**
     * Create a new cache utilizing the given underlying Caffeine cache.
@@ -76,7 +76,7 @@ object CaffeineCache {
     * @param underlying a Caffeine cache
     */
   def apply[F[_]: Sync: Clock, V](
-      underlying: CCache[String, Entry[F, V]]
+      underlying: CCache[String, Entry[V]]
   )(implicit config: CacheConfig): CaffeineCache[F, V] =
     new CaffeineCache(underlying)
 

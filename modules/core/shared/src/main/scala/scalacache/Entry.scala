@@ -10,15 +10,22 @@ import cats.Applicative
 /**
   * A cache entry with an optional expiry time
   */
-case class Entry[F[_], +A](value: A, expiresAt: Option[Instant]) {
+case class Entry[+A](value: A, expiresAt: Option[Instant])
+
+object Entry {
 
   /**
     * Has the entry expired yet?
     */
-  def isExpired(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
-    expiresAt
-      .traverse { ttl =>
-        clock.monotonic(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli(_)).map(ttl.isBefore(_))
+  def isExpired[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
+    entry.expiresAt
+      .traverse { expiration =>
+        val now = clock.monotonic(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli(_))
+
+        now.map(expiration.isBefore(_))
       }
-      .map(_.contains(true))
+      .map {
+        case None | Some(true) => true
+        case Some(false)       => false
+      }
 }
