@@ -9,24 +9,28 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import scalacache._
 import caffeine._
 import memoization._
-import scalacache.modes.sync._
+import cats.effect.SyncIO
+import cats.effect.Clock
 
 @State(Scope.Thread)
 class CaffeineBenchmark {
 
-  val underlyingCache               = Caffeine.newBuilder().build[String, Entry[String]]()
-  implicit val cache: Cache[String] = CaffeineCache(underlyingCache)
+  implicit val clockSyncIO = Clock.create[SyncIO]
+
+  val underlyingCache                       = Caffeine.newBuilder().build[String, Entry[String]]()
+  implicit val cache: Cache[SyncIO, String] = CaffeineCache[SyncIO, String](underlyingCache)
 
   val key           = "key"
   val value: String = "value"
 
-  def itemCachedNoMemoize(key: String): Id[Option[String]] = {
-    cache.get(key)
+  def itemCachedNoMemoize(key: String): Option[String] = {
+    cache.get(key).unsafeRunSync()
   }
 
-  def itemCachedMemoize(key: String): String = memoizeSync(None) {
-    value
-  }
+  def itemCachedMemoize(key: String): String =
+    memoize(None) {
+      value
+    }.unsafeRunSync()
 
   // populate the cache
   cache.put(key)(value)
