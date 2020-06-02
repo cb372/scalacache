@@ -41,7 +41,7 @@ cache:
   directories:
     - $HOME/.sbt
     - $HOME/.ivy2
-    - $HOME/.coursier
+    - $HOME/.cache/coursier
 before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete -print
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete -print
