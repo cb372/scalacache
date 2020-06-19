@@ -1,8 +1,10 @@
 package scalacache
 
 import org.scalatest._
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-class HashingAlgorithmSpec extends FunSpec with Matchers {
+class HashingAlgorithmSpec extends AnyFunSpec with Matchers {
 
   describe("implementing singletons") {
 

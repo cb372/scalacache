@@ -1,10 +1,11 @@
 package issue42
 
-import org.scalatest.{FlatSpec, Matchers}
 
 import scala.util.Random
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class Issue42Spec extends FlatSpec with Matchers {
+class Issue42Spec extends AnyFlatSpec with Matchers {
 
   case class User(id: Int, name: String)
 

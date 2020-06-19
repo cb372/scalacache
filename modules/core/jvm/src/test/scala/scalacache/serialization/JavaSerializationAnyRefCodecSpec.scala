@@ -1,8 +1,9 @@
 package scalacache.serialization
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class JavaSerializationAnyRefCodecSpec extends FlatSpec with Matchers {
+class JavaSerializationAnyRefCodecSpec extends AnyFlatSpec with Matchers {
 
   import scalacache.serialization.binary._
 
