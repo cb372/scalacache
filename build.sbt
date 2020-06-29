@@ -89,7 +89,7 @@ lazy val redis = jvmOnlyModule("redis")
 lazy val caffeine = jvmOnlyModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine" % "2.8.4",
+      "com.github.ben-manes.caffeine" % "caffeine" % "2.8.5",
       "com.google.code.findbugs"      % "jsr305"   % "3.0.2" % Provided
     ),
     coverageMinimum := 80,
