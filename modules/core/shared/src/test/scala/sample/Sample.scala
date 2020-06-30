@@ -20,23 +20,27 @@ object Sample extends App {
   class UserRepository {
     implicit val cache: Cache[User] = new MockCache()
 
-    def getUser(id: Int): Future[User] = memoizeF(None) {
-      // Do DB lookup here...
-      Future { User(id, s"user$id") }
-    }
+    def getUser(id: Int): Future[User] =
+      memoizeF {
+        // Do DB lookup here...
+        Future { User(id, s"user$id") }
+      }(_ => None)
 
-    def withExpiry(id: Int): Future[User] = memoizeF(Some(60 seconds)) {
-      // Do DB lookup here...
-      Future { User(id, s"user$id") }
-    }
+    def withExpiry(id: Int): Future[User] =
+      memoizeF {
+        // Do DB lookup here...
+        Future { User(id, s"user$id") }
+      }(_ => (Some(60 seconds)))
 
-    def withOptionalExpiry(id: Int): Future[User] = memoizeF(Some(60 seconds)) {
-      Future { User(id, s"user$id") }
-    }
+    def withOptionalExpiry(id: Int): Future[User] =
+      memoizeF {
+        Future { User(id, s"user$id") }
+      }(_ => (Some(60 seconds)))
 
-    def withOptionalExpiryNone(id: Int): Future[User] = memoizeF(None) {
-      Future { User(id, s"user$id") }
-    }
+    def withOptionalExpiryNone(id: Int): Future[User] =
+      memoizeF {
+        Future { User(id, s"user$id") }
+      }(_ => None)
 
   }
 

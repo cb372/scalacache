@@ -18,9 +18,9 @@ object ProfilingMemoize extends App {
   val key = "key"
   val value: String = "value"
 
-  def itemCachedMemoize(key: String): String = memoizeSync(None) {
+  def itemCachedMemoize(key: String): String = memoizeSync {
     value
-  }
+  }(_ => None)
 
   var result: String = _
   var i = 0L

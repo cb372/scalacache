@@ -27,10 +27,10 @@ val ericTheCat = Cat(1, "Eric", "tuxedo")
 There is also a synchronous version of `caching`:
 
 ```scala mdoc
-val result = sync.caching("myKey")(ttl = None) {
+val result = sync.caching("myKey") {
   // do stuff...
   ericTheCat
-}
+}(calculateTtl = _ => None)
 ```
 
 ```scala mdoc:invisible
