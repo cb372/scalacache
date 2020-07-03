@@ -38,21 +38,19 @@ class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(
   }
 
   override protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = {
-    F.delay {
-      val keyBytes   = key.utf8bytes
-      val valueBytes = codec.encode(value)
-      ttl match {
-        case None                => F.delay(jedisCluster.set(keyBytes, valueBytes))
-        case Some(Duration.Zero) => F.delay(jedisCluster.set(keyBytes, valueBytes))
-        case Some(d) if d < 1.second =>
-          logger.ifWarnEnabled {
-            logger.warn(
-              s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
-            )
-          } *> F.delay(jedisCluster.setex(keyBytes, 1, valueBytes))
-        case Some(d) =>
-          F.delay(jedisCluster.setex(keyBytes, d.toSeconds.toInt, valueBytes))
-      }
+    val keyBytes   = key.utf8bytes
+    val valueBytes = codec.encode(value)
+    ttl match {
+      case None                => F.delay(jedisCluster.set(keyBytes, valueBytes))
+      case Some(Duration.Zero) => F.delay(jedisCluster.set(keyBytes, valueBytes))
+      case Some(d) if d < 1.second =>
+        logger.ifWarnEnabled {
+          logger.warn(
+            s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
+          )
+        } *> F.delay(jedisCluster.setex(keyBytes, 1, valueBytes))
+      case Some(d) =>
+        F.delay(jedisCluster.setex(keyBytes, d.toSeconds.toInt, valueBytes))
     }
   }
 
