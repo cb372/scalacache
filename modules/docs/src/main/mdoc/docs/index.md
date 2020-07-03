@@ -11,6 +11,7 @@ At the very least you will need to import the ScalaCache API.
 
 ```scala mdoc:silent:reset-object
 import scalacache._
+import cats.effect.IO
 ```
 
 Note that this import also brings a bunch of useful implicit magic into scope.
@@ -31,7 +32,7 @@ import scalacache.serialization.binary._
 
 final case class Cat(id: Int, name: String, colour: String)
 
-implicit val catsCache: Cache[Cat] = MemcachedCache("localhost:11211")
+implicit val catsCache: Cache[IO, Cat] = MemcachedCache("localhost:11211")
 ```
 
 Note that we made the cache `implicit` so that the ScalaCache API can find it.
@@ -41,9 +42,6 @@ Note that we made the cache `implicit` so that the ScalaCache API can find it.
 ```scala mdoc
 val ericTheCat = Cat(1, "Eric", "tuxedo")
 val doraemon = Cat(99, "Doraemon", "blue")
-
-// Choose the Try mode (more on this later)
-import scalacache.modes.try_._
 
 // Add an item to the cache
 put("eric")(ericTheCat)
@@ -70,8 +68,7 @@ caching("benjamin")(ttl = None) {
 
 // If the result of the block is wrapped in an effect, use cachingF
 cachingF("benjamin")(ttl = None) {
-	import scala.util.Try
-  Try { 
+  IO.pure { 
     // e.g. call an external API ...
     Cat(2, "Benjamin", "ginger")
   }
@@ -83,6 +80,6 @@ put("foo", 123, "bar")(ericTheCat) // Will be cached with key "foo:123:bar"
 
 ```scala mdoc:invisible
 for (cache <- List(catsCache)) {
-  cache.close()(scalacache.modes.sync.mode)
+  cache.close
 } 
 ```

@@ -23,17 +23,17 @@ Example:
 import scalacache._
 import scalacache.memcached._
 import scalacache.memoization._
-import scalacache.modes.sync._
 import scalacache.serialization.binary._
+import cats.effect.IO
 
 final case class Cat(id: Int, name: String, colour: String)
 
-implicit val catsCache: Cache[Cat] = MemcachedCache("localhost:11211")
+implicit val catsCache: Cache[IO, Cat] = MemcachedCache("localhost:11211")
 
-def getCatWithFlags(id: Int)(implicit flags: Flags): Cat = memoizeSync(None) {
+def getCatWithFlags(id: Int)(implicit flags: Flags): Cat = memoize(None) {
   // Do DB lookup here...
   Cat(id, s"cat ${id}", "black")
-}
+}.unsafeRunSync()
 
 def getCatMaybeSkippingCache(id: Int, skipCache: Boolean): Cat = {
   implicit val flags = Flags(readsEnabled = !skipCache)
@@ -45,6 +45,6 @@ Tip: Because the flags are passed as a parameter to your method, they will be in
 
 ```scala mdoc:invisible
 for (cache <- List(catsCache)) {
-  cache.close()(scalacache.modes.sync.mode)
+  cache.close
 } 
 ```
