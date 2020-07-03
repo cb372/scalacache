@@ -80,6 +80,6 @@ put("foo", 123, "bar")(ericTheCat) // Will be cached with key "foo:123:bar"
 
 ```scala mdoc:invisible
 for (cache <- List(catsCache)) {
-  cache.close
+  cache.close.unsafeRunSync()
 } 
 ```

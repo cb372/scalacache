@@ -45,6 +45,6 @@ Tip: Because the flags are passed as a parameter to your method, they will be in
 
 ```scala mdoc:invisible
 for (cache <- List(catsCache)) {
-  cache.close
+  cache.close.unsafeRunSync()
 } 
 ```
