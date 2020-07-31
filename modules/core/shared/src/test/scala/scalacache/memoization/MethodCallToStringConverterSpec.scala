@@ -1,6 +1,5 @@
 package scalacache.memoization
 
-
 import scalacache.memoization.MethodCallToStringConverter._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

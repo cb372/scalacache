@@ -1,6 +1,5 @@
 package issue42
 
-
 import scala.util.Random
 import cats.effect.SyncIO
 
