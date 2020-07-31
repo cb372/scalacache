@@ -3,9 +3,6 @@ import scala.language.higherKinds
 
 package object scalacache {
 
-  //todo
-  type Id[X] = X
-
   /**
     * Get the value corresponding to the given key from the cache.
     *

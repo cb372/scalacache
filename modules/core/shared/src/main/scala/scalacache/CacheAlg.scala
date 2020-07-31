@@ -7,7 +7,7 @@ import scala.language.higherKinds
 /**
   * Abstract algebra describing the operations a cache can perform
   *
-  * @tparam F the effect of the cache. //todo elaborate
+  * @tparam F The effect monad in which all cache operations will be performed.
   * @tparam V The value of types stored in the cache.
   */
 trait CacheAlg[F[_], V] {
