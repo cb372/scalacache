@@ -2,8 +2,7 @@ package issue42
 
 
 import scala.util.Random
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import cats.effect.SyncIO
 
 class Issue42Spec extends AnyFlatSpec with Matchers {
 
@@ -15,18 +14,19 @@ class Issue42Spec extends AnyFlatSpec with Matchers {
   import concurrent.duration._
   import scala.language.postfixOps
 
-  implicit val cache: Cache[User] = new MockCache()
-  import scalacache.modes.sync._
+  implicit val cache: Cache[SyncIO, User] = new MockCache()
 
   def generateNewName() = Random.alphanumeric.take(10).mkString
 
-  def getUser(id: Int)(implicit flags: Flags): User = memoizeSync(None) {
-    User(id, generateNewName())
-  }
+  def getUser(id: Int)(implicit flags: Flags): User =
+    memoize(None) {
+      User(id, generateNewName())
+    }.unsafeRunSync()
 
-  def getUserWithTtl(id: Int)(implicit flags: Flags): User = memoizeSync(Some(1 days)) {
-    User(id, generateNewName())
-  }
+  def getUserWithTtl(id: Int)(implicit flags: Flags): User =
+    memoize(Some(1 days)) {
+      User(id, generateNewName())
+    }.unsafeRunSync()
 
   "memoize without TTL" should "respect implicit flags" in {
     val user1before = getUser(1)

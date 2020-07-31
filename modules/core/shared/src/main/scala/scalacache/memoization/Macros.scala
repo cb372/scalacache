@@ -4,37 +4,29 @@ import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
-import scalacache.{Flags, Cache, Mode}
+import scalacache.{Flags, Cache}
 
 class Macros(val c: blackbox.Context) {
   import c.universe._
 
   def memoizeImpl[F[_], V: c.WeakTypeTag](
       ttl: c.Expr[Option[Duration]]
-  )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
+  )(f: c.Tree)(cache: c.Expr[Cache[F, V]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoize($keyName)($ttl)($f)($mode, $flags)"""
+      q"""$cache.cachingForMemoize($keyName)($ttl)($f)($flags)"""
     })
   }
 
   def memoizeFImpl[F[_], V: c.WeakTypeTag](
       ttl: c.Expr[Option[Duration]]
-  )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[F]], flags: c.Expr[Flags]): c.Tree = {
+  )(f: c.Tree)(cache: c.Expr[Cache[F, V]], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoizeF($keyName)($ttl)($f)($mode, $flags)"""
-    })
-  }
-
-  def memoizeSyncImpl[V: c.WeakTypeTag](
-      ttl: c.Expr[Option[Duration]]
-  )(f: c.Tree)(cache: c.Expr[Cache[V]], mode: c.Expr[Mode[scalacache.Id]], flags: c.Expr[Flags]): c.Tree = {
-    commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoize($keyName)($ttl)($f)($mode, $flags)"""
+      q"""$cache.cachingForMemoizeF($keyName)($ttl)($f)($flags)"""
     })
   }
 
   private def commonMacroImpl[F[_], V: c.WeakTypeTag](
-      cache: c.Expr[Cache[V]],
+      cache: c.Expr[Cache[F, V]],
       keyNameToCachingCall: (c.TermName) => c.Tree
   ): Tree = {
 

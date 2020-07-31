@@ -4,7 +4,6 @@ import java.util.UUID
 
 import org.scalatest._
 import cats.effect.{IO => CatsIO}
-import scalaz.concurrent.{Task => ScalazTask}
 import net.spy.memcached.{AddrUtil, MemcachedClient}
 import redis.clients.jedis.JedisPool
 
@@ -16,10 +15,11 @@ import scalacache._
 import scalacache.caffeine.CaffeineCache
 import scalacache.memcached.MemcachedCache
 import scalacache.redis.RedisCache
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import cats.effect.Clock
 
 class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
+
+  implicit val catsClock: Clock[CatsIO] = Clock.create
 
   private val memcachedClient = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
   private val jedisPool       = new JedisPool("localhost", 6379)
@@ -50,18 +50,18 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
     }
   }
 
-  case class CacheBackend(name: String, cache: Cache[String])
+  case class CacheBackend(name: String, cache: Cache[CatsIO, String])
 
-  private val caffeine = CacheBackend("Caffeine", CaffeineCache[String])
+  private val caffeine = CacheBackend("Caffeine", CaffeineCache[CatsIO, String].unsafeRunSync())
   private val memcached: Seq[CacheBackend] =
     if (memcachedIsRunning) {
       Seq(
         {
           import scalacache.serialization.binary._
-          CacheBackend("(Memcached) ⇔ (binary codec)", MemcachedCache[String](memcachedClient))
+          CacheBackend("(Memcached) ⇔ (binary codec)", MemcachedCache[CatsIO, String](memcachedClient))
         }, {
           import scalacache.serialization.circe._
-          CacheBackend("(Memcached) ⇔ (circe codec)", MemcachedCache[String](memcachedClient))
+          CacheBackend("(Memcached) ⇔ (circe codec)", MemcachedCache[CatsIO, String](memcachedClient))
         }
       )
     } else {
@@ -74,10 +74,10 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
       Seq(
         {
           import scalacache.serialization.binary._
-          CacheBackend("(Redis) ⇔ (binary codec)", RedisCache[String](jedisPool))
+          CacheBackend("(Redis) ⇔ (binary codec)", RedisCache[CatsIO, String](jedisPool))
         }, {
           import scalacache.serialization.circe._
-          CacheBackend("(Redis) ⇔ (circe codec)", RedisCache[String](jedisPool))
+          CacheBackend("(Redis) ⇔ (circe codec)", RedisCache[CatsIO, String](jedisPool))
         }
       )
     else {
@@ -90,8 +90,7 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
   for (CacheBackend(name, cache) <- backends) {
 
     s"$name ⇔ (cats-effect IO)" should "defer the computation and give the correct result" in {
-      implicit val theCache: Cache[String] = cache
-      implicit val mode: Mode[CatsIO]      = CatsEffect.modes.async
+      implicit val theCache: Cache[CatsIO, String] = cache
 
       val key          = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString
@@ -111,35 +110,11 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
       val result: Option[String] = program.unsafeRunSync()
       assert(result.contains("prepended " + initialValue))
     }
-
-    s"$name ⇔ (Scalaz Task)" should "defer the computation and give the correct result" in {
-      implicit val theCache: Cache[String] = cache
-      implicit val mode: Mode[ScalazTask]  = Scalaz72.modes.task
-
-      val key          = UUID.randomUUID().toString
-      val initialValue = UUID.randomUUID().toString
-
-      val program =
-        for {
-          _             <- put(key)(initialValue)
-          readFromCache <- get(key)
-          updatedValue = "prepended " + readFromCache.getOrElse("couldn't find in cache!")
-          _                   <- put(key)(updatedValue)
-          finalValueFromCache <- get(key)
-        } yield finalValueFromCache
-
-      checkComputationHasNotRun(key)
-
-      val result: Option[String] = program.unsafePerformSync
-      assert(result.contains("prepended " + initialValue))
-    }
-
   }
 
-  private def checkComputationHasNotRun(key: String)(implicit cache: Cache[String]): Unit = {
+  private def checkComputationHasNotRun(key: String)(implicit cache: Cache[CatsIO, String]): Unit = {
     Thread.sleep(1000)
-    implicit val mode: Mode[Id] = scalacache.modes.sync.mode
-    assert(scalacache.sync.get(key).isEmpty)
+    assert(cache.get(key).unsafeRunSync.isEmpty)
   }
 
 }

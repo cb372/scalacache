@@ -1,25 +1,24 @@
 package scalacache.logging
 import scala.collection.mutable
 import scala.scalajs.js.Dynamic.global
+import cats.effect.Sync
+import cats.effect.SyncIO
+import cats.~>
+import cats.implicits._
+import cats.effect.SyncEffect
 
 object Logger {
-
-  private val loggers: mutable.Map[String, Logger] = mutable.Map.empty
-
-  def getLogger(name: String): Logger = loggers.getOrElseUpdate(name, new Logger(name))
-
+  def getLogger[F[_]: Sync](name: String): Logger[F] = new Logger[F](name)
 }
 
-final class Logger(name: String) {
+final class Logger[F[_]: Sync](name: String) {
+  def ifDebugEnabled[A](fa: => F[A]): F[Option[A]] = fa.map(_.some)
 
-  def isDebugEnabled: Boolean = true
+  def ifWarnEnabled[A](fa: => F[A]): F[Option[A]] = fa.map(_.some)
 
-  def isWarnEnabled: Boolean = true
+  def debug(message: String): F[Unit] =
+    Sync[F].delay(global.console.debug(s"$name: $message"))
 
-  def debug(message: String): Unit =
-    global.console.debug(s"$name: $message")
-
-  def warn(message: String, e: Throwable): Unit =
-    global.console.warn(s"$name: $message. Exception: $e")
-
+  def warn(message: String, e: Throwable): F[Unit] =
+    Sync[F].delay(global.console.warn(s"$name: $message. Exception: $e"))
 }
