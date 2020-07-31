@@ -7,6 +7,7 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 import scalacache._
 import scalacache.serialization.Codec
+import cats.effect.IO
 
 class SentinelRedisCacheSpec extends RedisCacheSpecBase {
 
@@ -15,8 +16,8 @@ class SentinelRedisCacheSpec extends RedisCacheSpecBase {
 
   val withJedis = assumingRedisSentinelIsRunning _
 
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[V] =
-    new SentinelRedisCache[V](jedisPool = pool)
+  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[IO, V] =
+    new SentinelRedisCache[IO, V](jedisPool = pool)
 
   def flushRedis(client: JClient): Unit = client.underlying.flushDB()
 

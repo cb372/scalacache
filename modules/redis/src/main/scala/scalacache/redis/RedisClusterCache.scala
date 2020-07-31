@@ -5,17 +5,22 @@ import redis.clients.jedis.exceptions.JedisClusterException
 import scalacache.logging.Logger
 import scalacache.redis.StringEnrichment._
 import scalacache.serialization.Codec
-import scalacache.{AbstractCache, CacheConfig, Mode}
+import scalacache.{AbstractCache, CacheConfig}
 
 import scala.concurrent.duration.{Duration, _}
-import scala.language.higherKinds
+import cats.implicits._
+import cats.effect.Sync
 
-class RedisClusterCache[V](val jedisCluster: JedisCluster)(implicit val config: CacheConfig, val codec: Codec[V])
-    extends AbstractCache[V] {
+class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(
+    implicit val config: CacheConfig,
+    val codec: Codec[V]
+) extends AbstractCache[F, V] {
+
+  protected def F: Sync[F] = Sync[F]
 
   override protected final val logger = Logger.getLogger(getClass.getName)
 
-  override protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = mode.M.suspend {
+  override protected def doGet(key: String): F[Option[V]] = F.suspend {
     val bytes = jedisCluster.get(key.utf8bytes)
     val result: Codec.DecodingResult[Option[V]] = {
       if (bytes != null)
@@ -23,36 +28,33 @@ class RedisClusterCache[V](val jedisCluster: JedisCluster)(implicit val config: 
       else
         Right(None)
     }
+
     result match {
       case Left(e) =>
-        mode.M.raiseError(e)
+        F.raiseError[Option[V]](e)
       case Right(maybeValue) =>
-        logCacheHitOrMiss(key, maybeValue)
-        mode.M.pure(maybeValue)
+        logCacheHitOrMiss(key, maybeValue).as(maybeValue)
     }
   }
 
-  override protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] = {
-    mode.M.delay {
-      val keyBytes   = key.utf8bytes
-      val valueBytes = codec.encode(value)
-      ttl match {
-        case None                => jedisCluster.set(keyBytes, valueBytes)
-        case Some(Duration.Zero) => jedisCluster.set(keyBytes, valueBytes)
-        case Some(d) if d < 1.second =>
-          if (logger.isWarnEnabled) {
-            logger.warn(
-              s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
-            )
-          }
-          jedisCluster.setex(keyBytes, 1, valueBytes)
-        case Some(d) =>
-          jedisCluster.setex(keyBytes, d.toSeconds.toInt, valueBytes)
-      }
+  override protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = {
+    val keyBytes   = key.utf8bytes
+    val valueBytes = codec.encode(value)
+    ttl match {
+      case None                => F.delay(jedisCluster.set(keyBytes, valueBytes))
+      case Some(Duration.Zero) => F.delay(jedisCluster.set(keyBytes, valueBytes))
+      case Some(d) if d < 1.second =>
+        logger.ifWarnEnabled {
+          logger.warn(
+            s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
+          )
+        } *> F.delay(jedisCluster.setex(keyBytes, 1, valueBytes))
+      case Some(d) =>
+        F.delay(jedisCluster.setex(keyBytes, d.toSeconds.toInt, valueBytes))
     }
   }
 
-  override protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] = mode.M.delay {
+  override protected def doRemove(key: String): F[Unit] = F.delay {
     jedisCluster.del(key.utf8bytes)
   }
 
@@ -60,9 +62,9 @@ class RedisClusterCache[V](val jedisCluster: JedisCluster)(implicit val config: 
     "JedisCluster doesn't support this operation, scheduled to be removed with the next jedis major release",
     "0.28.0"
   )
-  override protected def doRemoveAll[F[_]]()(implicit mode: Mode[F]): F[Any] = mode.M.raiseError {
+  override protected def doRemoveAll: F[Unit] = F.raiseError {
     new JedisClusterException("No way to dispatch this command to Redis Cluster.")
   }
 
-  override def close[F[_]]()(implicit mode: Mode[F]): F[Any] = mode.M.delay(jedisCluster.close())
+  override val close: F[Unit] = F.delay(jedisCluster.close())
 }

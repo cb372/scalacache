@@ -7,6 +7,7 @@ import scalacache.serialization.Codec
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
+import cats.effect.IO
 
 class RedisClusterCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
@@ -15,8 +16,8 @@ class RedisClusterCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
   override val withJedis = assumingRedisClusterIsRunning _
 
-  def constructCache[V](jedisCluster: JedisCluster)(implicit codec: Codec[V]): CacheAlg[V] =
-    new RedisClusterCache[V](jedisCluster)
+  def constructCache[V](jedisCluster: JedisCluster)(implicit codec: Codec[V]): CacheAlg[IO, V] =
+    new RedisClusterCache[IO, V](jedisCluster)
 
   def flushRedis(client: JClient): Unit =
     client.underlying.getClusterNodes.asScala.mapValues(_.getResource.flushDB())

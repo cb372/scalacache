@@ -29,8 +29,6 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
     memcached,
     redis,
     caffeine,
-    catsEffect,
-    scalaz72,
     circe,
     tests
   )
@@ -42,6 +40,7 @@ lazy val core =
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+        "org.typelevel"  %%% "cats-effect" % "2.1.3",
         "org.scalatest"  %%% "scalatest"   % "3.0.8" % Test,
         "org.scalacheck" %%% "scalacheck"  % "1.14.3" % Test
       ),
@@ -51,10 +50,6 @@ lazy val core =
     .jvmSettings(
       libraryDependencies ++= Seq(
         "org.slf4j" % "slf4j-api" % "1.7.30"
-      ),
-      scala211OnlyDeps(
-        "org.squeryl"    %% "squeryl" % "0.9.15"  % Test,
-        "com.h2database" % "h2"       % "1.4.200" % Test
       )
     )
 
@@ -96,38 +91,12 @@ lazy val caffeine = jvmOnlyModule("caffeine")
     coverageFailOnMinimum := true
   )
 
-lazy val catsEffect = jvmOnlyModule("cats-effect")
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "2.0.0"
-    ),
-    coverageMinimum := 50,
-    coverageFailOnMinimum := true
-  )
-
-lazy val scalaz72 = jvmOnlyModule("scalaz72")
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-concurrent" % "7.2.30"
-    ),
-    coverageMinimum := 40,
-    coverageFailOnMinimum := true
-  )
-
-def circeVersion(scalaVersion: String) =
-  CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, scalaMajor)) if scalaMajor >= 12 => "0.13.0"
-    case Some((2, scalaMajor)) if scalaMajor >= 11 => "0.11.1"
-    case _ =>
-      throw new IllegalArgumentException(s"Unsupported Scala version $scalaVersion")
-  }
-
 lazy val circe = jvmOnlyModule("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core"    % circeVersion(scalaVersion.value),
-      "io.circe" %% "circe-parser"  % circeVersion(scalaVersion.value),
-      "io.circe" %% "circe-generic" % circeVersion(scalaVersion.value) % Test,
+      "io.circe" %% "circe-core"    % "0.13.0",
+      "io.circe" %% "circe-parser"  % "0.13.0",
+      "io.circe" %% "circe-generic" % "0.13.0" % Test,
       scalacheck
     ),
     coverageMinimum := 80,
@@ -136,7 +105,7 @@ lazy val circe = jvmOnlyModule("circe")
 
 lazy val tests = jvmOnlyModule("tests")
   .settings(publishArtifact := false)
-  .dependsOn(caffeine, memcached, redis, catsEffect, scalaz72, circe)
+  .dependsOn(caffeine, memcached, redis, circe)
 
 lazy val docs = jvmOnlyModule("docs")
   .enablePlugins(MicrositesPlugin)
@@ -160,8 +129,6 @@ lazy val docs = jvmOnlyModule("docs")
     memcached,
     redis,
     caffeine,
-    catsEffect,
-    scalaz72,
     circe
   )
 
@@ -192,7 +159,7 @@ lazy val commonSettings =
   mavenSettings ++
     Seq(
       organization := "com.github.cb372",
-      scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
+      scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-language:higherKinds"),
       parallelExecution in Test := false
     )
 
@@ -202,9 +169,3 @@ lazy val mavenSettings = Seq(
     false
   }
 )
-
-def scala211OnlyDeps(moduleIDs: ModuleID*) =
-  libraryDependencies ++= (scalaBinaryVersion.value match {
-    case "2.11" => moduleIDs
-    case other  => Nil
-  })
