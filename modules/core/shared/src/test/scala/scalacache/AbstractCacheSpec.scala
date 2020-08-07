@@ -1,6 +1,6 @@
 package scalacache
 
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfter
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -8,8 +8,10 @@ import scala.language.postfixOps
 import scala.util.{Success, Try}
 import cats.effect.SyncIO
 import cats.implicits._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class AbstractCacheSpec extends FlatSpec with Matchers with BeforeAndAfter {
+class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
 
   val cache = new LoggingMockCache[SyncIO, String]
 

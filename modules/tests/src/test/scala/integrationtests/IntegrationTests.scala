@@ -16,8 +16,10 @@ import scalacache.caffeine.CaffeineCache
 import scalacache.memcached.MemcachedCache
 import scalacache.redis.RedisCache
 import cats.effect.Clock
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
+class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
   implicit val catsClock: Clock[CatsIO] = Clock.create
 
