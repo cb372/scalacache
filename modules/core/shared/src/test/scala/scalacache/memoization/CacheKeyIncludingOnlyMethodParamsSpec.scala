@@ -4,8 +4,9 @@ import org.scalatest._
 
 import scalacache._
 import scalacache.memoization.MethodCallToStringConverter.onlyMethodParams
+import org.scalatest.flatspec.AnyFlatSpec
 
-class CacheKeyIncludingOnlyMethodParamsSpec extends FlatSpec with CacheKeySpecCommon {
+class CacheKeyIncludingOnlyMethodParamsSpec extends AnyFlatSpec with CacheKeySpecCommon {
 
   behavior of "cache key generation for method memoization (only including method params in cache key)"
 

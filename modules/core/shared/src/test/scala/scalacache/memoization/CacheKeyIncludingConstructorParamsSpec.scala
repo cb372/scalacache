@@ -4,8 +4,9 @@ import org.scalatest._
 import scalacache._
 import scalacache.memoization.MethodCallToStringConverter._
 import cats.effect.SyncIO
+import org.scalatest.flatspec.AnyFlatSpec
 
-class CacheKeyIncludingConstructorParamsSpec extends FlatSpec with CacheKeySpecCommon { self =>
+class CacheKeyIncludingConstructorParamsSpec extends AnyFlatSpec with CacheKeySpecCommon { self =>
 
   behavior of "cache key generation for method memoization (when including constructor params in cache key)"
 
