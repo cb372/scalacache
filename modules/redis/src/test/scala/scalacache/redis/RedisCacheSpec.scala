@@ -5,6 +5,7 @@ import scalacache._
 import scalacache.serialization.Codec
 
 import scala.language.postfixOps
+import cats.effect.IO
 
 class RedisCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
@@ -13,8 +14,8 @@ class RedisCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
   val withJedis = assumingRedisIsRunning _
 
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[V] =
-    new RedisCache[V](jedisPool = pool)
+  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[IO, V] =
+    new RedisCache[IO, V](jedisPool = pool)
 
   def flushRedis(client: JClient): Unit = client.underlying.flushDB()
 

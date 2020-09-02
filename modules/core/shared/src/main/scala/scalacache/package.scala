@@ -3,8 +3,6 @@ import scala.language.higherKinds
 
 package object scalacache {
 
-  type Id[X] = X
-
   /**
     * Get the value corresponding to the given key from the cache.
     *
@@ -18,7 +16,7 @@ package object scalacache {
     * @tparam V The type of the corresponding value
     * @return the value, if there is one
     */
-  def get[F[_], V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[Option[V]] =
+  def get[F[_], V](keyParts: Any*)(implicit cache: Cache[F, V], flags: Flags): F[Option[V]] =
     cache.get(keyParts: _*)
 
   /**
@@ -39,7 +37,7 @@ package object scalacache {
     */
   def put[F[_], V](
       keyParts: Any*
-  )(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[Any] =
+  )(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[F, V], flags: Flags): F[Unit] =
     cache.put(keyParts: _*)(value, ttl)
 
   /**
@@ -56,11 +54,11 @@ package object scalacache {
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V The type of the value to be removed
     */
-  def remove[F[_], V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[F]): F[Any] =
+  def remove[F[_], V](keyParts: Any*)(implicit cache: Cache[F, V]): F[Unit] =
     cache.remove(keyParts: _*)
 
   final class RemoveAll[V] {
-    def apply[F[_]]()(implicit cache: Cache[V], mode: Mode[F]): F[Any] = cache.removeAll[F]()
+    def apply[F[_]]()(implicit cache: Cache[F, V]): F[Unit] = cache.removeAll
   }
 
   /**
@@ -92,7 +90,7 @@ package object scalacache {
     */
   def caching[F[_], V](
       keyParts: Any*
-  )(ttl: Option[Duration])(f: => V)(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+  )(ttl: Option[Duration])(f: => V)(implicit cache: Cache[F, V], flags: Flags): F[V] =
     cache.caching(keyParts: _*)(ttl)(f)
 
   /**
@@ -117,47 +115,6 @@ package object scalacache {
     */
   def cachingF[F[_], V](
       keyParts: Any*
-  )(ttl: Option[Duration])(f: => F[V])(implicit cache: Cache[V], mode: Mode[F], flags: Flags): F[V] =
+  )(ttl: Option[Duration])(f: => F[V])(implicit cache: Cache[F, V], flags: Flags): F[V] =
     cache.cachingF(keyParts: _*)(ttl)(f)
-
-  /**
-    * A version of the API that is specialised to [[Id]].
-    * The functions in this API perform their operations immediately
-    * on the current thread and thus do not wrap their results in any effect monad.
-    *
-    * ===
-    *
-    * Implementation note: I really didn't want to have this separate copy of the API,
-    * but I couldn't get type inference to understand that Id[A] == A.
-    * e.g. the following doesn't compile:
-    *
-    * implicit val cache: LovelyCache[String] = ???
-    * import scalacache.modes.sync._
-    * val x: Option[String] = scalacache.get("hello")
-    *
-    * [error] ... polymorphic expression cannot be instantiated to expected type;
-    * [error]  found   : [F[_], V]F[Option[V]]
-    * [error]  required: Option[String]
-    *
-    * If anyone can find a workaround to make this compile, I will be much obliged.
-    */
-  object sync {
-
-    def get[V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): Option[V] =
-      cache.get[Id](keyParts: _*)
-
-    def put[V](
-        keyParts: Any*
-    )(value: V, ttl: Option[Duration] = None)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): Any =
-      cache.put[Id](keyParts: _*)(value, ttl)
-
-    def remove[V](keyParts: Any*)(implicit cache: Cache[V], mode: Mode[Id]): Any =
-      cache.remove[Id](keyParts: _*)
-
-    def caching[V](
-        keyParts: Any*
-    )(ttl: Option[Duration])(f: => V)(implicit cache: Cache[V], mode: Mode[Id], flags: Flags): V =
-      cache.caching[Id](keyParts: _*)(ttl)(f)
-  }
-
 }

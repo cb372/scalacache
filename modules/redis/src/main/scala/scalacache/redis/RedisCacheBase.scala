@@ -7,17 +7,19 @@ import redis.clients.util.Pool
 
 import scalacache.logging.Logger
 import scalacache.serialization.Codec
-import scalacache.{AbstractCache, CacheConfig, Mode}
+import scalacache.{AbstractCache, CacheConfig}
 import scala.concurrent.duration._
-import scala.language.higherKinds
+import cats.effect.Resource
+import cats.effect.Sync
+import cats.implicits._
 
 /**
   * Contains implementations of all methods that can be implemented independent of the type of Redis client.
   * This is everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.
   */
-trait RedisCacheBase[V] extends AbstractCache[V] {
+trait RedisCacheBase[F[_], V] extends AbstractCache[F, V] {
 
-  override protected final val logger = Logger.getLogger(getClass.getName)
+  override protected final val logger = Logger.getLogger[F](getClass.getName)
 
   import StringEnrichment.StringWithUtf8Bytes
 
@@ -29,7 +31,7 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
 
   protected def codec: Codec[V]
 
-  protected def doGet[F[_]](key: String)(implicit mode: Mode[F]): F[Option[V]] = mode.M.suspend {
+  protected def doGet(key: String): F[Option[V]] =
     withJedis { jedis =>
       val bytes = jedis.get(key.utf8bytes)
       val result: Codec.DecodingResult[Option[V]] = {
@@ -38,60 +40,53 @@ trait RedisCacheBase[V] extends AbstractCache[V] {
         else
           Right(None)
       }
+
       result match {
         case Left(e) =>
-          mode.M.raiseError(e)
+          F.raiseError[Option[V]](e)
         case Right(maybeValue) =>
-          logCacheHitOrMiss(key, maybeValue)
-          mode.M.pure(maybeValue)
+          logCacheHitOrMiss(key, maybeValue).as(maybeValue)
       }
     }
-  }
 
-  protected def doPut[F[_]](key: String, value: V, ttl: Option[Duration])(implicit mode: Mode[F]): F[Any] =
-    mode.M.delay {
-      withJedis { jedis =>
-        val keyBytes   = key.utf8bytes
-        val valueBytes = codec.encode(value)
-        ttl match {
-          case None                => jedis.set(keyBytes, valueBytes)
-          case Some(Duration.Zero) => jedis.set(keyBytes, valueBytes)
-          case Some(d) if d < 1.second =>
-            if (logger.isWarnEnabled) {
-              logger.warn(
-                s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
-              )
-            }
-            jedis.setex(keyBytes, 1, valueBytes)
-          case Some(d) =>
-            jedis.setex(keyBytes, d.toSeconds.toInt, valueBytes)
-        }
-      }
-      logCachePut(key, ttl)
-    }
-
-  protected def doRemove[F[_]](key: String)(implicit mode: Mode[F]): F[Any] = mode.M.delay {
+  protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = {
     withJedis { jedis =>
-      jedis.del(key.utf8bytes)
+      val keyBytes   = key.utf8bytes
+      val valueBytes = codec.encode(value)
+      ttl match {
+        case None                => F.delay(jedis.set(keyBytes, valueBytes))
+        case Some(Duration.Zero) => F.delay(jedis.set(keyBytes, valueBytes))
+        case Some(d) if d < 1.second =>
+          logger.ifWarnEnabled {
+            logger.warn(
+              s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
+            )
+          } *> F.delay {
+            jedis.setex(keyBytes, 1, valueBytes)
+          }
+        case Some(d) =>
+          F.delay(jedis.setex(keyBytes, d.toSeconds.toInt, valueBytes))
+      }
+    } *> logCachePut(key, ttl)
+  }
+
+  protected def doRemove(key: String): F[Unit] = {
+    withJedis { jedis =>
+      F.delay(jedis.del(key.utf8bytes))
     }
   }
 
-  def close[F[_]]()(implicit mode: Mode[F]): F[Any] = mode.M.delay(jedisPool.close())
+  val close: F[Unit] = F.delay(jedisPool.close())
 
   /**
     * Borrow a Jedis client from the pool, perform some operation and then return the client to the pool.
     *
-    * @param f block that uses the Jedis client
+    * @param f block that uses the Jedis client.
     * @tparam T return type of the block
     * @return the result of executing the block
     */
-  protected final def withJedis[T](f: JClient => T): T = {
-    val jedis = jedisPool.getResource()
-    try {
-      f(jedis)
-    } finally {
-      jedis.close()
-    }
+  protected final def withJedis[T](f: JClient => F[T]): F[T] = {
+    Resource.fromAutoCloseable(F.delay(jedisPool.getResource())).use(jedis => F.suspend(f(jedis)))
   }
 
 }

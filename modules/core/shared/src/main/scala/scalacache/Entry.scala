@@ -1,16 +1,31 @@
 package scalacache
 
-import java.time.{Clock, Instant}
+import java.time.Instant
+import cats.effect.Clock
+import java.util.concurrent.TimeUnit
+import cats.implicits._
+import language.higherKinds
+import cats.Applicative
 
 /**
   * A cache entry with an optional expiry time
   */
-case class Entry[+A](value: A, expiresAt: Option[Instant]) {
+case class Entry[+A](value: A, expiresAt: Option[Instant])
+
+object Entry {
 
   /**
     * Has the entry expired yet?
     */
-  def isExpired(implicit clock: Clock): Boolean =
-    expiresAt.exists(_.isBefore(Instant.now(clock)))
+  def isExpired[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
+    entry.expiresAt
+      .traverse { expiration =>
+        val now = clock.monotonic(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli(_))
 
+        now.map(expiration.isBefore(_))
+      }
+      .map {
+        case None | Some(true) => true
+        case Some(false)       => false
+      }
 }
