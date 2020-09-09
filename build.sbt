@@ -41,7 +41,7 @@ lazy val core =
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "org.typelevel"  %%% "cats-effect" % "2.1.4",
-        "org.scalatest"  %%% "scalatest"   % "3.2.2" % Test,
+        "org.scalatest"  %%% "scalatest"   % "3.0.9" % Test,
         "org.scalacheck" %%% "scalacheck"  % "1.14.3" % Test
       ),
       coverageMinimum := 79,
@@ -151,7 +151,7 @@ lazy val benchmarks = jvmOnlyModule("benchmarks")
   )
   .dependsOn(caffeine)
 
-lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.2" % Test
+lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.9" % Test
 
 lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3" % Test
 
