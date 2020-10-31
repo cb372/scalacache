@@ -42,7 +42,7 @@ lazy val core =
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "org.typelevel"  %%% "cats-effect" % "2.1.4",
         "org.scalatest"  %%% "scalatest"   % "3.0.9" % Test,
-        "org.scalacheck" %%% "scalacheck"  % "1.14.3" % Test
+        "org.scalacheck" %%% "scalacheck"  % "1.15.0" % Test
       ),
       coverageMinimum := 79,
       coverageFailOnMinimum := true
@@ -153,7 +153,7 @@ lazy val benchmarks = jvmOnlyModule("benchmarks")
 
 lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.9" % Test
 
-lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3" % Test
+lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.0" % Test
 
 lazy val commonSettings =
   mavenSettings ++
