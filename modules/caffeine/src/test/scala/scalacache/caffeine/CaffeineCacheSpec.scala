@@ -3,7 +3,7 @@ package scalacache.caffeine
 import java.time.{Instant, ZoneOffset}
 
 import scalacache._
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfter
 import com.github.benmanes.caffeine.cache.Caffeine
 
 import scala.concurrent.duration._
@@ -11,8 +11,10 @@ import org.scalatest.concurrent.ScalaFutures
 import cats.effect.SyncIO
 import cats.effect.Clock
 import java.util.concurrent.TimeUnit
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
+class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
   private def newCCache = Caffeine.newBuilder.build[String, Entry[String]]
 
