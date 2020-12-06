@@ -1,5 +1,3 @@
-import sbtcrossproject.CrossProject
-
 inThisBuild(
   List(
     organization := "com.github.cb372",
@@ -24,8 +22,7 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
     publishArtifact := false
   )
   .aggregate(
-    coreJS,
-    coreJVM,
+    core,
     memcached,
     redis,
     caffeine,
@@ -34,45 +31,38 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
   )
 
 lazy val core =
-  CrossProject(id = "core", file("modules/core"))(JSPlatform, JVMPlatform)
+  Project(id = "core", file("modules/core"))
     .settings(commonSettings)
     .settings(
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-        "org.typelevel"  %%% "cats-effect" % "2.1.4",
-        "org.scalatest"  %%% "scalatest"   % "3.0.9" % Test,
-        "org.scalacheck" %%% "scalacheck"  % "1.14.3" % Test
+        "org.slf4j"      % "slf4j-api"     % "1.7.30",
+        "org.typelevel"  %% "cats-effect"  % "2.1.4",
+        "org.scalatest"  %% "scalatest"    % "3.0.9" % Test,
+        "org.scalacheck" %% "scalacheck"   % "1.14.3" % Test
       ),
       coverageMinimum := 79,
       coverageFailOnMinimum := true
     )
-    .jvmSettings(
-      libraryDependencies ++= Seq(
-        "org.slf4j" % "slf4j-api" % "1.7.30"
-      )
-    )
 
-lazy val coreJVM = core.jvm
-lazy val coreJS  = core.js.settings(coverageEnabled := false)
-
-def jvmOnlyModule(name: String) =
+def createModule(name: String) =
   Project(id = name, base = file(s"modules/$name"))
     .settings(commonSettings)
     .settings(
       moduleName := s"scalacache-$name",
       libraryDependencies += scalatest
     )
-    .dependsOn(coreJVM)
+    .dependsOn(core)
 
-lazy val memcached = jvmOnlyModule("memcached")
+lazy val memcached = createModule("memcached")
   .settings(
     libraryDependencies ++= Seq(
       "net.spy" % "spymemcached" % "2.12.3"
     )
   )
 
-lazy val redis = jvmOnlyModule("redis")
+lazy val redis = createModule("redis")
   .settings(
     libraryDependencies ++= Seq(
       "redis.clients" % "jedis" % "2.10.2"
@@ -81,7 +71,7 @@ lazy val redis = jvmOnlyModule("redis")
     coverageFailOnMinimum := true
   )
 
-lazy val caffeine = jvmOnlyModule("caffeine")
+lazy val caffeine = createModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine" % "2.8.6",
@@ -91,7 +81,7 @@ lazy val caffeine = jvmOnlyModule("caffeine")
     coverageFailOnMinimum := true
   )
 
-lazy val circe = jvmOnlyModule("circe")
+lazy val circe = createModule("circe")
   .settings(
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core"    % "0.13.0",
@@ -103,11 +93,11 @@ lazy val circe = jvmOnlyModule("circe")
     coverageFailOnMinimum := true
   )
 
-lazy val tests = jvmOnlyModule("tests")
+lazy val tests = createModule("tests")
   .settings(publishArtifact := false)
   .dependsOn(caffeine, memcached, redis, circe)
 
-lazy val docs = jvmOnlyModule("docs")
+lazy val docs = createModule("docs")
   .enablePlugins(MicrositesPlugin)
   .settings(
     publishArtifact := false,
@@ -125,14 +115,14 @@ lazy val docs = jvmOnlyModule("docs")
     mdocIn := (sourceDirectory in Compile).value / "mdoc"
   )
   .dependsOn(
-    coreJVM,
+    core,
     memcached,
     redis,
     caffeine,
     circe
   )
 
-lazy val benchmarks = jvmOnlyModule("benchmarks")
+lazy val benchmarks = createModule("benchmarks")
   .enablePlugins(JmhPlugin)
   .settings(
     publishArtifact := false,
