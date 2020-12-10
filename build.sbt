@@ -42,7 +42,7 @@ lazy val core =
         "org.scalatest"  %% "scalatest"    % "3.0.9" % Test,
         "org.scalacheck" %% "scalacheck"   % "1.14.3" % Test
       ),
-      coverageMinimum := 79,
+      coverageMinimum := 60,
       coverageFailOnMinimum := true
     )
 
