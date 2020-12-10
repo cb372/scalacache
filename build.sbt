@@ -40,7 +40,7 @@ lazy val core =
         "org.slf4j"      % "slf4j-api"     % "1.7.30",
         "org.typelevel"  %% "cats-effect"  % "2.1.4",
         "org.scalatest"  %% "scalatest"    % "3.0.9" % Test,
-        "org.scalacheck" %% "scalacheck"   % "1.14.3" % Test
+        "org.scalacheck" %% "scalacheck"   % "1.15.1" % Test
       ),
       coverageMinimum := 60,
       coverageFailOnMinimum := true
