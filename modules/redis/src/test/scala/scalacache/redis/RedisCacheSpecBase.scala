@@ -8,7 +8,7 @@ import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.binary._
 import scalacache.serialization.{Codec, FailedToDecode}
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import cats.effect.unsafe.implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps

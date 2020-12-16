@@ -58,7 +58,7 @@ class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[V]])(
   }
 
   private def toExpiryTime(ttl: Duration): F[Instant] =
-    clock.monotonic(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli(_).plusMillis(ttl.toMillis))
+    clock.monotonic.map(m => Instant.ofEpochMilli(m.toMillis).plusMillis(ttl.toMillis))
 
 }
 

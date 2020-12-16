@@ -20,7 +20,7 @@ class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(
 
   override protected final val logger = Logger.getLogger(getClass.getName)
 
-  override protected def doGet(key: String): F[Option[V]] = F.suspend {
+  override protected def doGet(key: String): F[Option[V]] = F.defer {
     val bytes = jedisCluster.get(key.utf8bytes)
     val result: Codec.DecodingResult[Option[V]] = {
       if (bytes != null)

@@ -1,6 +1,6 @@
 package scalacache.caffeine
 
-import java.time.{Instant, ZoneOffset}
+import java.time.Instant
 
 import scalacache._
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
@@ -12,18 +12,22 @@ import cats.effect.SyncIO
 import cats.effect.Clock
 import java.util.concurrent.TimeUnit
 
+import cats.Applicative
+
 class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
   private def newCCache = Caffeine.newBuilder.build[String, Entry[String]]
 
-  val defaultClock = Clock.create[SyncIO]
+  val defaultClock = Clock[SyncIO]
   def fixedClock(now: Instant): Clock[SyncIO] = new Clock[SyncIO] {
-    def realTime(unit: TimeUnit): SyncIO[Long] = SyncIO.pure {
-      unit.convert(now.toEpochMilli(), TimeUnit.MILLISECONDS)
+
+    override def applicative: Applicative[SyncIO] = defaultClock.applicative
+
+    override def realTime: SyncIO[FiniteDuration] = SyncIO.pure {
+      FiniteDuration(now.toEpochMilli, TimeUnit.MILLISECONDS)
     }
 
-    def monotonic(unit: concurrent.duration.TimeUnit): SyncIO[Long] = realTime(unit)
-
+    override def monotonic: SyncIO[FiniteDuration] = realTime
   }
 
   def newIOCache[V](

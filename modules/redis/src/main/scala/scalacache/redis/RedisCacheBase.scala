@@ -4,13 +4,12 @@ import java.io.Closeable
 
 import redis.clients.jedis._
 import redis.clients.util.Pool
-
 import scalacache.logging.Logger
 import scalacache.serialization.Codec
 import scalacache.{AbstractCache, CacheConfig}
+
 import scala.concurrent.duration._
-import cats.effect.Resource
-import cats.effect.Sync
+import cats.effect.{MonadCancelThrow, Resource}
 import cats.implicits._
 
 /**
@@ -20,6 +19,8 @@ import cats.implicits._
 trait RedisCacheBase[F[_], V] extends AbstractCache[F, V] {
 
   override protected final val logger = Logger.getLogger[F](getClass.getName)
+
+  protected implicit def MonadCancelThrowF: MonadCancelThrow[F]
 
   import StringEnrichment.StringWithUtf8Bytes
 
@@ -86,7 +87,7 @@ trait RedisCacheBase[F[_], V] extends AbstractCache[F, V] {
     * @return the result of executing the block
     */
   protected final def withJedis[T](f: JClient => F[T]): F[T] = {
-    Resource.fromAutoCloseable(F.delay(jedisPool.getResource())).use(jedis => F.suspend(f(jedis)))
+    Resource.fromAutoCloseable(F.delay(jedisPool.getResource())).use(jedis => F.defer(f(jedis)))
   }
 
 }
