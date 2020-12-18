@@ -10,7 +10,6 @@ import scala.concurrent.duration._
 import org.scalatest.concurrent.ScalaFutures
 import cats.effect.SyncIO
 import cats.effect.Clock
-import java.util.concurrent.TimeUnit
 
 import cats.Applicative
 
@@ -24,7 +23,7 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
     override def applicative: Applicative[SyncIO] = defaultClock.applicative
 
     override def realTime: SyncIO[FiniteDuration] = SyncIO.pure {
-      FiniteDuration(now.toEpochMilli, TimeUnit.MILLISECONDS)
+      now.toEpochMilli.milliseconds
     }
 
     override def monotonic: SyncIO[FiniteDuration] = realTime
