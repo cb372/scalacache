@@ -25,6 +25,7 @@ import scalacache.memcached._
 import scalacache.memoization._
 import scalacache.serialization.binary._
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 
 final case class Cat(id: Int, name: String, colour: String)
 

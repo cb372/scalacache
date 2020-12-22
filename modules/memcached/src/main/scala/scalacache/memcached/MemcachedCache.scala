@@ -32,7 +32,7 @@ class MemcachedCache[F[_]: Async, V](
     Logger.getLogger[F](getClass.getName)
 
   override protected def doGet(key: String): F[Option[V]] = {
-    F.async { cb =>
+    F.async_ { cb =>
       val f = client.asyncGet(keySanitizer.toValidMemcachedKey(key))
       f.addListener(new GetCompletionListener {
         def onComplete(g: GetFuture[_]): Unit = {
@@ -57,7 +57,7 @@ class MemcachedCache[F[_]: Async, V](
   }
 
   override protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = {
-    F.async { cb =>
+    F.async_ { cb =>
       val valueToSend = codec.encode(value)
       val f           = client.set(keySanitizer.toValidMemcachedKey(key), toMemcachedExpiry(ttl), valueToSend)
       f.addListener(new OperationCompletionListener {
@@ -75,7 +75,7 @@ class MemcachedCache[F[_]: Async, V](
   }
 
   override protected def doRemove(key: String): F[Unit] = {
-    F.async { cb =>
+    F.async_ { cb =>
       val f = client.delete(key)
       f.addListener(new OperationCompletionListener {
         def onComplete(g: OperationFuture[_]): Unit = {
@@ -89,7 +89,7 @@ class MemcachedCache[F[_]: Async, V](
   }
 
   override protected def doRemoveAll: F[Unit] = {
-    F.async { cb =>
+    F.async_ { cb =>
       val f = client.flush()
       f.addListener(new OperationCompletionListener {
         def onComplete(g: OperationFuture[_]): Unit = {
