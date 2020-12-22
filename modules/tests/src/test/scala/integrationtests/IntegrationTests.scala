@@ -7,8 +7,6 @@ import cats.effect.{IO => CatsIO}
 import net.spy.memcached.{AddrUtil, MemcachedClient}
 import redis.clients.jedis.JedisPool
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 import scala.language.higherKinds
 import scala.util.control.NonFatal
 import scalacache._
@@ -16,10 +14,11 @@ import scalacache.caffeine.CaffeineCache
 import scalacache.memcached.MemcachedCache
 import scalacache.redis.RedisCache
 import cats.effect.Clock
+import cats.effect.unsafe.implicits.global
 
 class IntegrationTests extends FlatSpec with Matchers with BeforeAndAfterAll {
 
-  implicit val catsClock: Clock[CatsIO] = Clock.create
+  implicit val catsClock: Clock[CatsIO] = Clock[CatsIO]
 
   private val memcachedClient = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
   private val jedisPool       = new JedisPool("localhost", 6379)

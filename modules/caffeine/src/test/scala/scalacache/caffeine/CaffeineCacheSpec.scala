@@ -1,37 +1,54 @@
 package scalacache.caffeine
 
-import java.time.{Instant, ZoneOffset}
+import java.time.Instant
 
-import scalacache._
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import cats.effect.testkit.TestContext
+import cats.effect.unsafe.{IORuntime, Scheduler}
+import cats.effect.{Clock, IO, Sync, SyncIO}
 import com.github.benmanes.caffeine.cache.Caffeine
-
-import scala.concurrent.duration._
 import org.scalatest.concurrent.ScalaFutures
-import cats.effect.SyncIO
-import cats.effect.Clock
-import java.util.concurrent.TimeUnit
+import org.scalatest.{FlatSpec, BeforeAndAfter, Matchers}
+import scalacache._
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
-  private def newCCache = Caffeine.newBuilder.build[String, Entry[String]]
+  private val deterministicRuntime: (TestContext, IORuntime) = {
 
-  val defaultClock = Clock.create[SyncIO]
-  def fixedClock(now: Instant): Clock[SyncIO] = new Clock[SyncIO] {
-    def realTime(unit: TimeUnit): SyncIO[Long] = SyncIO.pure {
-      unit.convert(now.toEpochMilli(), TimeUnit.MILLISECONDS)
+    val ctx = TestContext()
+    val scheduler = new Scheduler {
+      def sleep(delay: FiniteDuration, action: Runnable): Runnable = {
+        val cancel = ctx.schedule(delay, action)
+        () => cancel()
+      }
+
+      def nowMillis()      = ctx.now().toMillis
+      def monotonicNanos() = ctx.now().toNanos
     }
 
-    def monotonic(unit: concurrent.duration.TimeUnit): SyncIO[Long] = realTime(unit)
+    val runtime = IORuntime(ctx, ctx, scheduler, () => ())
 
+    (ctx, runtime)
   }
 
-  def newIOCache[V](
-      underlying: com.github.benmanes.caffeine.cache.Cache[String, Entry[V]],
-      clock: Clock[SyncIO] = defaultClock
+  private implicit val runTime: IORuntime   = deterministicRuntime._2
+  private val ctx: TestContext              = deterministicRuntime._1
+  private implicit val ec: ExecutionContext = ctx.derive()
+
+  private def newCCache = Caffeine.newBuilder.build[String, Entry[String]]
+
+  private def newFCache[F[_]: Sync, V](
+      underlying: com.github.benmanes.caffeine.cache.Cache[String, Entry[V]]
   ) = {
-    implicit val clockImplicit = clock
-    CaffeineCache[SyncIO, V](underlying)
+    CaffeineCache[F, V](underlying)
+  }
+
+  private def newIOCache[V](
+      underlying: com.github.benmanes.caffeine.cache.Cache[String, Entry[V]]
+  ) = {
+    newFCache[SyncIO, V](underlying)
   }
 
   behavior of "get"
@@ -40,7 +57,8 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
     val underlying = newCCache
     val entry      = Entry("hello", expiresAt = None)
     underlying.put("key1", entry)
-    newIOCache(underlying).get("key1").unsafeRunSync() should be(Some("hello"))
+    val result = newIOCache(underlying).get("key1").unsafeRunSync()
+    result should be(Some("hello"))
   }
 
   it should "return None if the given key does not exist in the underlying cache" in {
@@ -68,25 +86,26 @@ class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with 
   behavior of "put with TTL"
 
   it should "store the given key-value pair in the underlying cache with the given TTL" in {
-    val now   = Instant.parse("2020-05-31T12:00:00Z")
-    val clock = fixedClock(now)
+    val now = Instant.ofEpochMilli(ctx.now.toMillis)
 
     val underlying = newCCache
-    newIOCache(underlying, clock).put("key1")("hello", Some(10.seconds)).unsafeRunSync()
+    newFCache[IO, String](underlying).put("key1")("hello", Some(10.seconds)).unsafeToFuture().map { _ =>
+      underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(now.plusSeconds(10))))
 
-    underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(now.plusSeconds(10))))
+    }
+    ctx.tick()
   }
 
   it should "support a TTL greater than Int.MaxValue millis" in {
-    val now   = Instant.parse("2015-10-01T00:00:00Z")
-    val clock = fixedClock(now)
+    val now = Instant.ofEpochMilli(ctx.now.toMillis)
 
     val underlying = newCCache
-    newIOCache(underlying, clock).put("key1")("hello", Some(30.days)).unsafeRunSync()
-
-    underlying.getIfPresent("key1") should be(
-      Entry("hello", expiresAt = Some(Instant.parse("2015-10-31T00:00:00Z")))
-    )
+    newFCache[IO, String](underlying).put("key1")("hello", Some(30.days)).unsafeToFuture().map { _ =>
+      underlying.getIfPresent("key1") should be(
+        Entry("hello", expiresAt = Some(now.plusMillis(30.days.toMillis)))
+      )
+    }
+    ctx.tick()
   }
 
   behavior of "remove"

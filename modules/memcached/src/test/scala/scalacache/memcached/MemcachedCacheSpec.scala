@@ -26,7 +26,7 @@ class MemcachedCacheSpec
     client.shutdown()
   }
 
-  import scala.concurrent.ExecutionContext.Implicits.global
+  import cats.effect.unsafe.implicits.global
 
   def memcachedIsRunning = {
     try {
