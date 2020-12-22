@@ -20,7 +20,7 @@ object Entry {
   def isExpired[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
     entry.expiresAt
       .traverse { expiration =>
-        val now = clock.monotonic(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli(_))
+        val now = clock.monotonic.map(m => Instant.ofEpochMilli(m.toMillis))
 
         now.map(expiration.isBefore(_))
       }

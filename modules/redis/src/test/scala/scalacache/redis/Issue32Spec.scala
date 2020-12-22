@@ -5,8 +5,7 @@ import org.scalatest.BeforeAndAfter
 import scalacache.memoization._
 import scalacache.serialization.binary._
 import cats.effect.IO
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import cats.effect.unsafe.implicits.global
 
 case class User(id: Int, name: String)
 

@@ -15,7 +15,7 @@ import cats.effect.Clock
 @State(Scope.Thread)
 class CaffeineBenchmark {
 
-  implicit val clockSyncIO = Clock.create[SyncIO]
+  implicit val clockSyncIO = Clock[SyncIO]
 
   val underlyingCache                       = Caffeine.newBuilder().build[String, Entry[String]]()
   implicit val cache: Cache[SyncIO, String] = CaffeineCache[SyncIO, String](underlyingCache)

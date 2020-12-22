@@ -97,8 +97,9 @@ Usage:
 import scalacache._
 import scalacache.caffeine._
 import cats.effect.{Clock, IO}
+import cats.effect.unsafe.implicits.global
 
-implicit val clock: Clock[IO] = Clock.create
+implicit val clock: Clock[IO] = Clock[IO]
 
 implicit val caffeineCache: Cache[IO, String] = CaffeineCache[IO, String].unsafeRunSync()
 ```
@@ -110,6 +111,7 @@ import scalacache._
 import scalacache.caffeine._
 import com.github.benmanes.caffeine.cache.Caffeine
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 
 val underlyingCaffeineCache = Caffeine.newBuilder().maximumSize(10000L).build[String, Entry[String]]
 implicit val customisedCaffeineCache: Cache[IO, String] = CaffeineCache(underlyingCaffeineCache)

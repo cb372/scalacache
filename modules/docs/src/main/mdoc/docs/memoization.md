@@ -126,6 +126,7 @@ def doSomething(userId: UserId)(implicit @cacheKeyExclude db: DBConnection): Str
 will only include the `userId` argument's value in its cache keys.
 
 ```scala mdoc:invisible
+import cats.effect.unsafe.implicits.global
 for (cache <- List(catsCache)) {
   cache.close.unsafeRunSync()
 } 

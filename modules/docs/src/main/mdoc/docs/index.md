@@ -79,6 +79,7 @@ put("foo", 123, "bar")(ericTheCat) // Will be cached with key "foo:123:bar"
 ```
 
 ```scala mdoc:invisible
+import cats.effect.unsafe.implicits.global
 for (cache <- List(catsCache)) {
   cache.close.unsafeRunSync()
 } 

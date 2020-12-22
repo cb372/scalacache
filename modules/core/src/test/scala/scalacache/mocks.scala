@@ -105,17 +105,17 @@ trait LoggingCache[F[_], V] extends AbstractCache[F, V] {
   var (getCalledWithArgs, putCalledWithArgs, removeCalledWithArgs) =
     (ArrayBuffer.empty[String], ArrayBuffer.empty[(String, Any, Option[Duration])], ArrayBuffer.empty[String])
 
-  protected abstract override def doGet(key: String): F[Option[V]] = F.suspend {
+  protected abstract override def doGet(key: String): F[Option[V]] = F.defer {
     getCalledWithArgs.append(key)
     super.doGet(key)
   }
 
-  protected abstract override def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = F.suspend {
+  protected abstract override def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = F.defer {
     putCalledWithArgs.append((key, value, ttl))
     super.doPut(key, value, ttl)
   }
 
-  protected abstract override def doRemove(key: String): F[Unit] = F.suspend {
+  protected abstract override def doRemove(key: String): F[Unit] = F.defer {
     removeCalledWithArgs.append(key)
     super.doRemove(key)
   }
