@@ -7,15 +7,15 @@ import cats.effect.unsafe.{IORuntime, Scheduler}
 import cats.effect.{Clock, IO, Sync, SyncIO}
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfter, Matchers}
+import org.scalatest.{FlatSpec, BeforeAndAfter, Matchers}
 import scalacache._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-class CaffeineCacheSpec extends AsyncFlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
+class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
-  private implicit val deterministicRuntime: (TestContext, IORuntime) = {
+  private val deterministicRuntime: (TestContext, IORuntime) = {
 
     val ctx = TestContext()
     val scheduler = new Scheduler {
@@ -39,7 +39,7 @@ class CaffeineCacheSpec extends AsyncFlatSpec with Matchers with BeforeAndAfter 
 
   private def newCCache = Caffeine.newBuilder.build[String, Entry[String]]
 
-  private def newFCache[F[_]: Sync: Clock, V](
+  private def newFCache[F[_]: Sync, V](
       underlying: com.github.benmanes.caffeine.cache.Cache[String, Entry[V]]
   ) = {
     CaffeineCache[F, V](underlying)
@@ -89,25 +89,23 @@ class CaffeineCacheSpec extends AsyncFlatSpec with Matchers with BeforeAndAfter 
     val now = Instant.ofEpochMilli(ctx.now.toMillis)
 
     val underlying = newCCache
-    val result = newFCache[IO, String](underlying).put("key1")("hello", Some(10.seconds)).unsafeToFuture().map { _ =>
+    newFCache[IO, String](underlying).put("key1")("hello", Some(10.seconds)).unsafeToFuture().map { _ =>
       underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(now.plusSeconds(10))))
 
     }
     ctx.tick()
-    result
   }
 
   it should "support a TTL greater than Int.MaxValue millis" in {
     val now = Instant.ofEpochMilli(ctx.now.toMillis)
 
     val underlying = newCCache
-    val result = newFCache[IO, String](underlying).put("key1")("hello", Some(30.days)).unsafeToFuture().map { _ =>
+    newFCache[IO, String](underlying).put("key1")("hello", Some(30.days)).unsafeToFuture().map { _ =>
       underlying.getIfPresent("key1") should be(
         Entry("hello", expiresAt = Some(now.plusMillis(30.days.toMillis)))
       )
     }
     ctx.tick()
-    result
   }
 
   behavior of "remove"
