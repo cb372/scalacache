@@ -75,7 +75,7 @@ lazy val caffeine = createModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine"             % "2.8.8",
-      "org.typelevel"                 %% "cats-effect-testkit" % "3.0.0-M4" % Test,
+      "org.typelevel"                 %% "cats-effect-testkit" % "3.0.0-M5" % Test,
       "com.google.code.findbugs"      % "jsr305"               % "3.0.2" % Provided
     ),
     coverageMinimum := 80,
