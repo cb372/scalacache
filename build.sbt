@@ -168,6 +168,12 @@ val Jdk11 = "openjdk@1.11-0"
 ThisBuild / scalaVersion := Scala213
 ThisBuild / crossScalaVersions := Seq(Scala213, Scala212)
 ThisBuild / githubWorkflowJavaVersions := Seq(Jdk11)
+ThisBuild / githubWorkflowBuild := Seq(
+  WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check formatting")),
+  WorkflowStep.Run(List("make travis-install", "make travis-run"), name = Some("Setup")),
+  WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
+  WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Compile Docs"))
+)
 //sbt-ci-release settings
 ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
 ThisBuild / githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v")))
