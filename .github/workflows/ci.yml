@@ -62,7 +62,7 @@ jobs:
       - name: Setup
         run: |
           sudo make travis-install
-          make travis-run
+          sudo make travis-run
 
       - name: Run tests
         run: sbt ++${{ matrix.scala }} test
