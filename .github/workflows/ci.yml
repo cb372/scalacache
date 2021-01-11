@@ -61,7 +61,7 @@ jobs:
 
       - name: Setup
         run: |
-          make travis-install
+          sudo make travis-install
           make travis-run
 
       - name: Run tests
