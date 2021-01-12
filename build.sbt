@@ -169,9 +169,9 @@ ThisBuild / scalaVersion := Scala213
 ThisBuild / crossScalaVersions := Seq(Scala213, Scala212)
 ThisBuild / githubWorkflowJavaVersions := Seq(Jdk11)
 ThisBuild / githubWorkflowBuild := Seq(
-  WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check formatting")),
-  WorkflowStep.Run(List("sudo make travis-install", "sudo make travis-run"), name = Some("Setup")),
-  WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
+  WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check Formatting")),
+  WorkflowStep.Run(List("docker-compose up -d"), name = Some("Setup Dependencies")),
+  WorkflowStep.Sbt(List("test"), name = Some("Run Tests")),
   WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Compile Docs"))
 )
 //sbt-ci-release settings

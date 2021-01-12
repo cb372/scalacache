@@ -56,15 +56,13 @@ jobs:
       - name: Check that workflows are up to date
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
-      - name: Check formatting
+      - name: Check Formatting
         run: sbt ++${{ matrix.scala }} scalafmtCheckAll
 
-      - name: Setup
-        run: |
-          sudo make travis-install
-          sudo make travis-run
+      - name: Setup Dependencies
+        run: docker-compose up -d
 
-      - name: Run tests
+      - name: Run Tests
         run: sbt ++${{ matrix.scala }} test
 
       - name: Compile Docs
