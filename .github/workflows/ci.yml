@@ -68,6 +68,9 @@ jobs:
       - name: Compile Docs
         run: sbt ++${{ matrix.scala }} docs/mdoc
 
+      - name: Compile Benchmarks
+        run: sbt ++${{ matrix.scala }} benchmarks/compile
+
       - name: Compress target directories
         run: tar cf targets.tar modules/benchmarks/target target modules/docs/target modules/tests/target modules/caffeine/target modules/memcached/target modules/circe/target modules/redis/target modules/core/target project/target
 

@@ -172,7 +172,8 @@ ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check Formatting")),
   WorkflowStep.Run(List("docker-compose up -d"), name = Some("Setup Dependencies")),
   WorkflowStep.Sbt(List("test"), name = Some("Run Tests")),
-  WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Compile Docs"))
+  WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Compile Docs")),
+  WorkflowStep.Sbt(List("benchmarks/compile"), name = Some("Compile Benchmarks"))
 )
 //sbt-ci-release settings
 ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
