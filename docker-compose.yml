@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+    redis-cluster:
+      image: grokzen/redis-cluster:latest
+      ports:
+        - '7000-7005:7000-7005'
+        - '6379:7006'
+        - '6380:7007'
+      environment:
+        IP: 0.0.0.0
+        STANDALONE: 'true'
+    memcached:
+      image: memcached:latest
+      ports:
+        - '11211:11211'
