@@ -38,7 +38,7 @@ lazy val core =
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "org.slf4j"      % "slf4j-api"     % "1.7.30",
-        "org.typelevel"  %% "cats-effect"  % "3.0.0-M5",
+        "org.typelevel"  %% "cats-effect"  % "3.0.0-RC1",
         "org.scalatest"  %% "scalatest"    % "3.0.9" % Test,
         "org.scalacheck" %% "scalacheck"   % "1.14.3" % Test
       ),
@@ -75,7 +75,7 @@ lazy val caffeine = createModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine"             % "2.8.8",
-      "org.typelevel"                 %% "cats-effect-testkit" % "3.0.0-M5" % Test,
+      "org.typelevel"                 %% "cats-effect-testkit" % "3.0.0-RC1" % Test,
       "com.google.code.findbugs"      % "jsr305"               % "3.0.2" % Provided
     ),
     coverageMinimum := 80,
