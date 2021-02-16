@@ -40,7 +40,7 @@ lazy val core =
         "org.slf4j"      % "slf4j-api"     % "1.7.30",
         "org.typelevel"  %% "cats-effect"  % "3.0.0-M5",
         "org.scalatest"  %% "scalatest"    % "3.0.9" % Test,
-        "org.scalacheck" %% "scalacheck"   % "1.14.3" % Test
+        "org.scalacheck" %% "scalacheck"   % "1.15.3" % Test
       ),
       coverageMinimum := 60,
       coverageFailOnMinimum := true
@@ -144,7 +144,7 @@ lazy val benchmarks = createModule("benchmarks")
 
 lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.9" % Test
 
-lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.3" % Test
+lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.3" % Test
 
 lazy val commonSettings =
   mavenSettings ++
