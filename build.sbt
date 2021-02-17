@@ -39,7 +39,7 @@ lazy val core =
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "org.slf4j"      % "slf4j-api"     % "1.7.30",
         "org.typelevel"  %% "cats-effect"  % "3.0.0-RC1",
-        "org.scalatest"  %% "scalatest"    % "3.0.9" % Test,
+        "org.scalatest"  %% "scalatest"    % "3.2.3" % Test,
         "org.scalacheck" %% "scalacheck"   % "1.15.3" % Test
       ),
       coverageMinimum := 60,
