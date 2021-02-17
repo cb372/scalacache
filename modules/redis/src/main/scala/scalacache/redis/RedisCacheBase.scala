@@ -10,7 +10,7 @@ import scalacache.{AbstractCache, CacheConfig}
 
 import scala.concurrent.duration._
 import cats.effect.{MonadCancelThrow, Resource}
-import cats.implicits._
+import cats.syntax.all._
 
 /**
   * Contains implementations of all methods that can be implemented independent of the type of Redis client.
@@ -19,8 +19,6 @@ import cats.implicits._
 trait RedisCacheBase[F[_], V] extends AbstractCache[F, V] {
 
   override protected final val logger = Logger.getLogger[F](getClass.getName)
-
-  protected implicit def MonadCancelThrowF: MonadCancelThrow[F]
 
   import StringEnrichment.StringWithUtf8Bytes
 
