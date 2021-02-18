@@ -3,12 +3,13 @@ package scalacache.serialization
 import io.circe.Json
 import org.scalacheck.Arbitrary
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, Matchers}
 import io.circe.syntax._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 case class Fruit(name: String, tastinessQuotient: Double)
 
-class CirceCodecSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks {
+class CirceCodecSpec extends AnyFlatSpec with Matchers with GeneratorDrivenPropertyChecks {
 
   behavior of "JSON serialization using circe"
 

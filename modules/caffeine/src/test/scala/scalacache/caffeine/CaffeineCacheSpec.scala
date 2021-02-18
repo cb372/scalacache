@@ -7,13 +7,15 @@ import cats.effect.unsafe.{IORuntime, Scheduler}
 import cats.effect.{Clock, IO, Sync, SyncIO}
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{FlatSpec, BeforeAndAfter, Matchers}
+import org.scalatest.BeforeAndAfter
 import scalacache._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class CaffeineCacheSpec extends FlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
+class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter with ScalaFutures {
 
   private val deterministicRuntime: (TestContext, IORuntime) = {
 
