@@ -1,8 +1,9 @@
 package scalacache
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class DefaultCacheKeyBuilderSpec extends FlatSpec with Matchers {
+class DefaultCacheKeyBuilderSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Default cache key builder"
 

@@ -39,8 +39,8 @@ lazy val core =
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "org.slf4j"      % "slf4j-api"     % "1.7.30",
         "org.typelevel"  %% "cats-effect"  % "3.0.0-RC2",
-        "org.scalatest"  %% "scalatest"    % "3.0.9" % Test,
-        "org.scalacheck" %% "scalacheck"   % "1.15.3" % Test
+        scalatest,
+        scalacheck
       ),
       coverageMinimum := 60,
       coverageFailOnMinimum := true
@@ -88,7 +88,8 @@ lazy val circe = createModule("circe")
       "io.circe" %% "circe-core"    % "0.13.0",
       "io.circe" %% "circe-parser"  % "0.13.0",
       "io.circe" %% "circe-generic" % "0.13.0" % Test,
-      scalacheck
+      scalacheck,
+      scalatestplus
     ),
     coverageMinimum := 80,
     coverageFailOnMinimum := true
@@ -142,9 +143,11 @@ lazy val benchmarks = createModule("benchmarks")
   )
   .dependsOn(caffeine)
 
-lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.9" % Test
+lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.4" % Test
 
 lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.3" % Test
+
+lazy val scalatestplus = "org.scalatestplus" %% "scalacheck-1-15" % "3.2.4.0" % Test
 
 lazy val commonSettings =
   mavenSettings ++

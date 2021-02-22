@@ -2,7 +2,7 @@ package scalacache.redis
 
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Seconds, Span}
-import org.scalatest.{BeforeAndAfter, FlatSpec, Inside, Matchers}
+import org.scalatest.{BeforeAndAfter, Inside}
 import scalacache._
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.binary._
@@ -13,9 +13,11 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import cats.effect.IO
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 trait RedisCacheSpecBase
-    extends FlatSpec
+    extends AnyFlatSpec
     with Matchers
     with Eventually
     with Inside
