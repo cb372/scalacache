@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.3, 2.12.12]
+        scala: [2.13.5, 2.12.12]
         java: [openjdk@1.11.0]
     runs-on: ${{ matrix.os }}
     steps:
@@ -87,7 +87,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.3]
+        scala: [2.13.5]
         java: [openjdk@1.11.0]
     runs-on: ${{ matrix.os }}
     steps:
