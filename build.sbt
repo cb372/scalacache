@@ -145,7 +145,7 @@ lazy val benchmarks = createModule("benchmarks")
 
 lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.8" % Test
 
-lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.3" % Test
+lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.4" % Test
 
 lazy val scalatestplus = "org.scalatestplus" %% "scalacheck-1-15" % "3.2.5.0" % Test
 
