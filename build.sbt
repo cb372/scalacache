@@ -143,7 +143,7 @@ lazy val benchmarks = createModule("benchmarks")
   )
   .dependsOn(caffeine)
 
-lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.8" % Test
+lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.9" % Test
 
 lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.3" % Test
 
