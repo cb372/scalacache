@@ -85,9 +85,9 @@ lazy val caffeine = createModule("caffeine")
 lazy val circe = createModule("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core"    % "0.13.0",
-      "io.circe" %% "circe-parser"  % "0.13.0",
-      "io.circe" %% "circe-generic" % "0.13.0" % Test,
+      "io.circe" %% "circe-core"    % "0.14.0",
+      "io.circe" %% "circe-parser"  % "0.14.0",
+      "io.circe" %% "circe-generic" % "0.14.0" % Test,
       scalacheck,
       scalatestplus
     ),
