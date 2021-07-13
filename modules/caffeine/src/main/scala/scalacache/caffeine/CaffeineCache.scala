@@ -1,25 +1,21 @@
 package scalacache.caffeine
 
-import java.time.temporal.ChronoUnit
-import java.time.{Instant}
-
+import cats.effect.kernel.Async
+import cats.effect.std.Dispatcher
+import cats.effect.{Clock, Sync}
+import cats.implicits._
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
-import cats.effect.Clock
 import scalacache.logging.Logger
 import scalacache.{AbstractCache, CacheConfig, Entry}
+
+import java.time.Instant
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
-import cats.effect.Sync
-import java.util.concurrent.TimeUnit
-import cats.implicits._
-import cats.MonadError
 
 /*
  * Thin wrapper around Caffeine.
- *
- * This cache implementation is synchronous.
  */
-class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[V]])(
+class CaffeineCache[F[_]: Async, V](val underlying: CCache[String, Entry[V]])(
     implicit val config: CacheConfig,
     clock: Clock[F]
 ) extends AbstractCache[F, V] {
@@ -52,6 +48,42 @@ class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[V]])(
   override def doRemoveAll(): F[Unit] =
     F.delay(underlying.invalidateAll())
 
+  override def doCachingF(key: String)(f: F[V])(ttl: Option[Duration]): F[V] = {
+    val doCachingFAtomically: F[Entry[V]] =
+      Dispatcher[F]
+        .use(disp =>
+          F.blocking(
+            underlying
+              .asMap()
+              // guarantees atomicity, see Caffeine javadoc and implementation
+              .compute(
+                key,
+                (_, entryNullable) => {
+                  val newEntry = (ttl.traverse(toExpiryTime), f).mapN((e, v) => Entry(v, e))
+                  val fe = Option(entryNullable) match {
+                    case Some(entry @ Entry(_, Some(_))) =>
+                      Entry.isExpired(entry).ifM(newEntry, F.pure(entry))
+                    case Some(Entry(v, None)) => F.pure(Entry(v, None))
+                    case None                 => newEntry
+                  }
+                  // only JVM
+                  // consider basing the implementation on caffeine's AsyncCache instead
+                  disp.unsafeRunSync(fe)
+                }
+              )
+          )
+        )
+
+    for {
+      entryOpt <- F.delay(Option(underlying.getIfPresent(key)))
+      entry <- entryOpt match {
+        case Some(entry @ Entry(_, Some(_))) => Entry.isExpired(entry).ifM(doCachingFAtomically, F.pure(entry))
+        case Some(e @ Entry(_, None))        => F.pure(e)
+        case None                            => doCachingFAtomically
+      }
+    } yield entry.value
+  }
+
   override def close: F[Unit] = {
     // Nothing to do
     F.unit
@@ -59,7 +91,6 @@ class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[V]])(
 
   private def toExpiryTime(ttl: Duration): F[Instant] =
     clock.monotonic.map(m => Instant.ofEpochMilli(m.toMillis).plusMillis(ttl.toMillis))
-
 }
 
 object CaffeineCache {
@@ -67,7 +98,7 @@ object CaffeineCache {
   /**
     * Create a new Caffeine cache.
     */
-  def apply[F[_]: Sync: Clock, V](implicit config: CacheConfig): F[CaffeineCache[F, V]] =
+  def apply[F[_]: Async: Clock, V](implicit config: CacheConfig): F[CaffeineCache[F, V]] =
     Sync[F].delay(Caffeine.newBuilder().build[String, Entry[V]]()).map(apply(_))
 
   /**
@@ -75,9 +106,8 @@ object CaffeineCache {
     *
     * @param underlying a Caffeine cache
     */
-  def apply[F[_]: Sync: Clock, V](
+  def apply[F[_]: Async: Clock, V](
       underlying: CCache[String, Entry[V]]
   )(implicit config: CacheConfig): CaffeineCache[F, V] =
     new CaffeineCache(underlying)
-
 }

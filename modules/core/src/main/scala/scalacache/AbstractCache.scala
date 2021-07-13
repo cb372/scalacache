@@ -36,7 +36,7 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
         .as(None)
   }
 
-  final override def get(keyParts: Any*)(implicit flags: Flags): F[Option[V]] = {
+  override final def get(keyParts: Any*)(implicit flags: Flags): F[Option[V]] = {
     val key = toKey(keyParts: _*)
     checkFlagsAndGet(key)
   }
@@ -57,7 +57,7 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
       }.void
   }
 
-  final override def put(
+  override final def put(
       keyParts: Any*
   )(value: V, ttl: Option[Duration])(implicit flags: Flags): F[Unit] = {
     val key       = toKey(keyParts: _*)
@@ -69,26 +69,33 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
 
   protected def doRemove(key: String): F[Unit]
 
-  final override def remove(keyParts: Any*): F[Unit] =
+  override final def remove(keyParts: Any*): F[Unit] =
     doRemove(toKey(keyParts: _*))
 
   // REMOVE ALL
 
   protected def doRemoveAll: F[Unit]
 
-  final override def removeAll: F[Unit] =
+  override final def removeAll: F[Unit] =
     doRemoveAll
 
   // CACHING
 
-  final override def caching(
+  override final def caching(
       keyParts: Any*
   )(ttl: Option[Duration] = None)(f: => V)(implicit flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
     _caching(key, ttl, f)
   }
 
-  override def cachingF(
+  protected def doCachingF(key: String)(f: F[V])(ttl: Option[Duration] = None): F[V] = {
+    doGet(key).flatMap {
+      case None    => f.flatTap(v => doPut(key, v, ttl))
+      case Some(v) => F.pure(v)
+    }
+  }
+
+  override final def cachingF(
       keyParts: Any*
   )(ttl: Option[Duration] = None)(f: F[V])(implicit flags: Flags): F[V] = {
     val key = toKey(keyParts: _*)
@@ -120,24 +127,36 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
       implicit
       flags: Flags
   ): F[V] = {
-    checkFlagsAndGet(key)
-      .handleErrorWith { e =>
-        logger
-          .ifWarnEnabled(logger.warn(s"Failed to read from cache. Key = $key", e))
-          .as(None)
-      }
-      .flatMap {
-        case Some(valueFromCache) => F.pure(valueFromCache)
-        case None =>
-          f.flatTap { calculatedValue =>
-            checkFlagsAndPut(key, calculatedValue, ttl)
-              .handleError { e =>
-                logger.ifWarnEnabled {
-                  logger.warn(s"Failed to write to cache. Key = $key", e)
+    if (flags.readsEnabled && flags.writesEnabled) {
+      doCachingF(key)(f)(ttl)
+        .onError {
+          case e =>
+            logger
+              .ifWarnEnabled(
+                logger.warn(s"Failed to read from and/or write to cache. Key = $key", e)
+              )
+              .void
+        }
+    } else {
+      checkFlagsAndGet(key)
+        .handleErrorWith { e =>
+          logger
+            .ifWarnEnabled(logger.warn(s"Failed to read from cache. Key = $key", e))
+            .as(None)
+        }
+        .flatMap {
+          case Some(valueFromCache) => F.pure(valueFromCache)
+          case None =>
+            f.flatTap { calculatedValue =>
+              checkFlagsAndPut(key, calculatedValue, ttl)
+                .handleError { e =>
+                  logger.ifWarnEnabled {
+                    logger.warn(s"Failed to write to cache. Key = $key", e)
+                  }
                 }
-              }
-          }
-      }
+            }
+        }
+    }
   }
 
   private def toKey(keyParts: Any*): String =

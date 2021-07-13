@@ -11,3 +11,4 @@ logs
 .ensime
 .ensime_lucene
 .ensime_cache
+.bsp
