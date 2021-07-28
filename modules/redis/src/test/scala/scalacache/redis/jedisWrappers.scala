@@ -8,7 +8,7 @@ import redis.clients.jedis._
   */
 trait BaseJedisClient {
 
-  def set(key: Array[Byte], value: Array[Byte])
+  def set(key: Array[Byte], value: Array[Byte]): Unit
 
   def get(key: Array[Byte]): Array[Byte]
 

@@ -16,7 +16,7 @@ trait CacheKeySpecCommon extends Suite with Matchers with BeforeAndAfter {
     cache.mmap.clear()
   }
 
-  def checkCacheKey(expectedKey: String)(call: => Int) {
+  def checkCacheKey(expectedKey: String)(call: => Int): Unit = {
     // Run the memoize block, putting some value into the cache
     val value = call
 
