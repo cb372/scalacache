@@ -36,12 +36,12 @@ lazy val core =
     .settings(
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
-        "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-        "org.slf4j"      % "slf4j-api"     % "1.7.30",
-        "org.typelevel"  %% "cats-effect"  % "3.0.2",
+        "org.slf4j"     % "slf4j-api"    % "1.7.30",
+        "org.typelevel" %% "cats-effect" % "3.2.0",
         scalatest,
         scalacheck
-      ),
+      ) ++ (if (scalaVersion.value.startsWith("2.")) Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
+            else Nil),
       coverageMinimum := 60,
       coverageFailOnMinimum := true
     )
@@ -75,7 +75,7 @@ lazy val caffeine = createModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine"             % "2.9.0",
-      "org.typelevel"                 %% "cats-effect-testkit" % "3.0.2" % Test,
+      "org.typelevel"                 %% "cats-effect-testkit" % "3.2.0" % Test,
       "com.google.code.findbugs"      % "jsr305"               % "3.0.2" % Provided
     ),
     coverageMinimum := 80,
@@ -85,9 +85,9 @@ lazy val caffeine = createModule("caffeine")
 lazy val circe = createModule("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core"    % "0.13.0",
-      "io.circe" %% "circe-parser"  % "0.13.0",
-      "io.circe" %% "circe-generic" % "0.13.0" % Test,
+      "io.circe" %% "circe-core"    % "0.14.1",
+      "io.circe" %% "circe-parser"  % "0.14.1",
+      "io.circe" %% "circe-generic" % "0.14.1" % Test,
       scalacheck,
       scalatestplus
     ),
@@ -143,11 +143,11 @@ lazy val benchmarks = createModule("benchmarks")
   )
   .dependsOn(caffeine)
 
-lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.8" % Test
+lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.9" % Test
 
 lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.3" % Test
 
-lazy val scalatestplus = "org.scalatestplus" %% "scalacheck-1-15" % "3.2.5.0" % Test
+lazy val scalatestplus = "org.scalatestplus" %% "scalacheck-1-15" % "3.2.9.0" % Test
 
 lazy val commonSettings =
   mavenSettings ++
@@ -164,12 +164,13 @@ lazy val mavenSettings = Seq(
   }
 )
 
+val Scala30  = "3.0.1"
 val Scala213 = "2.13.3"
 val Scala212 = "2.12.12"
-val Jdk11 = "openjdk@1.11.0"
+val Jdk11    = "openjdk@1.11.0"
 
 ThisBuild / scalaVersion := Scala213
-ThisBuild / crossScalaVersions := Seq(Scala213, Scala212)
+ThisBuild / crossScalaVersions := Seq(Scala213, Scala212, Scala30)
 ThisBuild / githubWorkflowJavaVersions := Seq(Jdk11)
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check Formatting")),
@@ -183,6 +184,7 @@ ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
 ThisBuild / githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v")))
 ThisBuild / githubWorkflowPublishPreamble := Seq(WorkflowStep.Use(UseRef.Public("olafurpg", "setup-gpg", "v3")))
 ThisBuild / githubWorkflowPublish := Seq(WorkflowStep.Sbt(List("ci-release")))
-ThisBuild / githubWorkflowEnv ++= List("PGP_PASSPHRASE", "PGP_SECRET", "SONATYPE_PASSWORD", "SONATYPE_USERNAME").map { envKey =>
-  envKey -> s"$${{ secrets.$envKey }}"
+ThisBuild / githubWorkflowEnv ++= List("PGP_PASSPHRASE", "PGP_SECRET", "SONATYPE_PASSWORD", "SONATYPE_USERNAME").map {
+  envKey =>
+    envKey -> s"$${{ secrets.$envKey }}"
 }.toMap
