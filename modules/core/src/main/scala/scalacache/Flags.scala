@@ -21,6 +21,6 @@ object Flags {
     *   }
     * }}}
     */
-  implicit val defaultFlags = Flags()
+  implicit val defaultFlags: Flags = Flags()
 
 }
