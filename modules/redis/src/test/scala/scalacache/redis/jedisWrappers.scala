@@ -2,9 +2,8 @@ package scalacache.redis
 
 import redis.clients.jedis._
 
-/**
-  * Scala wrapper for Jedis implementations. This allows an implementation of [[RedisCacheSpecBase]] to choose
-  * the specific client required for running the tests.
+/** Scala wrapper for Jedis implementations. This allows an implementation of [[RedisCacheSpecBase]] to choose the
+  * specific client required for running the tests.
   */
 trait BaseJedisClient {
 

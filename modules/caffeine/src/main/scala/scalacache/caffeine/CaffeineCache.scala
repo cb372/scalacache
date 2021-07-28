@@ -19,8 +19,8 @@ import cats.MonadError
  *
  * This cache implementation is synchronous.
  */
-class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[V]])(
-    implicit val config: CacheConfig,
+class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[V]])(implicit
+    val config: CacheConfig,
     clock: Clock[F]
 ) extends AbstractCache[F, V] {
   protected val F: Sync[F] = Sync[F]
@@ -29,9 +29,8 @@ class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[V]])(
 
   def doGet(key: String): F[Option[V]] = {
     F.delay {
-        Option(underlying.getIfPresent(key))
-      }
-      .flatMap(_.filterA(Entry.isExpired[F, V]))
+      Option(underlying.getIfPresent(key))
+    }.flatMap(_.filterA(Entry.isExpired[F, V]))
       .map(_.map(_.value))
       .flatTap { result =>
         logCacheHitOrMiss(key, result)
@@ -64,16 +63,15 @@ class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[V]])(
 
 object CaffeineCache {
 
-  /**
-    * Create a new Caffeine cache.
+  /** Create a new Caffeine cache.
     */
   def apply[F[_]: Sync: Clock, V](implicit config: CacheConfig): F[CaffeineCache[F, V]] =
     Sync[F].delay(Caffeine.newBuilder().build[String, Entry[V]]()).map(apply(_))
 
-  /**
-    * Create a new cache utilizing the given underlying Caffeine cache.
+  /** Create a new cache utilizing the given underlying Caffeine cache.
     *
-    * @param underlying a Caffeine cache
+    * @param underlying
+    *   a Caffeine cache
     */
   def apply[F[_]: Sync: Clock, V](
       underlying: CCache[String, Entry[V]]

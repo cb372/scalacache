@@ -269,8 +269,8 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
 
   }
 
-  class MyMockClassWithTry[F[_]](dbCall: Int => String)(
-      implicit cache: Cache[F, String],
+  class MyMockClassWithTry[F[_]](dbCall: Int => String)(implicit
+      cache: Cache[F, String],
       F: Sync[F],
       flags: Flags
   ) {

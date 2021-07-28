@@ -10,8 +10,7 @@ import cats.effect.IO
 
 case class User(id: Int, name: String)
 
-/**
-  * Sample showing how to use ScalaCache.
+/** Sample showing how to use ScalaCache.
   */
 object Sample extends App {
 
