@@ -15,7 +15,7 @@ object Entry {
 
   /** Has the entry expired yet?
     */
-  def isExpired[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
+  def isNotExpired[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
     entry.expiresAt
       .traverse { expiration =>
         val now = clock.monotonic.map(m => Instant.ofEpochMilli(m.toMillis))
@@ -23,7 +23,10 @@ object Entry {
         now.map(expiration.isBefore(_))
       }
       .map {
-        case None | Some(true) => true
-        case Some(false)       => false
+        case Some(true)         => false
+        case None | Some(false) => true
       }
+
+  def isExpired[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
+    isNotExpired[F, A](entry).map(b => !b)
 }
