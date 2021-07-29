@@ -42,7 +42,7 @@ object MethodCallToStringConverter {
       sb: JStringBuilder
   )(className: String, constructorParamss: IndexedSeq[IndexedSeq[Any]]): Unit = {
     if (className.nonEmpty) {
-      sb.append(className)
+      sb.append(className.stripSuffix("$"))
       appendParamssPart(sb)(constructorParamss)
       sb.append('.')
     }
