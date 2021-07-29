@@ -61,11 +61,8 @@ object Macros {
       case seqseq                             => seqseq
     }
 
-    def traverse[V](coll: Seq[Expr[V]])(using Type[V]): Expr[IndexedSeq[V]] = coll.foldLeft('{
-      IndexedSeq.empty[V]
-    }) { case (acc, next) =>
-      '{ ${ acc } :+ ${ next } }
-    }
+    def traverse[V](coll: Seq[Expr[V]])(using Type[V]): Expr[IndexedSeq[V]] =
+      coll.foldLeft('{ IndexedSeq.empty[V] }) { case (acc, next) => '{ ${ acc } :+ ${ next } } }
 
     val defParamExpr: Expr[IndexedSeq[IndexedSeq[Any]]] = traverse(defParams map traverse)
 
