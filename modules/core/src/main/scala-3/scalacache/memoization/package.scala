@@ -1,8 +1,6 @@
 package scalacache
 
-import scala.language.experimental.macros
 import scala.concurrent.duration._
-import scala.language.higherKinds
 
 /** Utilities for memoizing the results of method calls in a cache. The cache key is generated from the method arguments
   * using a macro, so that you don't have to bother passing them manually.
@@ -34,7 +32,8 @@ package object memoization {
     * @return
     *   A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoize[F[_], V](ttl: Option[Duration])(f: => V)(implicit cache: Cache[F, V], flags: Flags): F[V] = ???
+  inline def memoize[F[_], V](ttl: Option[Duration])(f: => V)(implicit cache: Cache[F, V], flags: Flags): F[V] =
+    $ { Macros.memoizeImpl[F, V]('ttl, 'f, 'cache, 'flags) }
 
   /** Perform the given operation and memoize its result to a cache before returning it. If the result is already in the
     * cache, return it without performing the operation.
@@ -61,7 +60,6 @@ package object memoization {
     * @return
     *   A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoizeF[F[_], V](
-      ttl: Option[Duration]
-  )(f: F[V])(implicit cache: Cache[F, V], flags: Flags): F[V] = ???
+  inline def memoizeF[F[_], V](ttl: Option[Duration])(f: F[V])(implicit cache: Cache[F, V], flags: Flags): F[V] =
+    $ { Macros.memoizeFImpl[F, V]('ttl, 'f, 'cache, 'flags) }
 }
