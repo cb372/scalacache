@@ -14,7 +14,7 @@ inThisBuild(
   )
 )
 
-scalafmtOnCompile in ThisBuild := scalaVersion.value.startsWith("2.")
+scalafmtOnCompile in ThisBuild := true
 
 lazy val root: Project = Project(id = "scalacache", base = file("."))
   .settings(
