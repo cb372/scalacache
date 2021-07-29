@@ -21,34 +21,54 @@ object Macros {
       keyNameToCachingCall: Expr[String] => Expr[F[V]]
   )(using Quotes, Type[F], Type[V]): Expr[F[V]] = {
     import quotes.reflect.*
-    val sym      = Symbol.spliceOwner.owner
-    val defdef   = sym.tree.asInstanceOf[DefDef]
-    def getOwningClass(s: Symbol): ClassDef = if (s.isClassDef) s.tree.asInstanceOf[ClassDef] else getOwningClass(s.owner)
-    val classdef = getOwningClass(sym)
-    val defParams: Seq[Seq[Expr[Any]]] = defdef.paramss.map(_.params.collect {
-      case p: ValDef  => Ref(p.symbol).asExpr
-//      case _: TypeDef => q.abort("Dying on method type param")
-    })
-    val classParams: Seq[Seq[Expr[Any]]] = classdef.constructor.paramss.map(_.params.collect {
-      case p: ValDef  => Ref(p.symbol).asExpr
-//      case _: TypeDef => q.abort("Dying on class type param")
-    })
+    val sym: Symbol      = Symbol.spliceOwner
+
+    def hasCacheKeyExcludeAnnotation(s: Symbol): Boolean = s.annotations.exists{
+//      case Apply(Select(New(Ident("cacheKeyExclude")), _), _) => true // Don't know why this doesn't match...
+      case Apply(Select(New(o), _), _) => o.toString == "Ident(cacheKeyExclude)"
+      case o => false
+    }
+
+    def getOwningDefSymbol(s: Symbol): Symbol = if (s.isDefDef || s == Symbol.noSymbol) s else getOwningDefSymbol(s.owner)
+
+    val defdef: DefDef   = getOwningDefSymbol(sym).tree.asInstanceOf[DefDef]
+
+    def getOwningClassSymbol(s: Symbol): Symbol = if (s.isClassDef) s else getOwningClassSymbol(s.owner)
+
+    val classdefSymbol = getOwningClassSymbol(sym)
+
+    val classdef: ClassDef = classdefSymbol.tree.asInstanceOf[ClassDef]
+
+    val defParams: Seq[Seq[Expr[Any]]] = defdef.termParamss.map(_.params
+      .filterNot(p => hasCacheKeyExcludeAnnotation(p.symbol))
+      .map(p => Ref(p.symbol).asExpr))
+
+    val classParams: Seq[Seq[Expr[Any]]] = classdef.constructor.termParamss.map(
+      _.params
+        .filterNot(p => hasCacheKeyExcludeAnnotation(p.symbol))
+        .map { p => Ref.term(TermRef(This(classdef.symbol).tpe, p.name)).asExpr }
+    ) match {
+      case seqseq if seqseq.forall(_.isEmpty) => Nil
+      case seqseq => seqseq
+    }
+
     def traverse[V](coll: Seq[Expr[V]])(using Type[V]): Expr[IndexedSeq[V]] = coll.foldLeft( '{
         IndexedSeq.empty[V]
       }) {
       case (acc, next) => '{ $ { acc } :+ $ { next } }
     }
+
     val defParamExpr: Expr[IndexedSeq[IndexedSeq[Any]]]   = traverse(defParams map traverse)
+
     val classParamExpr: Expr[IndexedSeq[IndexedSeq[Any]]] = traverse(classParams map traverse)
+
     val keyValue: Expr[String] = '{${cache}.config.memoization.toStringConverter.toString(
-      ${ Expr(classdef.name) },
-      $defParamExpr,
+      ${ Expr(classdefSymbol.fullName) },
+      $classParamExpr,
       ${ Expr(defdef.name) },
-      $classParamExpr
+      $defParamExpr
     )}
-    val cachingCallAsThing: Ref => Term = { case i: Ident =>
-      keyNameToCachingCall(i.asExpr.asInstanceOf[Expr[String]]).asTerm
-    }
-    ValDef.let(Symbol.spliceOwner, "key", keyValue.asTerm)(cachingCallAsThing).asExpr.asInstanceOf[Expr[F[V]]]
+
+    keyNameToCachingCall(keyValue)
   }
 }

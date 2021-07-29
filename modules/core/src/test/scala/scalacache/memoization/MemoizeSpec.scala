@@ -102,7 +102,7 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   it should "work with a method argument called 'key'" in {
     // Reproduces https://github.com/cb372/scalacache/issues/13
     """
-    implicit val emptyCache = new EmptyCache[SyncIO, Int] with LoggingCache[SyncIO, Int]
+    implicit val emptyCache: EmptyCache[SyncIO, Int] = new EmptyCache[SyncIO, Int] with LoggingCache[SyncIO, Int]
     def foo(key: Int): SyncIO[Int] = memoize(None) {
       key + 1
     }

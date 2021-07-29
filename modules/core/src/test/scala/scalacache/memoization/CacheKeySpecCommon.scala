@@ -50,7 +50,7 @@ trait CacheKeySpecCommon extends Suite with Matchers with BeforeAndAfter {
 
 }
 
-class AClass[F[_]](implicit cache: Cache[F, Int]) {
+class AClass[F[_]]()(implicit cache: Cache[F, Int]) {
   def insideClass(a: Int): F[Int] = memoize(None) {
     123
   }

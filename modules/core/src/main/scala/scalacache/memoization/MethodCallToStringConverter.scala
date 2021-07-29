@@ -33,7 +33,7 @@ object MethodCallToStringConverter {
 
   private def appendClassNamePart(sb: JStringBuilder)(className: String): Unit = {
     if (className.nonEmpty) {
-      sb.append(className)
+      sb.append(className.stripSuffix("$"))
       sb.append('.')
     }
   }
