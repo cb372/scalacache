@@ -10,8 +10,7 @@ class CacheKeyIncludingOnlyMethodParamsSpec extends AnyFlatSpec with CacheKeySpe
 
   behavior of "cache key generation for method memoization (only including method params in cache key)"
 
-  implicit val config: CacheConfig =
-    CacheConfig(memoization = MemoizationConfig(toStringConverter = onlyMethodParams))
+  implicit val config: MemoizationConfig = MemoizationConfig(toStringConverter = onlyMethodParams)
 
   it should "include values of all arguments for all argument lists" in {
     checkCacheKey("(1, 2)(3, 4)") {

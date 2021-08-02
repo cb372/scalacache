@@ -1,28 +1,28 @@
 package scalacache.redis
 
 import java.io.Closeable
-
 import redis.clients.jedis._
 import redis.clients.util.Pool
 import scalacache.logging.Logger
 import scalacache.serialization.Codec
-import scalacache.{AbstractCache, CacheConfig}
+import scalacache.{AbstractCache, MemoizingCache}
 
 import scala.concurrent.duration._
 import cats.effect.{MonadCancelThrow, Resource}
 import cats.syntax.all._
+import scalacache.memoization.MemoizationConfig
 
 /**
   * Contains implementations of all methods that can be implemented independent of the type of Redis client.
   * This is everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.
   */
-trait RedisCacheBase[F[_], V] extends AbstractCache[F, V] {
+trait RedisCacheBase[F[_], V] extends AbstractCache[F, String, V] with MemoizingCache[F, V] {
 
   override protected final val logger = Logger.getLogger[F](getClass.getName)
 
   import StringEnrichment.StringWithUtf8Bytes
 
-  def config: CacheConfig
+  def config: MemoizationConfig
 
   protected type JClient <: BinaryJedisCommands with Closeable
 

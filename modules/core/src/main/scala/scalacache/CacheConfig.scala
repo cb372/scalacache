@@ -3,7 +3,7 @@ package scalacache
 import scalacache.memoization.MemoizationConfig
 
 case class CacheConfig(
-    cacheKeyBuilder: CacheKeyBuilder = DefaultCacheKeyBuilder(),
+    //cacheKeyBuilder: CacheKeyBuilder[K] = DefaultCacheKeyBuilder(),
     memoization: MemoizationConfig = MemoizationConfig()
 )
 

@@ -3,15 +3,15 @@ package scalacache.redis
 import redis.clients.jedis._
 
 import scala.language.higherKinds
-import scalacache.CacheConfig
 import scalacache.serialization.Codec
-import cats.effect.{MonadCancel, MonadCancelThrow, Resource, Sync}
+import cats.effect.{MonadCancel, MonadCancelThrow, Sync}
+import scalacache.memoization.MemoizationConfig
 
 /**
   * Thin wrapper around Jedis
   */
 class RedisCache[F[_]: Sync: MonadCancelThrow, V](val jedisPool: JedisPool)(
-    implicit val config: CacheConfig,
+    implicit val config: MemoizationConfig,
     val codec: Codec[V]
 ) extends RedisCacheBase[F, V] {
 
@@ -32,7 +32,7 @@ object RedisCache {
   def apply[F[_]: Sync: MonadCancelThrow, V](
       host: String,
       port: Int
-  )(implicit config: CacheConfig, codec: Codec[V]): RedisCache[F, V] =
+  )(implicit config: MemoizationConfig, codec: Codec[V]): RedisCache[F, V] =
     apply(new JedisPool(host, port))
 
   /**
@@ -41,7 +41,7 @@ object RedisCache {
     */
   def apply[F[_]: Sync: MonadCancelThrow, V](
       jedisPool: JedisPool
-  )(implicit config: CacheConfig, codec: Codec[V]): RedisCache[F, V] =
+  )(implicit config: MemoizationConfig, codec: Codec[V]): RedisCache[F, V] =
     new RedisCache[F, V](jedisPool)
 
 }

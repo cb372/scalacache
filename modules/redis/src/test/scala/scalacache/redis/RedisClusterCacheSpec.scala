@@ -16,7 +16,7 @@ class RedisClusterCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
   override val withJedis = assumingRedisClusterIsRunning _
 
-  def constructCache[V](jedisCluster: JedisCluster)(implicit codec: Codec[V]): CacheAlg[IO, V] =
+  def constructCache[V](jedisCluster: JedisCluster)(implicit codec: Codec[V]): Cache[IO, String, V] =
     new RedisClusterCache[IO, V](jedisCluster)
 
   def flushRedis(client: JClient): Unit =

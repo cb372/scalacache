@@ -8,3 +8,7 @@ package scalacache.memoization
 case class MemoizationConfig(
     toStringConverter: MethodCallToStringConverter = MethodCallToStringConverter.excludeClassConstructorParams
 )
+
+object MemoizationConfig {
+  implicit val defaultCacheConfig: MemoizationConfig = MemoizationConfig()
+}

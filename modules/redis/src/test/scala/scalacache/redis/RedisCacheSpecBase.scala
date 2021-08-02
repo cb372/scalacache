@@ -37,7 +37,7 @@ trait RedisCacheSpecBase
   }
 
   def withJedis: ((JPool, JClient) => Unit) => Unit
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[IO, V]
+  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): Cache[IO, String, V]
   def flushRedis(client: JClient): Unit
 
   def runTestsIfPossible() = {

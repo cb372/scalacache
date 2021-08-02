@@ -51,9 +51,9 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
     }
   }
 
-  case class CacheBackend(name: String, cache: Cache[CatsIO, String])
+  case class CacheBackend(name: String, cache: Cache[CatsIO, String, String])
 
-  private val caffeine = CacheBackend("Caffeine", CaffeineCache[CatsIO, String].unsafeRunSync())
+  private val caffeine = CacheBackend("Caffeine", CaffeineCache[CatsIO, String, String].unsafeRunSync())
   private val memcached: Seq[CacheBackend] =
     if (memcachedIsRunning) {
       Seq(
@@ -91,7 +91,7 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
   for (CacheBackend(name, cache) <- backends) {
 
     s"$name ⇔ (cats-effect IO)" should "defer the computation and give the correct result" in {
-      implicit val theCache: Cache[CatsIO, String] = cache
+      implicit val theCache: Cache[CatsIO, String, String] = cache
 
       val key          = UUID.randomUUID().toString
       val initialValue = UUID.randomUUID().toString
@@ -113,7 +113,7 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
     }
   }
 
-  private def checkComputationHasNotRun(key: String)(implicit cache: Cache[CatsIO, String]): Unit = {
+  private def checkComputationHasNotRun(key: String)(implicit cache: Cache[CatsIO, String, String]): Unit = {
     Thread.sleep(1000)
     assert(cache.get(key).unsafeRunSync.isEmpty)
   }

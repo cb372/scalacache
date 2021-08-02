@@ -4,15 +4,15 @@ import redis.clients.jedis._
 
 import scala.collection.JavaConverters._
 import scala.language.higherKinds
-import scalacache.CacheConfig
 import scalacache.serialization.Codec
 import cats.effect.{MonadCancel, MonadCancelThrow, Sync}
+import scalacache.memoization.MemoizationConfig
 
 /**
   * Thin wrapper around Jedis that works with sharded Redis.
   */
 class ShardedRedisCache[F[_]: Sync: MonadCancelThrow, V](val jedisPool: ShardedJedisPool)(
-    implicit val config: CacheConfig,
+    implicit val config: MemoizationConfig,
     val codec: Codec[V]
 ) extends RedisCacheBase[F, V] {
 
@@ -36,7 +36,7 @@ object ShardedRedisCache {
     */
   def apply[F[_]: Sync: MonadCancelThrow, V](
       hosts: (String, Int)*
-  )(implicit config: CacheConfig, codec: Codec[V]): ShardedRedisCache[F, V] = {
+  )(implicit codec: Codec[V]): ShardedRedisCache[F, V] = {
     val shards = hosts.map {
       case (host, port) => new JedisShardInfo(host, port)
     }
@@ -50,7 +50,7 @@ object ShardedRedisCache {
     */
   def apply[F[_]: Sync: MonadCancelThrow, V](
       jedisPool: ShardedJedisPool
-  )(implicit config: CacheConfig, codec: Codec[V]): ShardedRedisCache[F, V] =
+  )(implicit codec: Codec[V]): ShardedRedisCache[F, V] =
     new ShardedRedisCache[F, V](jedisPool)
 
 }

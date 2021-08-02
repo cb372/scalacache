@@ -1,20 +1,19 @@
 package scalacache.redis
 
+import cats.effect.Sync
+import cats.implicits._
 import redis.clients.jedis.JedisCluster
 import redis.clients.jedis.exceptions.JedisClusterException
+import scalacache.AbstractCache
 import scalacache.logging.Logger
 import scalacache.redis.StringEnrichment._
 import scalacache.serialization.Codec
-import scalacache.{AbstractCache, CacheConfig}
 
 import scala.concurrent.duration.{Duration, _}
-import cats.implicits._
-import cats.effect.Sync
 
 class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(
-    implicit val config: CacheConfig,
-    val codec: Codec[V]
-) extends AbstractCache[F, V] {
+    implicit val codec: Codec[V]
+) extends AbstractCache[F, String, V] {
 
   protected def F: Sync[F] = Sync[F]
 

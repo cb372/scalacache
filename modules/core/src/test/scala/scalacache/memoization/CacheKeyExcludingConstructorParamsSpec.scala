@@ -11,8 +11,7 @@ class CacheKeyExcludingConstructorParamsSpec extends AnyFlatSpec with CacheKeySp
 
   behavior of "cache key generation for method memoization (not including constructor params in cache key)"
 
-  implicit val config: CacheConfig =
-    CacheConfig(memoization = MemoizationConfig(toStringConverter = excludeClassConstructorParams))
+  implicit val config: MemoizationConfig = MemoizationConfig(toStringConverter = excludeClassConstructorParams)
 
   it should "not include the enclosing class's constructor params in the cache key" in {
     val instance1 = new ClassWithConstructorParams[SyncIO](50)

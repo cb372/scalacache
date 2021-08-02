@@ -35,7 +35,7 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
   private def newFCache[F[_]: Sync, V](
       underlying: com.github.benmanes.caffeine.cache.Cache[String, Entry[V]]
   ) = {
-    CaffeineCache[F, V](underlying)
+    CaffeineCache[F, String, V](underlying)
   }
 
   private def newIOCache[V](
