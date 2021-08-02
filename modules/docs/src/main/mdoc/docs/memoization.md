@@ -99,7 +99,7 @@ class Bar(a: Int) {
 then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](https://github.com/cb372/scalacache/blob/master/modules/core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
 
 ```scala mdoc:silent
-implicit val cacheConfig: CacheConfig = CacheConfig(
+implicit lazy val cacheConfig: CacheConfig = CacheConfig(
   memoization = MemoizationConfig(MethodCallToStringConverter.includeClassConstructorParams)
 )
 ```
