@@ -6,21 +6,22 @@ import redis.clients.jedis.JedisCluster
 import redis.clients.jedis.exceptions.JedisClusterException
 import scalacache.AbstractCache
 import scalacache.logging.Logger
-import scalacache.redis.StringEnrichment._
 import scalacache.serialization.Codec
+import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 
 import scala.concurrent.duration.{Duration, _}
 
-class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(
-    implicit val codec: Codec[V]
-) extends AbstractCache[F, String, V] {
+class RedisClusterCache[F[_]: Sync, K, V](val jedisCluster: JedisCluster)(
+    implicit val keyEncoder: BinaryEncoder[K],
+    val codec: BinaryCodec[V]
+) extends AbstractCache[F, K, V] {
 
   protected def F: Sync[F] = Sync[F]
 
   override protected final val logger = Logger.getLogger(getClass.getName)
 
-  override protected def doGet(key: String): F[Option[V]] = F.defer {
-    val bytes = jedisCluster.get(key.utf8bytes)
+  override protected def doGet(key: K): F[Option[V]] = F.defer {
+    val bytes = jedisCluster.get(keyEncoder.encode(key))
     val result: Codec.DecodingResult[Option[V]] = {
       if (bytes != null)
         codec.decode(bytes).right.map(Some(_))
@@ -36,8 +37,8 @@ class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(
     }
   }
 
-  override protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = {
-    val keyBytes   = key.utf8bytes
+  override protected def doPut(key: K, value: V, ttl: Option[Duration]): F[Unit] = {
+    val keyBytes   = keyEncoder.encode(key)
     val valueBytes = codec.encode(value)
     ttl match {
       case None                => F.delay(jedisCluster.set(keyBytes, valueBytes))
@@ -53,8 +54,8 @@ class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(
     }
   }
 
-  override protected def doRemove(key: String): F[Unit] = F.delay {
-    jedisCluster.del(key.utf8bytes)
+  override protected def doRemove(key: K): F[Unit] = F.delay {
+    jedisCluster.del(keyEncoder.encode(key))
   }
 
   @deprecated(

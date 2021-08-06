@@ -1,20 +1,15 @@
 package scalacache.caffeine
 
-import java.time.temporal.ChronoUnit
-import java.time.Instant
+import cats.effect.{Clock, Sync}
+import cats.implicits._
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
-import cats.effect.Clock
 import scalacache.logging.Logger
+import scalacache.memoization.MemoizationConfig
 import scalacache.{AbstractCache, Entry, MemoizingCache}
 
+import java.time.Instant
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
-import cats.effect.Sync
-
-import java.util.concurrent.TimeUnit
-import cats.implicits._
-import cats.MonadError
-import scalacache.memoization.MemoizationConfig
 
 /*
  * Thin wrapper around Caffeine.
@@ -50,7 +45,7 @@ class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]])(
   override def doRemove(key: K): F[Unit] =
     F.delay(underlying.invalidate(key))
 
-  override def doRemoveAll(): F[Unit] =
+  override def doRemoveAll: F[Unit] =
     F.delay(underlying.invalidateAll())
 
   override def close: F[Unit] = {
@@ -92,7 +87,7 @@ class CaffeineMemoizingCache[F[_]: Sync, V](override val underlying: CCache[Stri
 object CaffeineMemoizingCache {
 
   /**
-    * Create a new Caffeine cache.
+    * Create a new Caffeine memoizing cache.
     */
   def apply[F[_]: Sync: Clock, V]: F[CaffeineMemoizingCache[F, V]] =
     Sync[F].delay(Caffeine.newBuilder().build[String, Entry[V]]()).map(apply(_))

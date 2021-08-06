@@ -3,10 +3,10 @@ package scalacache.memcached
 import net.spy.memcached.internal.{GetCompletionListener, GetFuture, OperationCompletionListener, OperationFuture}
 import net.spy.memcached.ops.StatusCode
 import net.spy.memcached.{AddrUtil, BinaryConnectionFactory, MemcachedClient}
-
 import scalacache.logging.Logger
-import scalacache.serialization.Codec
-import scalacache.AbstractCache
+import scalacache.serialization.binary.BinaryCodec
+import scalacache.{AbstractCache, MemoizingCache}
+
 import scala.concurrent.duration.Duration
 import scala.util.Success
 import scala.language.higherKinds
@@ -22,7 +22,7 @@ class MemcachedException(message: String) extends Exception(message)
 class MemcachedCache[F[_]: Async, V](
     val client: MemcachedClient,
     val keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer()
-)(implicit val codec: Codec[V])
+)(implicit val codec: BinaryCodec[V])
     extends AbstractCache[F, String, V]
     with MemcachedTTLConverter {
 
@@ -111,7 +111,7 @@ object MemcachedCache {
   /**
     * Create a Memcached client connecting to localhost:11211 and use it for caching
     */
-  def apply[F[_]: Async, V](implicit codec: Codec[V]): MemcachedCache[F, V] =
+  def apply[F[_]: Async, V](implicit codec: BinaryCodec[V]): MemcachedCache[F, V] =
     apply("localhost:11211")
 
   /**
@@ -121,7 +121,7 @@ object MemcachedCache {
     */
   def apply[F[_]: Async, V](
       addressString: String
-  )(implicit codec: Codec[V]): MemcachedCache[F, V] =
+  )(implicit codec: BinaryCodec[V]): MemcachedCache[F, V] =
     apply(new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(addressString)))
 
   /**
@@ -131,7 +131,7 @@ object MemcachedCache {
     */
   def apply[F[_]: Async, V](
       client: MemcachedClient
-  )(implicit codec: Codec[V]): MemcachedCache[F, V] =
+  )(implicit codec: BinaryCodec[V]): MemcachedCache[F, V] =
     new MemcachedCache[F, V](client)
 
 }

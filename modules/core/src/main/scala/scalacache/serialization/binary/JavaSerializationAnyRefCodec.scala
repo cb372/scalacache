@@ -12,7 +12,7 @@ import scalacache.serialization.{Codec, GenericCodecObjectInputStream}
   *
   * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
   */
-class JavaSerializationAnyRefCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S] {
+class JavaSerializationAnyRefCodec[S <: Serializable](classTag: ClassTag[S]) extends BinaryCodec[S] {
 
   def using[T <: Closeable, R](obj: T)(f: T => R): R =
     try f(obj)

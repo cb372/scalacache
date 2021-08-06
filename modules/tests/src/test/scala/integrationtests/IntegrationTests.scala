@@ -75,10 +75,10 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
       Seq(
         {
           import scalacache.serialization.binary._
-          CacheBackend("(Redis) ⇔ (binary codec)", RedisCache[CatsIO, String](jedisPool))
+          CacheBackend("(Redis) ⇔ (binary codec)", RedisCache[CatsIO, String, String](jedisPool))
         }, {
           import scalacache.serialization.circe._
-          CacheBackend("(Redis) ⇔ (circe codec)", RedisCache[CatsIO, String](jedisPool))
+          CacheBackend("(Redis) ⇔ (circe codec)", RedisCache[CatsIO, String, String](jedisPool))
         }
       )
     else {

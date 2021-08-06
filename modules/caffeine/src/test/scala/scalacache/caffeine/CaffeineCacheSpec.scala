@@ -30,16 +30,16 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
     unsafeRun(f(ticker)) shouldBe Outcome.succeeded(Some(succeed))
   }
 
-  private def newCCache = Caffeine.newBuilder.build[String, Entry[String]]
+  private def newCCache = Caffeine.newBuilder.build[Int, Entry[String]]
 
   private def newFCache[F[_]: Sync, V](
-      underlying: com.github.benmanes.caffeine.cache.Cache[String, Entry[V]]
+      underlying: com.github.benmanes.caffeine.cache.Cache[Int, Entry[V]]
   ) = {
-    CaffeineCache[F, String, V](underlying)
+    CaffeineCache[F, Int, V](underlying)
   }
 
   private def newIOCache[V](
-      underlying: com.github.benmanes.caffeine.cache.Cache[String, Entry[V]]
+      underlying: com.github.benmanes.caffeine.cache.Cache[Int, Entry[V]]
   ) = {
     newFCache[IO, V](underlying)
   }
@@ -49,30 +49,30 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
   it should "return the value stored in the underlying cache" in ticked { _ =>
     val underlying = newCCache
     val entry      = Entry("hello", expiresAt = None)
-    underlying.put("key1", entry)
+    underlying.put(1, entry)
 
-    newIOCache(underlying).get("key1").map(_ shouldBe Some("hello"))
+    newIOCache(underlying).get(1).map(_ shouldBe Some("hello"))
   }
 
   it should "return None if the given key does not exist in the underlying cache" in ticked { _ =>
     val underlying = newCCache
-    newIOCache(underlying).get("non-existent key").map(_ shouldBe None)
+    newIOCache(underlying).get(2).map(_ shouldBe None)
   }
 
   it should "return None if the given key exists but the value has expired" in ticked { _ =>
     val underlying = newCCache
     val expiredEntry =
       Entry("hello", expiresAt = Some(Instant.now.minusSeconds(1)))
-    underlying.put("key1", expiredEntry)
-    newIOCache(underlying).get("key1").map(_ shouldBe None)
+    underlying.put(1, expiredEntry)
+    newIOCache(underlying).get(1).map(_ shouldBe None)
   }
 
   behavior of "put"
 
   it should "store the given key-value pair in the underlying cache with no TTL" in ticked { _ =>
     val underlying = newCCache
-    newIOCache(underlying).put("key1")("hello", None) *>
-      IO { underlying.getIfPresent("key1") }
+    newIOCache(underlying).put(1)("hello", None) *>
+      IO { underlying.getIfPresent(1) }
         .map(_ shouldBe Entry("hello", None))
   }
 
@@ -84,8 +84,8 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
 
     val underlying = newCCache
 
-    newFCache[IO, String](underlying).put("key1")("hello", Some(10.seconds)).map { _ =>
-      underlying.getIfPresent("key1") should be(Entry("hello", expiresAt = Some(now.plusSeconds(10))))
+    newFCache[IO, String](underlying).put(1)("hello", Some(10.seconds)).map { _ =>
+      underlying.getIfPresent(1) should be(Entry("hello", expiresAt = Some(now.plusSeconds(10))))
     }
   }
 
@@ -94,8 +94,8 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
     val now = Instant.ofEpochMilli(ctx.now().toMillis)
 
     val underlying = newCCache
-    newFCache[IO, String](underlying).put("key1")("hello", Some(30.days)).map { _ =>
-      underlying.getIfPresent("key1") should be(
+    newFCache[IO, String](underlying).put(1)("hello", Some(30.days)).map { _ =>
+      underlying.getIfPresent(1) should be(
         Entry("hello", expiresAt = Some(now.plusMillis(30.days.toMillis)))
       )
     }
@@ -106,11 +106,11 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
   it should "delete the given key and its value from the underlying cache" in ticked { _ =>
     val underlying = newCCache
     val entry      = Entry("hello", expiresAt = None)
-    underlying.put("key1", entry)
-    underlying.getIfPresent("key1") should be(entry)
+    underlying.put(1, entry)
+    underlying.getIfPresent(1) should be(entry)
 
-    newIOCache(underlying).remove("key1") *>
-      IO(underlying.getIfPresent("key1")).map(_ shouldBe null)
+    newIOCache(underlying).remove(1) *>
+      IO(underlying.getIfPresent(1)).map(_ shouldBe null)
   }
 
 }

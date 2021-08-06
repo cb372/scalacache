@@ -2,8 +2,8 @@ package scalacache.serialization.gzip
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
-
 import scalacache.serialization.Codec.DecodingResult
+import scalacache.serialization.binary.BinaryCodec
 import scalacache.serialization.{Codec, FailedToDecode}
 
 object CompressingCodec {
@@ -27,7 +27,7 @@ object CompressingCodec {
   * Mixing this into any Codec will automatically GZip the resulting Byte Array when serialising and handle un-Gzipping when
   * deserialising
   */
-trait GZippingBinaryCodec[A] extends Codec[A] {
+trait GZippingBinaryCodec[A] extends BinaryCodec[A] {
 
   import CompressingCodec._
 

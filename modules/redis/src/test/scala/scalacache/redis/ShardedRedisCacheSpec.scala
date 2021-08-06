@@ -7,6 +7,7 @@ import scalacache.serialization.Codec
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 import cats.effect.IO
+import scalacache.serialization.binary.BinaryCodec
 
 class ShardedRedisCacheSpec extends RedisCacheSpecBase {
 
@@ -15,8 +16,8 @@ class ShardedRedisCacheSpec extends RedisCacheSpecBase {
 
   val withJedis = assumingMultipleRedisAreRunning _
 
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): Cache[IO, String, V] =
-    new ShardedRedisCache[IO, V](jedisPool = pool)
+  def constructCache[V](pool: JPool)(implicit codec: BinaryCodec[V]): Cache[IO, String, V] =
+    new ShardedRedisCache[IO, String, V](jedisPool = pool)
 
   def flushRedis(client: JClient): Unit =
     client.underlying.getAllShards.asScala.foreach(_.flushDB())

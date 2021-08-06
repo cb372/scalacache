@@ -5,22 +5,21 @@ import redis.clients.jedis._
 import redis.clients.util.Pool
 import scalacache.logging.Logger
 import scalacache.serialization.Codec
-import scalacache.{AbstractCache, MemoizingCache}
+import scalacache.AbstractCache
 
 import scala.concurrent.duration._
 import cats.effect.{MonadCancelThrow, Resource}
 import cats.syntax.all._
 import scalacache.memoization.MemoizationConfig
+import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 
 /**
   * Contains implementations of all methods that can be implemented independent of the type of Redis client.
   * This is everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.
   */
-trait RedisCacheBase[F[_], V] extends AbstractCache[F, String, V] with MemoizingCache[F, V] {
+trait RedisCacheBase[F[_], K, V] extends AbstractCache[F, K, V] {
 
   override protected final val logger = Logger.getLogger[F](getClass.getName)
-
-  import StringEnrichment.StringWithUtf8Bytes
 
   def config: MemoizationConfig
 
@@ -28,11 +27,12 @@ trait RedisCacheBase[F[_], V] extends AbstractCache[F, String, V] with Memoizing
 
   protected def jedisPool: Pool[JClient]
 
-  protected def codec: Codec[V]
+  protected def keyEncoder: BinaryEncoder[K]
+  protected def codec: BinaryCodec[V]
 
-  protected def doGet(key: String): F[Option[V]] =
+  protected def doGet(key: K): F[Option[V]] =
     withJedis { jedis =>
-      val bytes = jedis.get(key.utf8bytes)
+      val bytes = jedis.get(keyEncoder.encode(key))
       val result: Codec.DecodingResult[Option[V]] = {
         if (bytes != null)
           codec.decode(bytes).right.map(Some(_))
@@ -48,9 +48,9 @@ trait RedisCacheBase[F[_], V] extends AbstractCache[F, String, V] with Memoizing
       }
     }
 
-  protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = {
+  protected def doPut(key: K, value: V, ttl: Option[Duration]): F[Unit] = {
     withJedis { jedis =>
-      val keyBytes   = key.utf8bytes
+      val keyBytes   = keyEncoder.encode(key)
       val valueBytes = codec.encode(value)
       ttl match {
         case None                => F.delay(jedis.set(keyBytes, valueBytes))
@@ -69,9 +69,9 @@ trait RedisCacheBase[F[_], V] extends AbstractCache[F, String, V] with Memoizing
     } *> logCachePut(key, ttl)
   }
 
-  protected def doRemove(key: String): F[Unit] = {
+  protected def doRemove(key: K): F[Unit] = {
     withJedis { jedis =>
-      F.delay(jedis.del(key.utf8bytes))
+      F.delay(jedis.del(keyEncoder.encode(key)))
     }
   }
 

@@ -9,7 +9,7 @@ trait BinaryAnyRefCodecs_1 {
   String and Array[Byte] extend java.io.Serializable,
   so this implicit needs to be lower priority than those in BinaryPrimitiveCodecs
    */
-  implicit def anyRefBinaryCodec[S <: java.io.Serializable](implicit ev: ClassTag[S]): Codec[S] =
+  implicit def anyRefBinaryCodec[S <: java.io.Serializable](implicit ev: ClassTag[S]): BinaryCodec[S] =
     new JavaSerializationAnyRefCodec[S](ev)
 
 }
