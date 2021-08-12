@@ -2,7 +2,6 @@ package scalacache.redis
 
 import cats.effect.{MonadCancel, MonadCancelThrow, Sync}
 import redis.clients.jedis._
-import scalacache.memoization.MemoizationConfig
 import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 
 import scala.collection.JavaConverters._
@@ -12,8 +11,7 @@ import scala.language.higherKinds
   * Thin wrapper around Jedis that works with sharded Redis.
   */
 class ShardedRedisCache[F[_]: Sync: MonadCancelThrow, K, V](val jedisPool: ShardedJedisPool)(
-    implicit val config: MemoizationConfig,
-    val keyEncoder: BinaryEncoder[K],
+    implicit val keyEncoder: BinaryEncoder[K],
     val codec: BinaryCodec[V]
 ) extends RedisCacheBase[F, K, V] {
 

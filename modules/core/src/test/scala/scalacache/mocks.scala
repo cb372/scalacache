@@ -1,19 +1,14 @@
 package scalacache
 
+import cats.effect.Sync
 import scalacache.logging.Logger
+import scalacache.memoization.MemoizationConfig
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
-import cats.Applicative
-import cats.effect.Sync
-import cats.MonadError
-import cats.Defer
-import scalacache.memoization.MemoizationConfig
 
-class EmptyCache[F[_], V](implicit val F: Sync[F], val config: MemoizationConfig)
-    extends AbstractCache[F, String, V]
-    with MemoizingCache[F, V] {
+class EmptyCache[F[_], V](implicit val F: Sync[F], val config: MemoizationConfig) extends AbstractCache[F, String, V] {
 
   override protected def logger = Logger.getLogger("EmptyCache")
 
@@ -34,8 +29,7 @@ class EmptyCache[F[_], V](implicit val F: Sync[F], val config: MemoizationConfig
 }
 
 class FullCache[F[_], V](value: V)(implicit val F: Sync[F], val config: MemoizationConfig)
-    extends AbstractCache[F, String, V]
-    with MemoizingCache[F, V] {
+    extends AbstractCache[F, String, V] {
 
   override protected def logger = Logger.getLogger("FullCache")
 
@@ -56,8 +50,7 @@ class FullCache[F[_], V](value: V)(implicit val F: Sync[F], val config: Memoizat
 }
 
 class ErrorRaisingCache[F[_], V](implicit val F: Sync[F], val config: MemoizationConfig)
-    extends AbstractCache[F, String, V]
-    with MemoizingCache[F, V] {
+    extends AbstractCache[F, String, V] {
 
   override protected val logger = Logger.getLogger("FullCache")
 
@@ -81,9 +74,7 @@ class ErrorRaisingCache[F[_], V](implicit val F: Sync[F], val config: Memoizatio
   * A mock cache for use in tests and samples.
   * Does not support TTL.
   */
-class MockCache[F[_], V](implicit val F: Sync[F], val config: MemoizationConfig)
-    extends AbstractCache[F, String, V]
-    with MemoizingCache[F, V] {
+class MockCache[F[_], V](implicit val F: Sync[F], val config: MemoizationConfig) extends AbstractCache[F, String, V] {
 
   override protected def logger = Logger.getLogger("MockCache")
 

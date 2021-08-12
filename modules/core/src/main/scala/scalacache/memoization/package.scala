@@ -23,14 +23,16 @@ package object memoization {
     *
     * @param ttl Time-To-Live
     * @param f A function that computes some result. This result is the value that will be cached.
-    * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param cache The cache
+    * @param config Config used to define key generation for memoization
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V The type of the value to be cached
     * @return A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoize[F[_], V](ttl: Option[Duration])(f: => V)(implicit cache: MemoizingCache[F, V], flags: Flags): F[V] =
+  def memoize[F[_], V](
+      ttl: Option[Duration]
+  )(f: => V)(implicit cache: Cache[F, String, V], config: MemoizationConfig, flags: Flags): F[V] =
     macro Macros.memoizeImpl[F, V]
 
   /**
@@ -45,8 +47,8 @@ package object memoization {
     *
     * @param ttl Time-To-Live
     * @param f A function that computes some result wrapped in an [[F]]. This result is the value that will be cached.
-    * @param mode The operation mode, which decides the type of container in which to wrap the result
     * @param cache The cache
+    * @param config Config used to define key generation for memoization
     * @param flags Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F The type of container in which the result will be wrapped. This is decided by the mode.
     * @tparam V The type of the value to be cached
@@ -54,6 +56,6 @@ package object memoization {
     */
   def memoizeF[F[_], V](
       ttl: Option[Duration]
-  )(f: F[V])(implicit cache: MemoizingCache[F, V], flags: Flags): F[V] =
+  )(f: F[V])(implicit cache: Cache[F, String, V], config: MemoizationConfig, flags: Flags): F[V] =
     macro Macros.memoizeFImpl[F, V]
 }

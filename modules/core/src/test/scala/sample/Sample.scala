@@ -16,7 +16,7 @@ case class User(id: Int, name: String)
 object Sample extends App {
 
   class UserRepository {
-    implicit val cache: Cache[IO, String, User] with MemoizingCache[IO, User] = new MockCache()
+    implicit val cache: Cache[IO, String, User] = new MockCache()
 
     def getUser(id: Int): IO[User] = memoizeF(None) {
       // Do DB lookup here...

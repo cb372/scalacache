@@ -15,7 +15,7 @@ class Issue42Spec extends AnyFlatSpec with Matchers {
   import concurrent.duration._
   import scala.language.postfixOps
 
-  implicit val cache: Cache[SyncIO, String, User] with MemoizingCache[SyncIO, User] = new MockCache()
+  implicit val cache: Cache[SyncIO, String, User] = new MockCache()
 
   def generateNewName() = Random.alphanumeric.take(10).mkString
 

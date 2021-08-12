@@ -2,7 +2,6 @@ package scalacache.redis
 
 import cats.effect.{MonadCancel, MonadCancelThrow, Sync}
 import redis.clients.jedis._
-import scalacache.memoization.MemoizationConfig
 import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 
 import scala.language.higherKinds
@@ -11,8 +10,7 @@ import scala.language.higherKinds
   * Thin wrapper around Jedis
   */
 class RedisCache[F[_]: Sync: MonadCancelThrow, K, V](val jedisPool: JedisPool)(
-    implicit val config: MemoizationConfig,
-    val keyEncoder: BinaryEncoder[K],
+    implicit val keyEncoder: BinaryEncoder[K],
     val codec: BinaryCodec[V]
 ) extends RedisCacheBase[F, K, V] {
 
@@ -33,7 +31,7 @@ object RedisCache {
   def apply[F[_]: Sync: MonadCancelThrow, K, V](
       host: String,
       port: Int
-  )(implicit config: MemoizationConfig, keyEncoder: BinaryEncoder[K], codec: BinaryCodec[V]): RedisCache[F, K, V] =
+  )(implicit keyEncoder: BinaryEncoder[K], codec: BinaryCodec[V]): RedisCache[F, K, V] =
     apply(new JedisPool(host, port))
 
   /**
@@ -42,7 +40,7 @@ object RedisCache {
     */
   def apply[F[_]: Sync: MonadCancelThrow, K, V](
       jedisPool: JedisPool
-  )(implicit config: MemoizationConfig, keyEncoder: BinaryEncoder[K], codec: BinaryCodec[V]): RedisCache[F, K, V] =
+  )(implicit keyEncoder: BinaryEncoder[K], codec: BinaryCodec[V]): RedisCache[F, K, V] =
     new RedisCache[F, K, V](jedisPool)
 
 }

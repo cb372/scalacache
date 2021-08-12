@@ -1,21 +1,17 @@
 package scalacache.redis
 
+import cats.effect.{MonadCancel, MonadCancelThrow, Sync}
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import redis.clients.jedis._
+import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 
 import scala.collection.JavaConverters._
-import scalacache.serialization.Codec
-import cats.implicits._
-import cats.effect.{MonadCancel, MonadCancelThrow, Sync}
-import scalacache.memoization.MemoizationConfig
-import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 
 /**
   * Thin wrapper around Jedis that works with Redis Sentinel.
   */
 class SentinelRedisCache[F[_]: Sync: MonadCancelThrow, K, V](val jedisPool: JedisSentinelPool)(
-    implicit val config: MemoizationConfig,
-    val keyEncoder: BinaryEncoder[K],
+    implicit val keyEncoder: BinaryEncoder[K],
     val codec: BinaryCodec[V]
 ) extends RedisCacheBase[F, K, V] {
 

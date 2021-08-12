@@ -18,8 +18,8 @@ class CaffeineBenchmark {
   implicit val clockSyncIO = Clock[SyncIO]
 
   val underlyingCache = Caffeine.newBuilder().build[String, Entry[String]]()
-  implicit val cache: Cache[SyncIO, String, String] with MemoizingCache[SyncIO, String] =
-    CaffeineMemoizingCache[SyncIO, String](underlyingCache)
+  implicit val cache: Cache[SyncIO, String, String] =
+    CaffeineCache[SyncIO, String, String](underlyingCache)
 
   val key           = "key"
   val value: String = "value"

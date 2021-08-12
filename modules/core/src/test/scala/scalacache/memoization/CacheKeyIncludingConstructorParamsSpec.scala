@@ -1,20 +1,20 @@
 package scalacache.memoization
 
-import org.scalatest._
-import scalacache._
-import scalacache.memoization.MethodCallToStringConverter._
 import cats.effect.SyncIO
 import org.scalatest.flatspec.AnyFlatSpec
+import scalacache.memoization.MethodCallToStringConverter._
 
 class CacheKeyIncludingConstructorParamsSpec extends AnyFlatSpec with CacheKeySpecCommon { self =>
 
   behavior of "cache key generation for method memoization (when including constructor params in cache key)"
 
-  implicit val config: MemoizationConfig = MemoizationConfig(toStringConverter = includeClassConstructorParams)
+  implicit override lazy val config: MemoizationConfig =
+    MemoizationConfig(toStringConverter = includeClassConstructorParams)
 
   it should "include the enclosing class's constructor params in the cache key" in {
     val instance = new ClassWithConstructorParams[SyncIO](50)
     instance.cache = cache
+    instance.config = config
 
     checkCacheKey("scalacache.memoization.ClassWithConstructorParams(50).foo(42)") {
       instance.foo(42).unsafeRunSync()
@@ -24,6 +24,7 @@ class CacheKeyIncludingConstructorParamsSpec extends AnyFlatSpec with CacheKeySp
   it should "exclude values of constructor params annotated with @cacheKeyExclude" in {
     val instance = new ClassWithExcludedConstructorParam[SyncIO](50, 10)
     instance.cache = cache
+    instance.config = config
 
     checkCacheKey("scalacache.memoization.ClassWithExcludedConstructorParam(50).foo(42)") {
       instance.foo(42).unsafeRunSync()
@@ -56,19 +57,20 @@ class CacheKeyIncludingConstructorParamsSpec extends AnyFlatSpec with CacheKeySp
 
   it should "work for a method inside a class" in {
     // The class's implicit param (the Cache) should be included in the cache key)
-    checkCacheKey(s"scalacache.memoization.AClass()(${cache.toString}).insideClass(1)") {
+    checkCacheKey(s"scalacache.memoization.AClass()(${cache.toString}, ${config.toString}).insideClass(1)") {
       new AClass[SyncIO]().insideClass(1).unsafeRunSync()
     }
   }
 
   it should "work for a method inside a trait" in {
     checkCacheKey("scalacache.memoization.ATrait.insideTrait(1)") {
-      new ATrait[SyncIO] { val cache = self.cache }.insideTrait(1).unsafeRunSync()
+      new ATrait[SyncIO] { val cache = self.cache; val config = self.config }.insideTrait(1).unsafeRunSync()
     }
   }
 
   it should "work for a method inside an object" in {
     AnObject.cache = this.cache
+    AnObject.config = this.config
     checkCacheKey("scalacache.memoization.AnObject.insideObject(1)") {
       AnObject.insideObject(1).unsafeRunSync()
     }

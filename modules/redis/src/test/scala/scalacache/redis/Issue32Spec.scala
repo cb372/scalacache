@@ -7,7 +7,7 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scalacache.MemoizingCache
+import scalacache.memoization.MemoizationConfig.defaultMemoizationConfig
 
 case class User(id: Int, name: String)
 
@@ -18,7 +18,7 @@ case class User(id: Int, name: String)
 class Issue32Spec extends AnyFlatSpec with Matchers with BeforeAndAfter with RedisTestUtil {
 
   assumingRedisIsRunning { (pool, client) =>
-    implicit val cache = new RedisCache[IO, String, List[User]](pool) with MemoizingCache[IO, List[User]]
+    implicit val cache = new RedisCache[IO, String, List[User]](pool)
 
     def getUser(id: Int): List[User] =
       memoize(None) {

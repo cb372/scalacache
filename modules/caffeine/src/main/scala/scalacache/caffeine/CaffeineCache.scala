@@ -4,8 +4,7 @@ import cats.effect.{Clock, Sync}
 import cats.implicits._
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
 import scalacache.logging.Logger
-import scalacache.memoization.MemoizationConfig
-import scalacache.{AbstractCache, Entry, MemoizingCache}
+import scalacache.{AbstractCache, Entry}
 
 import java.time.Instant
 import scala.concurrent.duration.Duration
@@ -75,31 +74,5 @@ object CaffeineCache {
       underlying: CCache[K, Entry[V]]
   ): CaffeineCache[F, K, V] =
     new CaffeineCache(underlying)
-
-}
-
-class CaffeineMemoizingCache[F[_]: Sync, V](override val underlying: CCache[String, Entry[V]])(
-    implicit val config: MemoizationConfig,
-    clock: Clock[F]
-) extends CaffeineCache[F, String, V](underlying)
-    with MemoizingCache[F, V]
-
-object CaffeineMemoizingCache {
-
-  /**
-    * Create a new Caffeine memoizing cache.
-    */
-  def apply[F[_]: Sync: Clock, V]: F[CaffeineMemoizingCache[F, V]] =
-    Sync[F].delay(Caffeine.newBuilder().build[String, Entry[V]]()).map(apply(_))
-
-  /**
-    * Create a new cache utilizing the given underlying Caffeine cache.
-    *
-    * @param underlying a Caffeine cache
-    */
-  def apply[F[_]: Sync: Clock, V](
-      underlying: CCache[String, Entry[V]]
-  ): CaffeineMemoizingCache[F, V] =
-    new CaffeineMemoizingCache(underlying)
 
 }

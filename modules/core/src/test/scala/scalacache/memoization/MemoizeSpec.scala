@@ -248,7 +248,7 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   }
 
   class MyMockClass[F[_]](dbCall: Int => String)(
-      implicit val cache: Cache[F, String, String] with MemoizingCache[F, String],
+      implicit val cache: Cache[F, String, String],
       flags: Flags
   ) {
 
@@ -263,7 +263,7 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   }
 
   class MyMockClassWithTry[F[_]](dbCall: Int => String)(
-      implicit cache: Cache[F, String, String] with MemoizingCache[F, String],
+      implicit cache: Cache[F, String, String],
       F: Sync[F],
       flags: Flags
   ) {

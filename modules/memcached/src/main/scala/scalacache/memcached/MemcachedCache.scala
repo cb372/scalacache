@@ -1,18 +1,17 @@
 package scalacache.memcached
 
+import cats.effect.Async
 import net.spy.memcached.internal.{GetCompletionListener, GetFuture, OperationCompletionListener, OperationFuture}
 import net.spy.memcached.ops.StatusCode
 import net.spy.memcached.{AddrUtil, BinaryConnectionFactory, MemcachedClient}
+import scalacache.AbstractCache
 import scalacache.logging.Logger
 import scalacache.serialization.binary.BinaryCodec
-import scalacache.{AbstractCache, MemoizingCache}
 
 import scala.concurrent.duration.Duration
-import scala.util.Success
 import scala.language.higherKinds
+import scala.util.Success
 import scala.util.control.NonFatal
-import cats.effect.Async
-import cats.effect.Sync
 
 class MemcachedException(message: String) extends Exception(message)
 

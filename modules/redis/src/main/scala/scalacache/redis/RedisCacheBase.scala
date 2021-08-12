@@ -1,17 +1,16 @@
 package scalacache.redis
 
-import java.io.Closeable
+import cats.effect.Resource
+import cats.syntax.all._
 import redis.clients.jedis._
 import redis.clients.util.Pool
+import scalacache.AbstractCache
 import scalacache.logging.Logger
 import scalacache.serialization.Codec
-import scalacache.AbstractCache
-
-import scala.concurrent.duration._
-import cats.effect.{MonadCancelThrow, Resource}
-import cats.syntax.all._
-import scalacache.memoization.MemoizationConfig
 import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
+
+import java.io.Closeable
+import scala.concurrent.duration._
 
 /**
   * Contains implementations of all methods that can be implemented independent of the type of Redis client.
@@ -20,8 +19,6 @@ import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 trait RedisCacheBase[F[_], K, V] extends AbstractCache[F, K, V] {
 
   override protected final val logger = Logger.getLogger[F](getClass.getName)
-
-  def config: MemoizationConfig
 
   protected type JClient <: BinaryJedisCommands with Closeable
 
