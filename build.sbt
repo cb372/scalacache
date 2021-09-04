@@ -14,6 +14,8 @@ inThisBuild(
   )
 )
 
+val CatsEffectVersion = "3.2.7"
+
 scalafmtOnCompile in ThisBuild := true
 
 lazy val root: Project = Project(id = "scalacache", base = file("."))
@@ -37,7 +39,7 @@ lazy val core =
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
         "org.slf4j"      % "slf4j-api"   % "1.7.30",
-        "org.typelevel" %% "cats-effect" % "3.2.0",
+        "org.typelevel" %% "cats-effect" % CatsEffectVersion,
         scalatest,
         scalacheck
       ) ++ (if (scalaVersion.value.startsWith("2.")) Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
@@ -75,8 +77,8 @@ lazy val caffeine = createModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine"            % "2.9.0",
-      "org.typelevel"                %% "cats-effect-testkit" % "3.2.0" % Test,
-      "com.google.code.findbugs"      % "jsr305"              % "3.0.2" % Provided
+      "org.typelevel"                %% "cats-effect-testkit" % CatsEffectVersion % Test,
+      "com.google.code.findbugs"      % "jsr305"              % "3.0.2"           % Provided
     ),
     coverageMinimum       := 80,
     coverageFailOnMinimum := true
