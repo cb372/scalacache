@@ -69,9 +69,7 @@ class ErrorRaisingCache[F[_], V](implicit val F: Sync[F], val config: CacheConfi
 
 }
 
-/**
-  * A mock cache for use in tests and samples.
-  * Does not support TTL.
+/** A mock cache for use in tests and samples. Does not support TTL.
   */
 class MockCache[F[_], V](implicit val F: Sync[F], val config: CacheConfig) extends AbstractCache[F, V] {
 
@@ -95,9 +93,8 @@ class MockCache[F[_], V](implicit val F: Sync[F], val config: CacheConfig) exten
 
 }
 
-/**
-  * A cache that keeps track of the arguments it was called with. Useful for tests.
-  * Designed to be mixed in as a stackable trait.
+/** A cache that keeps track of the arguments it was called with. Useful for tests. Designed to be mixed in as a
+  * stackable trait.
   */
 trait LoggingCache[F[_], V] extends AbstractCache[F, V] {
   val F: Sync[F]
@@ -128,7 +125,6 @@ trait LoggingCache[F[_], V] extends AbstractCache[F, V] {
 
 }
 
-/**
-  * A mock cache that keeps track of the arguments it was called with.
+/** A mock cache that keeps track of the arguments it was called with.
   */
 class LoggingMockCache[F[_]: Sync, V] extends MockCache[F, V] with LoggingCache[F, V]

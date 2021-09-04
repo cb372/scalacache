@@ -31,7 +31,12 @@ class MethodCallToStringConverterSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "build a key for a method with multiple argument lists" in {
-    excludeClassConstructorParams.toString("MyClass", Vector.empty, "myMethod", Vector(Vector("foo", 123), Vector(3.4))) should be(
+    excludeClassConstructorParams.toString(
+      "MyClass",
+      Vector.empty,
+      "myMethod",
+      Vector(Vector("foo", 123), Vector(3.4))
+    ) should be(
       "MyClass.myMethod(foo, 123)(3.4)"
     )
   }

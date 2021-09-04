@@ -2,9 +2,8 @@ package scalacache.memoization
 
 import scala.annotation.StaticAnnotation
 
-/**
-  * Add this annotation to method or class constructor parameters
-  * in order to exclude them from auto-generated cache keys.
+/** Add this annotation to method or class constructor parameters in order to exclude them from auto-generated cache
+  * keys.
   *
   * e.g.
   *
