@@ -11,8 +11,8 @@ import scala.concurrent.duration.{Duration, _}
 import cats.implicits._
 import cats.effect.Sync
 
-class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(
-    implicit val config: CacheConfig,
+class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(implicit
+    val config: CacheConfig,
     val codec: Codec[V]
 ) extends AbstractCache[F, V] {
 

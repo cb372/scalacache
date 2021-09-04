@@ -9,14 +9,14 @@ import cats.MonadError
 import cats.effect.Sync
 import cats.Applicative
 
-/**
-  * An abstract implementation of [[CacheAlg]] that takes care of
-  * some things that are common across all concrete implementations.
+/** An abstract implementation of [[CacheAlg]] that takes care of some things that are common across all concrete
+  * implementations.
   *
-  * If you are writing a cache implementation, you probably want to
-  * extend this trait rather than extending [[CacheAlg]] directly.
+  * If you are writing a cache implementation, you probably want to extend this trait rather than extending [[CacheAlg]]
+  * directly.
   *
-  * @tparam V The value of types stored in the cache.
+  * @tparam V
+  *   The value of types stored in the cache.
   */
 trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
 
@@ -45,8 +45,7 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
 
   protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit]
 
-  private def checkFlagsAndPut(key: String, value: V, ttl: Option[Duration])(
-      implicit
+  private def checkFlagsAndPut(key: String, value: V, ttl: Option[Duration])(implicit
       flags: Flags
   ): F[Unit] = {
     if (flags.writesEnabled) {
@@ -111,13 +110,11 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
     _cachingF(key, ttl, f)
   }
 
-  private def _caching(key: String, ttl: Option[Duration], f: => V)(
-      implicit
+  private def _caching(key: String, ttl: Option[Duration], f: => V)(implicit
       flags: Flags
   ): F[V] = _cachingF(key, ttl, Sync[F].delay(f))
 
-  private def _cachingF(key: String, ttl: Option[Duration], f: => F[V])(
-      implicit
+  private def _cachingF(key: String, ttl: Option[Duration], f: => F[V])(implicit
       flags: Flags
   ): F[V] = {
     checkFlagsAndGet(key)
