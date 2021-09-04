@@ -1,8 +1,8 @@
 inThisBuild(
   List(
     organization := "com.github.cb372",
-    homepage := Some(url("https://github.com/cb372/scalacache")),
-    licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    homepage     := Some(url("https://github.com/cb372/scalacache")),
+    licenses     := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     developers := List(
       Developer(
         "cb372",
@@ -36,13 +36,13 @@ lazy val core =
     .settings(
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
-        "org.slf4j"     % "slf4j-api"    % "1.7.30",
+        "org.slf4j"      % "slf4j-api"   % "1.7.30",
         "org.typelevel" %% "cats-effect" % "3.2.0",
         scalatest,
         scalacheck
       ) ++ (if (scalaVersion.value.startsWith("2.")) Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
             else Nil),
-      coverageMinimum := 60,
+      coverageMinimum       := 60,
       coverageFailOnMinimum := true
     )
 
@@ -67,18 +67,18 @@ lazy val redis = createModule("redis")
     libraryDependencies ++= Seq(
       "redis.clients" % "jedis" % "2.10.2"
     ),
-    coverageMinimum := 56,
+    coverageMinimum       := 56,
     coverageFailOnMinimum := true
   )
 
 lazy val caffeine = createModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine"             % "2.9.0",
-      "org.typelevel"                 %% "cats-effect-testkit" % "3.2.0" % Test,
-      "com.google.code.findbugs"      % "jsr305"               % "3.0.2" % Provided
+      "com.github.ben-manes.caffeine" % "caffeine"            % "2.9.0",
+      "org.typelevel"                %% "cats-effect-testkit" % "3.2.0" % Test,
+      "com.google.code.findbugs"      % "jsr305"              % "3.0.2" % Provided
     ),
-    coverageMinimum := 80,
+    coverageMinimum       := 80,
     coverageFailOnMinimum := true
   )
 
@@ -91,7 +91,7 @@ lazy val circe = createModule("circe")
       scalacheck,
       scalatestplus
     ),
-    coverageMinimum := 80,
+    coverageMinimum       := 80,
     coverageFailOnMinimum := true
   )
 
@@ -102,19 +102,19 @@ lazy val tests = createModule("tests")
 lazy val docs = createModule("docs")
   .enablePlugins(MicrositesPlugin)
   .settings(
-    publishArtifact := false,
-    micrositeName := "ScalaCache",
-    micrositeAuthor := "Chris Birchall",
+    publishArtifact      := false,
+    micrositeName        := "ScalaCache",
+    micrositeAuthor      := "Chris Birchall",
     micrositeDescription := "A facade for the most popular cache implementations, with a simple, idiomatic Scala API.",
-    micrositeBaseUrl := "/scalacache",
+    micrositeBaseUrl     := "/scalacache",
     micrositeDocumentationUrl := "/scalacache/docs",
-    micrositeHomepage := "https://github.com/cb372/scalacache",
-    micrositeGithubOwner := "cb372",
-    micrositeGithubRepo := "scalacache",
-    micrositeGitterChannel := true,
-    micrositeTwitterCreator := "@cbirchall",
-    micrositeShareOnSocial := true,
-    mdocIn := (sourceDirectory in Compile).value / "mdoc"
+    micrositeHomepage         := "https://github.com/cb372/scalacache",
+    micrositeGithubOwner      := "cb372",
+    micrositeGithubRepo       := "scalacache",
+    micrositeGitterChannel    := true,
+    micrositeTwitterCreator   := "@cbirchall",
+    micrositeShareOnSocial    := true,
+    mdocIn                    := (sourceDirectory in Compile).value / "mdoc"
   )
   .dependsOn(
     core,
@@ -127,7 +127,7 @@ lazy val docs = createModule("docs")
 lazy val benchmarks = createModule("benchmarks")
   .enablePlugins(JmhPlugin)
   .settings(
-    publishArtifact := false,
+    publishArtifact        := false,
     fork in (Compile, run) := true,
     javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking"),
     javaOptions in (Test, run) ++= Seq(
@@ -165,12 +165,12 @@ lazy val mavenSettings = Seq(
 )
 
 val Scala30  = "3.0.1"
-val Scala213 = "2.13.3"
-val Scala212 = "2.12.12"
+val Scala213 = "2.13.6"
+val Scala212 = "2.12.14"
 val Jdk11    = "openjdk@1.11.0"
 
-ThisBuild / scalaVersion := Scala213
-ThisBuild / crossScalaVersions := Seq(Scala213, Scala212, Scala30)
+ThisBuild / scalaVersion               := Scala213
+ThisBuild / crossScalaVersions         := Seq(Scala213, Scala212, Scala30)
 ThisBuild / githubWorkflowJavaVersions := Seq(Jdk11)
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check Formatting")),
@@ -182,8 +182,8 @@ ThisBuild / githubWorkflowBuild := Seq(
 //sbt-ci-release settings
 ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
 ThisBuild / githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v")))
-ThisBuild / githubWorkflowPublishPreamble := Seq(WorkflowStep.Use(UseRef.Public("olafurpg", "setup-gpg", "v3")))
-ThisBuild / githubWorkflowPublish := Seq(WorkflowStep.Sbt(List("ci-release")))
+ThisBuild / githubWorkflowPublishPreamble       := Seq(WorkflowStep.Use(UseRef.Public("olafurpg", "setup-gpg", "v3")))
+ThisBuild / githubWorkflowPublish               := Seq(WorkflowStep.Sbt(List("ci-release")))
 ThisBuild / githubWorkflowEnv ++= List("PGP_PASSPHRASE", "PGP_SECRET", "SONATYPE_PASSWORD", "SONATYPE_USERNAME").map {
   envKey =>
     envKey -> s"$${{ secrets.$envKey }}"

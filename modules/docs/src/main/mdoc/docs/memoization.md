@@ -19,9 +19,7 @@ final case class Cat(id: Int, name: String, colour: String)
 
 implicit val catsCache: Cache[IO, Cat] = MemcachedCache("localhost:11211")
 
-// You wouldn't normally need to specify the type params for memoize.
-// This is an artifact of the way this README is generated using tut.
-def getCat(id: Int): IO[Cat] = memoize[IO, Cat](Some(10.seconds)) {
+def getCat(id: Int): IO[Cat] = memoize(Some(10.seconds)) {
   // Retrieve data from a remote API here ...
   Cat(id, s"cat ${id}", "black")
 }
@@ -35,7 +33,7 @@ The next time you call the method with the same arguments the result will be ret
 If the result of your block is wrapped in an effect container, use `memoizeF`:
 
 ```scala mdoc
-def getCatF(id: Int): IO[Cat] = memoizeF[IO, Cat](Some(10.seconds)) {
+def getCatF(id: Int): IO[Cat] = memoizeF(Some(10.seconds)) {
   IO {
     // Retrieve data from a remote API here ...
     Cat(id, s"cat ${id}", "black")
@@ -58,12 +56,13 @@ The cache key is built automatically from the class name, the name of the enclos
 For example, given the following method:
 
 ```scala
-package foo
 
 object Bar {
-  def baz(a: Int, b: String)(c: String): Int = memoizeSync(None) {
-    // Reticulating splines...   
-    123
+  def baz(a: Int, b: String)(c: String): Int = memoizeF(None) {
+    IO {
+      // Reticulating splines...
+      123
+    }
   }
 }
 ```
@@ -84,7 +83,7 @@ If your memoized method is inside a class, rather than an object, then the metho
 
 For example, if your code looks like this:
 
-```scala 
+```scala
 package foo
 
 class Bar(a: Int) {
@@ -92,7 +91,7 @@ class Bar(a: Int) {
   def baz(b: Int): Int = memoizeSync(None) {
     a + b
   }
-  
+
 }
 ```
 
@@ -106,7 +105,7 @@ implicit lazy val cacheConfig: CacheConfig = CacheConfig(
 
 Doing this will ensure that both the constructor arguments and the method arguments are included in the cache key:
 
-```scala 
+```scala
 new Bar(10).baz(42) // cached as "foo.Bar(10).baz(42)" -> 52
 new Bar(20).baz(42) // cached as "foo.Bar(20).baz(42)" -> 62
 ```
@@ -129,5 +128,5 @@ will only include the `userId` argument's value in its cache keys.
 import cats.effect.unsafe.implicits.global
 for (cache <- List(catsCache)) {
   cache.close.unsafeRunSync()
-} 
+}
 ```
