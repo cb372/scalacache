@@ -38,7 +38,7 @@ lazy val core =
     .settings(
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
-        "org.slf4j"      % "slf4j-api"   % "1.7.30",
+        "org.slf4j"      % "slf4j-api"   % "1.7.32",
         "org.typelevel" %% "cats-effect" % CatsEffectVersion,
         scalatest,
         scalacheck
@@ -76,7 +76,7 @@ lazy val redis = createModule("redis")
 lazy val caffeine = createModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine"            % "2.9.0",
+      "com.github.ben-manes.caffeine" % "caffeine"            % "2.9.2",
       "org.typelevel"                %% "cats-effect-testkit" % CatsEffectVersion % Test,
       "com.google.code.findbugs"      % "jsr305"              % "3.0.2"           % Provided
     ),
