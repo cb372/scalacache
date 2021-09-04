@@ -12,9 +12,8 @@ import scala.concurrent.duration._
 import cats.effect.{MonadCancelThrow, Resource}
 import cats.syntax.all._
 
-/**
-  * Contains implementations of all methods that can be implemented independent of the type of Redis client.
-  * This is everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.
+/** Contains implementations of all methods that can be implemented independent of the type of Redis client. This is
+  * everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.
   */
 trait RedisCacheBase[F[_], V] extends AbstractCache[F, V] {
 
@@ -77,12 +76,14 @@ trait RedisCacheBase[F[_], V] extends AbstractCache[F, V] {
 
   val close: F[Unit] = F.delay(jedisPool.close())
 
-  /**
-    * Borrow a Jedis client from the pool, perform some operation and then return the client to the pool.
+  /** Borrow a Jedis client from the pool, perform some operation and then return the client to the pool.
     *
-    * @param f block that uses the Jedis client.
-    * @tparam T return type of the block
-    * @return the result of executing the block
+    * @param f
+    *   block that uses the Jedis client.
+    * @tparam T
+    *   return type of the block
+    * @return
+    *   the result of executing the block
     */
   protected final def withJedis[T](f: JClient => F[T]): F[T] = {
     Resource.fromAutoCloseable(F.delay(jedisPool.getResource())).use(jedis => F.defer(f(jedis)))

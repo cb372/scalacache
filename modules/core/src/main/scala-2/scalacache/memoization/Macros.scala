@@ -12,17 +12,23 @@ class Macros(val c: blackbox.Context) {
   def memoizeImpl[F[_], V: c.WeakTypeTag](
       ttl: c.Expr[Option[Duration]]
   )(f: c.Tree)(cache: c.Expr[Cache[F, V]], flags: c.Expr[Flags]): c.Tree = {
-    commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoize($keyName)($ttl)($f)($flags)"""
-    })
+    commonMacroImpl(
+      cache,
+      { keyName =>
+        q"""$cache.cachingForMemoize($keyName)($ttl)($f)($flags)"""
+      }
+    )
   }
 
   def memoizeFImpl[F[_], V: c.WeakTypeTag](
       ttl: c.Expr[Option[Duration]]
   )(f: c.Tree)(cache: c.Expr[Cache[F, V]], flags: c.Expr[Flags]): c.Tree = {
-    commonMacroImpl(cache, { keyName =>
-      q"""$cache.cachingForMemoizeF($keyName)($ttl)($f)($flags)"""
-    })
+    commonMacroImpl(
+      cache,
+      { keyName =>
+        q"""$cache.cachingForMemoizeF($keyName)($ttl)($f)($flags)"""
+      }
+    )
   }
 
   private def commonMacroImpl[F[_], V: c.WeakTypeTag](
@@ -45,7 +51,7 @@ class Macros(val c: blackbox.Context) {
 
     val keyName     = createKeyName()
     val cachingCall = keyNameToCachingCall(keyName)
-    val tree        = q"""
+    val tree = q"""
           val $keyName = $cache.config.memoization.toStringConverter.toString($classNameTree, $classParamssTree, $methodNameTree, $methodParamssTree)
           $cachingCall
         """
@@ -54,9 +60,7 @@ class Macros(val c: blackbox.Context) {
     tree
   }
 
-  /**
-    * Get the symbol of the method that encloses the macro,
-    * or abort the compilation if we can't find one.
+  /** Get the symbol of the method that encloses the macro, or abort the compilation if we can't find one.
     */
   private def getMethodSymbol(): c.Symbol = {
 
@@ -76,8 +80,7 @@ class Macros(val c: blackbox.Context) {
     getMethodSymbolRecursively(c.internal.enclosingOwner)
   }
 
-  /**
-    * Convert the given method symbol to a tree representing the method name.
+  /** Convert the given method symbol to a tree representing the method name.
     */
   private def getMethodName(methodSymbol: c.Symbol): c.Tree = {
     val methodName = methodSymbol.asMethod.name.toString
@@ -98,10 +101,10 @@ class Macros(val c: blackbox.Context) {
     getClassSymbolRecursively(c.internal.enclosingOwner)
   }
 
-  /**
-    * Convert the given class symbol to a tree representing the fully qualified class name.
+  /** Convert the given class symbol to a tree representing the fully qualified class name.
     *
-    * @param classSymbol should be either a ClassSymbol or a ModuleSymbol
+    * @param classSymbol
+    *   should be either a ClassSymbol or a ModuleSymbol
     */
   private def getFullClassName(classSymbol: c.Symbol): c.Tree = {
     val className = classSymbol.fullName
@@ -135,8 +138,7 @@ class Macros(val c: blackbox.Context) {
     listToTree(identss.map(is => listToTree(is)))
   }
 
-  /**
-    * Convert a List[Tree] to a Tree representing `Vector`
+  /** Convert a List[Tree] to a Tree representing `Vector`
     */
   private def listToTree(ts: List[c.Tree]): c.Tree = {
     q"_root_.scala.collection.immutable.Vector(..$ts)"

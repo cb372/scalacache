@@ -2,6 +2,7 @@ package scalacache.redis
 
 import org.scalatest.BeforeAndAfter
 
+import scalacache.Cache
 import scalacache.memoization._
 import scalacache.serialization.binary._
 import cats.effect.IO
@@ -11,14 +12,13 @@ import org.scalatest.matchers.should.Matchers
 
 case class User(id: Int, name: String)
 
-/**
-  * Test to check the sample code in issue #32 runs OK
-  * (just to isolate the use of the List[User] type from the Play classloader problem)
+/** Test to check the sample code in issue #32 runs OK (just to isolate the use of the List[User] type from the Play
+  * classloader problem)
   */
 class Issue32Spec extends AnyFlatSpec with Matchers with BeforeAndAfter with RedisTestUtil {
 
   assumingRedisIsRunning { (pool, client) =>
-    implicit val cache = RedisCache[IO, List[User]](pool)
+    implicit val cache: Cache[IO, List[User]] = RedisCache[IO, List[User]](pool)
 
     def getUser(id: Int): List[User] =
       memoize(None) {
