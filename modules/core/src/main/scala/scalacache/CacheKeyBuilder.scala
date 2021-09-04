@@ -2,13 +2,11 @@ package scalacache
 
 trait CacheKeyBuilder {
 
-  /**
-    * Build a String from the given parts to use as a cache key
+  /** Build a String from the given parts to use as a cache key
     */
   def toCacheKey(parts: Seq[Any]): String
 
-  /**
-    * Build a cache key by prepending the configured prefix, if there is one
+  /** Build a cache key by prepending the configured prefix, if there is one
     */
   def stringToCacheKey(key: String): String
 
@@ -16,9 +14,8 @@ trait CacheKeyBuilder {
 
 case class DefaultCacheKeyBuilder(keyPrefix: Option[String] = None, separator: String = ":") extends CacheKeyBuilder {
 
-  /**
-    * Build a String from the given parts, separating them using the configured separator string.
-    * Prepends the prefix if there is one.
+  /** Build a String from the given parts, separating them using the configured separator string. Prepends the prefix if
+    * there is one.
     */
   override def toCacheKey(parts: Seq[Any]): String = {
     // Implementation note: the type of `parts` will be `WrappedArray` when called from the package object,

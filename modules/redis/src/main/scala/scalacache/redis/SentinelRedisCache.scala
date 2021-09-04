@@ -9,11 +9,10 @@ import scalacache.serialization.Codec
 import cats.implicits._
 import cats.effect.{MonadCancel, MonadCancelThrow, Sync}
 
-/**
-  * Thin wrapper around Jedis that works with Redis Sentinel.
+/** Thin wrapper around Jedis that works with Redis Sentinel.
   */
-class SentinelRedisCache[F[_]: Sync: MonadCancelThrow, V](val jedisPool: JedisSentinelPool)(
-    implicit val config: CacheConfig,
+class SentinelRedisCache[F[_]: Sync: MonadCancelThrow, V](val jedisPool: JedisSentinelPool)(implicit
+    val config: CacheConfig,
     val codec: Codec[V]
 ) extends RedisCacheBase[F, V] {
 
@@ -31,42 +30,47 @@ class SentinelRedisCache[F[_]: Sync: MonadCancelThrow, V](val jedisPool: JedisSe
 
 object SentinelRedisCache {
 
-  /**
-    * Create a `SentinelRedisCache` that uses a `JedisSentinelPool` with a default pool config.
+  /** Create a `SentinelRedisCache` that uses a `JedisSentinelPool` with a default pool config.
     *
-    * @param clusterName Name of the redis cluster
-    * @param sentinels set of sentinels in format [host1:port, host2:port]
-    * @param password password of the cluster
+    * @param clusterName
+    *   Name of the redis cluster
+    * @param sentinels
+    *   set of sentinels in format [host1:port, host2:port]
+    * @param password
+    *   password of the cluster
     */
-  def apply[F[_]: Sync: MonadCancelThrow, V](clusterName: String, sentinels: Set[String], password: String)(
-      implicit config: CacheConfig,
+  def apply[F[_]: Sync: MonadCancelThrow, V](clusterName: String, sentinels: Set[String], password: String)(implicit
+      config: CacheConfig,
       codec: Codec[V]
   ): SentinelRedisCache[F, V] =
     apply(new JedisSentinelPool(clusterName, sentinels.asJava, new GenericObjectPoolConfig, password))
 
-  /**
-    * Create a `SentinelRedisCache` that uses a `JedisSentinelPool` with a custom pool config.
+  /** Create a `SentinelRedisCache` that uses a `JedisSentinelPool` with a custom pool config.
     *
-    * @param clusterName Name of the redis cluster
-    * @param sentinels set of sentinels in format [host1:port, host2:port]
-    * @param password password of the cluster
-    * @param poolConfig config of the underlying pool
+    * @param clusterName
+    *   Name of the redis cluster
+    * @param sentinels
+    *   set of sentinels in format [host1:port, host2:port]
+    * @param password
+    *   password of the cluster
+    * @param poolConfig
+    *   config of the underlying pool
     */
   def apply[F[_]: Sync: MonadCancelThrow, V](
       clusterName: String,
       sentinels: Set[String],
       poolConfig: GenericObjectPoolConfig,
       password: String
-  )(
-      implicit config: CacheConfig,
+  )(implicit
+      config: CacheConfig,
       codec: Codec[V]
   ): SentinelRedisCache[F, V] =
     apply(new JedisSentinelPool(clusterName, sentinels.asJava, poolConfig, password))
 
-  /**
-    * Create a `SentinelRedisCache` that uses the given JedisSentinelPool
+  /** Create a `SentinelRedisCache` that uses the given JedisSentinelPool
     *
-    * @param jedisSentinelPool a JedisSentinelPool
+    * @param jedisSentinelPool
+    *   a JedisSentinelPool
     */
   def apply[F[_]: Sync: MonadCancelThrow, V](
       jedisSentinelPool: JedisSentinelPool
