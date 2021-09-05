@@ -16,7 +16,7 @@ trait CacheKeySpecCommon extends Suite with Matchers with BeforeAndAfter {
     cache.mmap.clear()
   }
 
-  def checkCacheKey(expectedKey: String)(call: => Int) {
+  def checkCacheKey(expectedKey: String)(call: => Int): Unit = {
     // Run the memoize block, putting some value into the cache
     val value = call
 
@@ -50,7 +50,7 @@ trait CacheKeySpecCommon extends Suite with Matchers with BeforeAndAfter {
 
 }
 
-class AClass[F[_]](implicit cache: Cache[F, Int]) {
+class AClass[F[_]]()(implicit cache: Cache[F, Int]) {
   def insideClass(a: Int): F[Int] = memoize(None) {
     123
   }

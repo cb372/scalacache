@@ -5,14 +5,11 @@ import java.io.{InputStream, ObjectInputStream, ObjectStreamClass}
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
-/**
-  * Object input stream which tries the thread local class loader.
+/** Object input stream which tries the thread local class loader.
   *
-  * Thread Local class loader is used by SBT to avoid polluting system class loader when
-  * running different tasks.
+  * Thread Local class loader is used by SBT to avoid polluting system class loader when running different tasks.
   *
-  * This allows deserialization of classes from sub-projects during something like
-  * Play's test/run modes.
+  * This allows deserialization of classes from sub-projects during something like Play's test/run modes.
   */
 private[serialization] class GenericCodecObjectInputStream(classTag: ClassTag[_], in: InputStream)
     extends ObjectInputStream(in) {

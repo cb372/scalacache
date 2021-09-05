@@ -18,7 +18,8 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClass.myLongRunningMethod(123, abc)"
 
   it should "execute the block and cache the result, if there is a cache miss" in {
-    implicit val emptyCache = new EmptyCache[SyncIO, String] with LoggingCache[SyncIO, String]
+    implicit val emptyCache: LoggingCache[SyncIO, String] = new EmptyCache[SyncIO, String]
+      with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -37,7 +38,8 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "not execute the block if there is a cache hit" in {
-    implicit val fullCache = new FullCache[SyncIO, String]("cache hit") with LoggingCache[SyncIO, String]
+    implicit val fullCache: LoggingCache[SyncIO, String] = new FullCache[SyncIO, String]("cache hit")
+      with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -56,8 +58,9 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "execute the block if cache reads are disabled" in {
-    implicit val fullCache = new FullCache[SyncIO, String]("cache hit") with LoggingCache[SyncIO, String]
-    implicit val flags     = Flags(readsEnabled = false)
+    implicit val fullCache: LoggingCache[SyncIO, String] = new FullCache[SyncIO, String]("cache hit")
+      with LoggingCache[SyncIO, String]
+    implicit val flags = Flags(readsEnabled = false)
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -76,8 +79,9 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "not cache the result if cache writes are disabled" in {
-    implicit val emptyCache = new EmptyCache[SyncIO, String] with LoggingCache[SyncIO, String]
-    implicit val flags      = Flags(writesEnabled = false)
+    implicit val emptyCache: LoggingCache[SyncIO, String] = new EmptyCache[SyncIO, String]
+      with LoggingCache[SyncIO, String]
+    implicit val flags = Flags(writesEnabled = false)
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -98,7 +102,7 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   it should "work with a method argument called 'key'" in {
     // Reproduces https://github.com/cb372/scalacache/issues/13
     """
-    implicit val emptyCache = new EmptyCache[SyncIO, Int] with LoggingCache[SyncIO, Int]
+    implicit val emptyCache: EmptyCache[SyncIO, Int] = new EmptyCache[SyncIO, Int] with LoggingCache[SyncIO, Int]
     def foo(key: Int): SyncIO[Int] = memoize(None) {
       key + 1
     }
@@ -106,7 +110,8 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "catch exceptions thrown by the cache" in {
-    implicit val dodgyCache = new ErrorRaisingCache[SyncIO, String] with LoggingCache[SyncIO, String]
+    implicit val dodgyCache: LoggingCache[SyncIO, String] = new ErrorRaisingCache[SyncIO, String]
+      with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -129,7 +134,8 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   it should "pass the TTL parameter to the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClass.withTTL(123, abc)"
 
-    implicit val emptyCache = new EmptyCache[SyncIO, String] with LoggingCache[SyncIO, String]
+    implicit val emptyCache: LoggingCache[SyncIO, String] = new EmptyCache[SyncIO, String]
+      with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -152,7 +158,8 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   it should "execute the block and cache the result, if there is a cache miss" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
-    implicit val emptyCache = new EmptyCache[SyncIO, String] with LoggingCache[SyncIO, String]
+    implicit val emptyCache: LoggingCache[SyncIO, String] = new EmptyCache[SyncIO, String]
+      with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -174,7 +181,8 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   it should "not execute the block if there is a cache hit" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
-    implicit val fullCache = new FullCache[SyncIO, String]("cache hit") with LoggingCache[SyncIO, String]
+    implicit val fullCache: LoggingCache[SyncIO, String] = new FullCache[SyncIO, String]("cache hit")
+      with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -196,7 +204,8 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   it should "catch exceptions thrown by the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.myLongRunningMethod(123, abc)"
 
-    implicit val dodgyCache = new ErrorRaisingCache[SyncIO, String] with LoggingCache[SyncIO, String]
+    implicit val dodgyCache: LoggingCache[SyncIO, String] = new ErrorRaisingCache[SyncIO, String]
+      with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -220,7 +229,8 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
   it should "pass the TTL parameter to the cache" in {
     val expectedKey = "scalacache.memoization.MemoizeSpec.MyMockClassWithTry.withTTL(123, abc)"
 
-    implicit val emptyCache = new EmptyCache[SyncIO, String] with LoggingCache[SyncIO, String]
+    implicit val emptyCache: LoggingCache[SyncIO, String] = new EmptyCache[SyncIO, String]
+      with LoggingCache[SyncIO, String]
 
     val mockDbCall = new MockDbCall("hello")
 
@@ -259,8 +269,8 @@ class MemoizeSpec extends AnyFlatSpec with Matchers {
 
   }
 
-  class MyMockClassWithTry[F[_]](dbCall: Int => String)(
-      implicit cache: Cache[F, String],
+  class MyMockClassWithTry[F[_]](dbCall: Int => String)(implicit
+      cache: Cache[F, String],
       F: Sync[F],
       flags: Flags
   ) {

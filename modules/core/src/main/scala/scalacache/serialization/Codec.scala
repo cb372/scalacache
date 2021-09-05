@@ -4,9 +4,7 @@ import scala.annotation.implicitNotFound
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
-/**
-  * Represents a type class that needs to be implemented
-  * for serialization/deserialization to work.
+/** Represents a type class that needs to be implemented for serialization/deserialization to work.
   */
 @implicitNotFound(msg = """Could not find any Codecs for type ${A}.
 If you would like to serialize values in a binary format, please import the binary codec:
@@ -27,8 +25,7 @@ trait Codec[A] {
   def decode(bytes: Array[Byte]): Codec.DecodingResult[A]
 }
 
-/**
-  * For simple primitives, we provide lightweight Codecs for ease of use.
+/** For simple primitives, we provide lightweight Codecs for ease of use.
   */
 object Codec {
 
