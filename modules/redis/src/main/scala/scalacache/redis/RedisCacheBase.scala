@@ -9,7 +9,7 @@ import scalacache.serialization.Codec
 import scalacache.{AbstractCache, CacheConfig}
 
 import scala.concurrent.duration._
-import cats.effect.{MonadCancelThrow, Resource}
+import cats.effect.Resource
 import cats.syntax.all._
 
 /** Contains implementations of all methods that can be implemented independent of the type of Redis client. This is
