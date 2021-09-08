@@ -1,15 +1,16 @@
 package scalacache.redis
 
+import redis.clients.jedis.commands.BinaryJedisCommands
+import redis.clients.jedis.util.Pool
+
 import java.io.Closeable
 
-import redis.clients.jedis._
-import redis.clients.util.Pool
 import scalacache.logging.Logger
 import scalacache.serialization.Codec
 import scalacache.{AbstractCache, CacheConfig}
 
 import scala.concurrent.duration._
-import cats.effect.{MonadCancelThrow, Resource}
+import cats.effect.Resource
 import cats.syntax.all._
 
 /** Contains implementations of all methods that can be implemented independent of the type of Redis client. This is

@@ -7,6 +7,7 @@ import scala.language.higherKinds
 import scalacache.CacheConfig
 import scalacache.serialization.Codec
 import cats.effect.{MonadCancel, MonadCancelThrow, Sync}
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 
 /** Thin wrapper around Jedis that works with sharded Redis.
   */
@@ -38,7 +39,7 @@ object ShardedRedisCache {
     val shards = hosts.map { case (host, port) =>
       new JedisShardInfo(host, port)
     }
-    val pool = new ShardedJedisPool(new JedisPoolConfig(), shards.asJava)
+    val pool = new ShardedJedisPool(new GenericObjectPoolConfig[ShardedJedis], shards.asJava)
     apply(pool)
   }
 
