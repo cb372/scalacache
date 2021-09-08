@@ -11,8 +11,8 @@ import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 
 import scala.concurrent.duration.{Duration, _}
 
-class RedisClusterCache[F[_]: Sync, K, V](val jedisCluster: JedisCluster)(
-    implicit val keyEncoder: BinaryEncoder[K],
+class RedisClusterCache[F[_]: Sync, K, V](val jedisCluster: JedisCluster)(implicit
+    val keyEncoder: BinaryEncoder[K],
     val codec: BinaryCodec[V]
 ) extends AbstractCache[F, K, V] {
 

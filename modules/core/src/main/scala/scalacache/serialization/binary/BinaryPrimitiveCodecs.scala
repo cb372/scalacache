@@ -2,8 +2,7 @@ package scalacache.serialization.binary
 
 import scalacache.serialization.Codec._
 
-/**
-  * Codecs for all the Java primitive types, plus String and Array[Byte]
+/** Codecs for all the Java primitive types, plus String and Array[Byte]
   *
   * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
   */

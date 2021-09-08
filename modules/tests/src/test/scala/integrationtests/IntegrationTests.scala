@@ -115,7 +115,7 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
 
   private def checkComputationHasNotRun(key: String)(implicit cache: Cache[CatsIO, String, String]): Unit = {
     Thread.sleep(1000)
-    assert(cache.get(key).unsafeRunSync.isEmpty)
+    assert(cache.get(key).unsafeRunSync().isEmpty)
   }
 
 }

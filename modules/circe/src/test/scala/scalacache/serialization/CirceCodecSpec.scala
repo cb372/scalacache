@@ -17,7 +17,7 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenProp
   import scalacache.serialization.circe._
 
   private def serdesCheck[A: Arbitrary](expectedJson: A => String)(implicit codec: BinaryCodec[A]): Unit = {
-    forAll(minSuccessful(10000)) { a: A =>
+    forAll(minSuccessful(10000)) { (a: A) =>
       val serialised = codec.encode(a)
       new String(serialised, "utf-8") shouldBe expectedJson(a)
       val deserialised = codec.decode(serialised)

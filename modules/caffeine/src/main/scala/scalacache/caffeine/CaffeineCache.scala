@@ -15,8 +15,8 @@ import scala.language.higherKinds
  *
  * This cache implementation is synchronous.
  */
-class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]])(
-    implicit val clock: Clock[F]
+class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]])(implicit
+    val clock: Clock[F]
 ) extends AbstractCache[F, K, V] {
   protected val F: Sync[F] = Sync[F]
 
@@ -24,9 +24,8 @@ class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]])(
 
   def doGet(key: K): F[Option[V]] = {
     F.delay {
-        Option(underlying.getIfPresent(key))
-      }
-      .flatMap(_.filterA(Entry.isExpired[F, V]))
+      Option(underlying.getIfPresent(key))
+    }.flatMap(_.filterA(Entry.isExpired[F, V]))
       .map(_.map(_.value))
       .flatTap { result =>
         logCacheHitOrMiss(key, result)
@@ -44,7 +43,7 @@ class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]])(
   override def doRemove(key: K): F[Unit] =
     F.delay(underlying.invalidate(key))
 
-  override def doRemoveAll: F[Unit] =
+  override def doRemoveAll(): F[Unit] =
     F.delay(underlying.invalidateAll())
 
   override def close: F[Unit] = {
@@ -59,16 +58,15 @@ class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]])(
 
 object CaffeineCache {
 
-  /**
-    * Create a new Caffeine cache.
+  /** Create a new Caffeine cache.
     */
   def apply[F[_]: Sync: Clock, K, V]: F[CaffeineCache[F, K, V]] =
     Sync[F].delay(Caffeine.newBuilder().build[K, Entry[V]]()).map(apply(_))
 
-  /**
-    * Create a new cache utilizing the given underlying Caffeine cache.
+  /** Create a new cache utilizing the given underlying Caffeine cache.
     *
-    * @param underlying a Caffeine cache
+    * @param underlying
+    *   a Caffeine cache
     */
   def apply[F[_]: Sync: Clock, K, V](
       underlying: CCache[K, Entry[V]]

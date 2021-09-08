@@ -7,8 +7,7 @@ import scala.util.control.NonFatal
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.{Codec, GenericCodecObjectInputStream}
 
-/**
-  * Codec that uses Java serialization to serialize objects
+/** Codec that uses Java serialization to serialize objects
   *
   * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
   */

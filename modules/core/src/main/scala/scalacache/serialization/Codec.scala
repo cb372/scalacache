@@ -12,9 +12,7 @@ trait Decoder[L, R] {
   def decode(right: R): Codec.DecodingResult[L]
 }
 
-/**
-  * Represents a type class that needs to be implemented
-  * for serialization/deserialization to work.
+/** Represents a type class that needs to be implemented for serialization/deserialization to work.
   */
 @implicitNotFound(msg = """Could not find any Codecs for types ${L, R}.
 If you would like to serialize values in a binary format, please import the binary codec:
@@ -35,8 +33,7 @@ trait Codec[L, R] extends Encoder[L, R] with Decoder[L, R] {
   override def decode(right: R): Codec.DecodingResult[L]
 }
 
-/**
-  * For simple primitives, we provide lightweight Codecs for ease of use.
+/** For simple primitives, we provide lightweight Codecs for ease of use.
   */
 object Codec {
 

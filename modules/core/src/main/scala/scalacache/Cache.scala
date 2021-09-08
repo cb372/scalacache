@@ -4,72 +4,84 @@ import scala.concurrent.duration.Duration
 
 import scala.language.higherKinds
 
-/**
-  * Abstract algebra describing the operations a cache can perform
+/** Abstract algebra describing the operations a cache can perform
   *
-  * @tparam F The effect monad in which all cache operations will be performed.
-  * @tparam K The type of keys stored in the cache.
-  * @tparam V The type of values stored in the cache.
+  * @tparam F
+  *   The effect monad in which all cache operations will be performed.
+  * @tparam K
+  *   The type of keys stored in the cache.
+  * @tparam V
+  *   The type of values stored in the cache.
   */
 trait Cache[F[_], K, V] {
 
-  /**
-    * Get a value from the cache
+  /** Get a value from the cache
     *
-    * @param key The cache key
-    * @param flags Flags used to conditionally alter the behaviour of ScalaCache
-    * @return The appropriate value, if it was found in the cache
+    * @param key
+    *   The cache key
+    * @param flags
+    *   Flags used to conditionally alter the behaviour of ScalaCache
+    * @return
+    *   The appropriate value, if it was found in the cache
     */
   def get(key: K)(implicit flags: Flags): F[Option[V]]
 
-  /**
-    * Insert a value into the cache, optionally setting a TTL (time-to-live)
+  /** Insert a value into the cache, optionally setting a TTL (time-to-live)
     *
-    * @param key The cache key
-    * @param value The value to insert
-    * @param ttl The time-to-live. The cache entry will expire after this time has elapsed.
-    * @param flags Flags used to conditionally alter the behaviour of ScalaCache
+    * @param key
+    *   The cache key
+    * @param value
+    *   The value to insert
+    * @param ttl
+    *   The time-to-live. The cache entry will expire after this time has elapsed.
+    * @param flags
+    *   Flags used to conditionally alter the behaviour of ScalaCache
     */
   def put(key: K)(value: V, ttl: Option[Duration] = None)(implicit flags: Flags): F[Unit]
 
-  /**
-    * Remove the given key and its associated value from the cache, if it exists.
-    * If the key is not in the cache, do nothing.
+  /** Remove the given key and its associated value from the cache, if it exists. If the key is not in the cache, do
+    * nothing.
     *
-    * @param key The cache key
+    * @param key
+    *   The cache key
     */
   def remove(key: K): F[Unit]
 
-  /**
-    * Delete the entire contents of the cache. Use wisely!
+  /** Delete the entire contents of the cache. Use wisely!
     */
   def removeAll: F[Unit]
 
-  /**
-    * Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
+  /** Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
     *
-    * @param key The cache key
-    * @param ttl The time-to-live to use when inserting into the cache. The cache entry will expire after this time has elapsed.
-    * @param f A block that computes the value
-    * @param flags Flags used to conditionally alter the behaviour of ScalaCache
-    * @return The value, either retrieved from the cache or computed
+    * @param key
+    *   The cache key
+    * @param ttl
+    *   The time-to-live to use when inserting into the cache. The cache entry will expire after this time has elapsed.
+    * @param f
+    *   A block that computes the value
+    * @param flags
+    *   Flags used to conditionally alter the behaviour of ScalaCache
+    * @return
+    *   The value, either retrieved from the cache or computed
     */
   def caching(key: K)(ttl: Option[Duration])(f: => V)(implicit flags: Flags): F[V]
 
-  /**
-    * Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
+  /** Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
     *
-    * @param key The cache key
-    * @param ttl The time-to-live to use when inserting into the cache. The cache entry will expire after this time has elapsed.
-    * @param f A block that computes the value wrapped in a container
-    * @param flags Flags used to conditionally alter the behaviour of ScalaCache
-    * @return The value, either retrieved from the cache or computed
+    * @param key
+    *   The cache key
+    * @param ttl
+    *   The time-to-live to use when inserting into the cache. The cache entry will expire after this time has elapsed.
+    * @param f
+    *   A block that computes the value wrapped in a container
+    * @param flags
+    *   Flags used to conditionally alter the behaviour of ScalaCache
+    * @return
+    *   The value, either retrieved from the cache or computed
     */
   def cachingF(key: K)(ttl: Option[Duration])(f: F[V])(implicit flags: Flags): F[V]
 
-  /**
-    * You should call this when you have finished using this Cache.
-    * (e.g. when your application shuts down)
+  /** You should call this when you have finished using this Cache. (e.g. when your application shuts down)
     *
     * It will take care of gracefully shutting down the underlying cache client.
     *

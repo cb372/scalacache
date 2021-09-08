@@ -8,8 +8,7 @@ import scalacache.memoization._
 import cats.effect.SyncIO
 import cats.effect.Clock
 
-/**
-  * Just runs forever, endlessly calling memoize, so Java Flight Recorder can output sampling data.
+/** Just runs forever, endlessly calling memoize, so Java Flight Recorder can output sampling data.
   */
 object ProfilingMemoize extends App {
 

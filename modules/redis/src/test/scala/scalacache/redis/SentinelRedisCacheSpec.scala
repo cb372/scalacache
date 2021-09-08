@@ -22,9 +22,8 @@ class SentinelRedisCacheSpec extends RedisCacheSpecBase {
 
   def flushRedis(client: JClient): Unit = client.underlying.flushDB()
 
-  /**
-    * This assumes that Redis master with name "master" and password "master-local" is running,
-    * and a sentinel is also running with to monitor this master on port 26379.
+  /** This assumes that Redis master with name "master" and password "master-local" is running, and a sentinel is also
+    * running with to monitor this master on port 26379.
     */
   def assumingRedisSentinelIsRunning(f: (JedisSentinelPool, JedisClient) => Unit): Unit = {
     Try {

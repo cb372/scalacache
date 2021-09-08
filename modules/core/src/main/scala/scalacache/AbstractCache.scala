@@ -9,20 +9,20 @@ import cats.MonadError
 import cats.effect.Sync
 import cats.Applicative
 
-/**
-  * An abstract implementation of [[Cache]] that takes care of
-  * some things that are common across all concrete implementations.
+/** An abstract implementation of [[Cache]] that takes care of some things that are common across all concrete
+  * implementations.
   *
-  * If you are writing a cache implementation, you probably want to
-  * extend this trait rather than extending [[Cache]] directly.
+  * If you are writing a cache implementation, you probably want to extend this trait rather than extending [[Cache]]
+  * directly.
   *
-  * @tparam K The type of keys stored in the cache.
-  * @tparam V The type of values stored in the cache.
+  * @tparam K
+  *   The type of keys stored in the cache.
+  * @tparam V
+  *   The type of values stored in the cache.
   */
 trait AbstractCache[F[_], K, V] extends Cache[F, K, V] with LoggingSupport[F, K] {
 
   protected implicit def F: Sync[F]
-
   // GET
 
   protected def doGet(key: K): F[Option[V]]
@@ -46,8 +46,7 @@ trait AbstractCache[F[_], K, V] extends Cache[F, K, V] with LoggingSupport[F, K]
 
   protected def doPut(key: K, value: V, ttl: Option[Duration]): F[Unit]
 
-  private def checkFlagsAndPut(key: K, value: V, ttl: Option[Duration])(
-      implicit
+  private def checkFlagsAndPut(key: K, value: V, ttl: Option[Duration])(implicit
       flags: Flags
   ): F[Unit] = {
     if (flags.writesEnabled) {

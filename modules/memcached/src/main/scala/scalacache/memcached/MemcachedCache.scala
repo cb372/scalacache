@@ -15,8 +15,7 @@ import scala.util.control.NonFatal
 
 class MemcachedException(message: String) extends Exception(message)
 
-/**
-  * Wrapper around spymemcached
+/** Wrapper around spymemcached
   */
 class MemcachedCache[F[_]: Async, V](
     val client: MemcachedClient,
@@ -107,26 +106,25 @@ class MemcachedCache[F[_]: Async, V](
 
 object MemcachedCache {
 
-  /**
-    * Create a Memcached client connecting to localhost:11211 and use it for caching
+  /** Create a Memcached client connecting to localhost:11211 and use it for caching
     */
   def apply[F[_]: Async, V](implicit codec: BinaryCodec[V]): MemcachedCache[F, V] =
     apply("localhost:11211")
 
-  /**
-    * Create a Memcached client connecting to the given host(s) and use it for caching
+  /** Create a Memcached client connecting to the given host(s) and use it for caching
     *
-    * @param addressString Address string, with addresses separated by spaces, e.g. "host1:11211 host2:22322"
+    * @param addressString
+    *   Address string, with addresses separated by spaces, e.g. "host1:11211 host2:22322"
     */
   def apply[F[_]: Async, V](
       addressString: String
   )(implicit codec: BinaryCodec[V]): MemcachedCache[F, V] =
     apply(new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(addressString)))
 
-  /**
-    * Create a cache that uses the given Memcached client
+  /** Create a cache that uses the given Memcached client
     *
-    * @param client Memcached client
+    * @param client
+    *   Memcached client
     */
   def apply[F[_]: Async, V](
       client: MemcachedClient

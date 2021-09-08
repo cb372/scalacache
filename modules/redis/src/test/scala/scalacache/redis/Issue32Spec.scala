@@ -11,9 +11,8 @@ import scalacache.memoization.MemoizationConfig.defaultMemoizationConfig
 
 case class User(id: Int, name: String)
 
-/**
-  * Test to check the sample code in issue #32 runs OK
-  * (just to isolate the use of the List[User] type from the Play classloader problem)
+/** Test to check the sample code in issue #32 runs OK (just to isolate the use of the List[User] type from the Play
+  * classloader problem)
   */
 class Issue32Spec extends AnyFlatSpec with Matchers with BeforeAndAfter with RedisTestUtil {
 
