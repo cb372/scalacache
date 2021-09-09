@@ -13,20 +13,13 @@ case class Entry[+A](value: A, expiresAt: Option[Instant])
 
 object Entry {
 
-  /** Has the entry expired yet?
-    */
-  def isNotExpired[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
+  def isBeforeExpiration[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
     entry.expiresAt
       .traverse { expiration =>
-        val now = clock.monotonic.map(m => Instant.ofEpochMilli(m.toMillis))
-
-        now.map(expiration.isBefore(_))
+        clock.realTimeInstant.map(_.isBefore(expiration))
       }
-      .map {
-        case Some(true)         => false
-        case None | Some(false) => true
-      }
+      .map(_.getOrElse(true))
 
   def isExpired[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
-    isNotExpired[F, A](entry).map(b => !b)
+    isBeforeExpiration[F, A](entry).map(b => !b)
 }
