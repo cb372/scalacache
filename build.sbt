@@ -183,7 +183,7 @@ ThisBuild / githubWorkflowBuild := Seq(
 )
 //sbt-ci-release settings
 ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
-ThisBuild / githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v")))
+ThisBuild / githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Branch("master")))
 ThisBuild / githubWorkflowPublishPreamble       := Seq(WorkflowStep.Use(UseRef.Public("olafurpg", "setup-gpg", "v3")))
 ThisBuild / githubWorkflowPublish               := Seq(WorkflowStep.Sbt(List("ci-release")))
 ThisBuild / githubWorkflowEnv ++= List("PGP_PASSPHRASE", "PGP_SECRET", "SONATYPE_PASSWORD", "SONATYPE_USERNAME").map {
