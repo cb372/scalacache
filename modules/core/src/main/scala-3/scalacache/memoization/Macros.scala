@@ -30,9 +30,8 @@ object Macros {
     val sym: Symbol = Symbol.spliceOwner
 
     def hasCacheKeyExcludeAnnotation(s: Symbol): Boolean = s.annotations.exists {
-//      case Apply(Select(New(Ident("cacheKeyExclude")), _), _) => true // Don't know why this doesn't match...
-      case Apply(Select(New(o), _), _) => o.toString == "Ident(cacheKeyExclude)"
-      case o                           => false
+      case Apply(Select(New(TypeIdent("cacheKeyExclude")), _), _) => true
+      case o                                                      => false
     }
 
     def getOwningDefSymbol(s: Symbol): Symbol =
