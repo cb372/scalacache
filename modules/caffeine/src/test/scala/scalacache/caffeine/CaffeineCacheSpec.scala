@@ -59,10 +59,11 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
     newIOCache(underlying).get("non-existent key").map(_ shouldBe None)
   }
 
-  it should "return None if the given key exists but the value has expired" in ticked { _ =>
+  it should "return None if the given key exists but the value has expired" in ticked { ticker =>
+    val ctx        = ticker.ctx
     val underlying = newCCache
     val expiredEntry =
-      Entry("hello", expiresAt = Some(Instant.now.minusSeconds(1)))
+      Entry("hello", expiresAt = Some(Instant.ofEpochMilli(ctx.now().toMillis).minusSeconds(1)))
     underlying.put("key1", expiredEntry)
     newIOCache(underlying).get("key1").map(_ shouldBe None)
   }
