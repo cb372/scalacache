@@ -1,6 +1,5 @@
 package scalacache.redis
 
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import redis.clients.jedis._
 
 import scala.collection.JavaConverters._
@@ -8,6 +7,7 @@ import scalacache.CacheConfig
 import scalacache.serialization.Codec
 import cats.implicits._
 import cats.effect.{MonadCancel, Sync}
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 
 /** Thin wrapper around Jedis that works with Redis Sentinel.
   */
@@ -42,7 +42,7 @@ object SentinelRedisCache {
       config: CacheConfig,
       codec: Codec[V]
   ): SentinelRedisCache[F, V] =
-    apply(new JedisSentinelPool(clusterName, sentinels.asJava, new GenericObjectPoolConfig, password))
+    apply(new JedisSentinelPool(clusterName, sentinels.asJava, new GenericObjectPoolConfig[Jedis], password))
 
   /** Create a `SentinelRedisCache` that uses a `JedisSentinelPool` with a custom pool config.
     *
@@ -58,7 +58,7 @@ object SentinelRedisCache {
   def apply[F[_]: Sync, V](
       clusterName: String,
       sentinels: Set[String],
-      poolConfig: GenericObjectPoolConfig,
+      poolConfig: GenericObjectPoolConfig[Jedis],
       password: String
   )(implicit
       config: CacheConfig,

@@ -1,9 +1,10 @@
 package scalacache.redis
 
+import redis.clients.jedis.commands.BinaryJedisCommands
+import redis.clients.jedis.util.Pool
+
 import java.io.Closeable
 
-import redis.clients.jedis._
-import redis.clients.util.Pool
 import scalacache.logging.Logger
 import scalacache.serialization.Codec
 import scalacache.{AbstractCache, CacheConfig}
