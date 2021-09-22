@@ -42,7 +42,7 @@ class RedisClusterCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 
       (jedisCluster, new JedisClusterClient(jedisCluster))
     } match {
-      case Failure(_)              => alert("Skipping tests because it does not appear Redis Cluster is running on localhost.")
+      case Failure(_) => alert("Skipping tests because it does not appear Redis Cluster is running on localhost.")
       case Success((pool, client)) => f(pool, client)
     }
   }

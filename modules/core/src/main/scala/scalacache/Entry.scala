@@ -7,25 +7,19 @@ import cats.implicits._
 import language.higherKinds
 import cats.Applicative
 
-/**
-  * A cache entry with an optional expiry time
+/** A cache entry with an optional expiry time
   */
 case class Entry[+A](value: A, expiresAt: Option[Instant])
 
 object Entry {
 
-  /**
-    * Has the entry expired yet?
-    */
-  def isExpired[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
+  def isBeforeExpiration[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
     entry.expiresAt
       .traverse { expiration =>
-        val now = clock.monotonic.map(m => Instant.ofEpochMilli(m.toMillis))
+        clock.realTimeInstant.map(_.isBefore(expiration))
+      }
+      .map(_.getOrElse(true))
 
-        now.map(expiration.isBefore(_))
-      }
-      .map {
-        case None | Some(true) => true
-        case Some(false)       => false
-      }
+  def isExpired[F[_], A](entry: Entry[A])(implicit clock: Clock[F], applicative: Applicative[F]): F[Boolean] =
+    isBeforeExpiration[F, A](entry).map(b => !b)
 }

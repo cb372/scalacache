@@ -21,13 +21,12 @@ class SentinelRedisCacheSpec extends RedisCacheSpecBase {
 
   def flushRedis(client: JClient): Unit = client.underlying.flushDB()
 
-  /**
-    * This assumes that Redis master with name "master" and password "master-local" is running,
-    * and a sentinel is also running with to monitor this master on port 26379.
+  /** This assumes that Redis master with name "master" and password "master-local" is running, and a sentinel is also
+    * running with to monitor this master on port 26379.
     */
   def assumingRedisSentinelIsRunning(f: (JedisSentinelPool, JedisClient) => Unit): Unit = {
     Try {
-      val jedisPool = new JedisSentinelPool("master", Set("127.0.0.1:26379").asJava, new GenericObjectPoolConfig)
+      val jedisPool = new JedisSentinelPool("master", Set("127.0.0.1:26379").asJava, new GenericObjectPoolConfig[Jedis])
       val jedis     = jedisPool.getResource()
       jedis.ping()
       (jedisPool, new JedisClient(jedis))
