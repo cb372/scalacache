@@ -136,7 +136,7 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
       cache.get("key1").map { _ shouldBe defined }
   }
 
-  behavior of "get put with TTL"
+  behavior of "get after put with TTL"
 
   it should "store the given key-value pair with the given TTL, then get it back when not expired" in ticked {
     implicit ticker =>
