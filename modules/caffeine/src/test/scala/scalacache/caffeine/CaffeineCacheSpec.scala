@@ -138,13 +138,33 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
 
   behavior of "get put with TTL"
 
-  it should "store the given key-value pair in the underlying cache with the given TTL, then get it back when not expired" in ticked {
+  it should "store the given key-value pair with the given TTL, then get it back when not expired" in ticked {
     implicit ticker =>
       val underlying = newCCache
       val cache      = newFCache[IO, String](underlying)
 
-      cache.put("key1")("hello", Some(10.seconds)) *>
+      cache.put("key1")("hello", Some(5.seconds)) *>
         cache.get("key1").map { _ shouldBe defined }
+  }
+
+  it should "store the given key-value pair with the given TTL, then get it back (after a sleep) when not expired" in ticked {
+    implicit ticker =>
+      val underlying = newCCache
+      val cache      = newFCache[IO, String](underlying)
+
+      cache.put("key1")("hello", Some(50.seconds)) *>
+        IO.sleep(40.seconds) *> // sleep, but not long enough for the entry to expire
+        cache.get("key1").map { _ shouldBe defined }
+  }
+
+  it should "store the given key-value pair with the given TTL, then return None if the entry has expired" in ticked {
+    implicit ticker =>
+      val underlying = newCCache
+      val cache      = newFCache[IO, String](underlying)
+
+      cache.put("key1")("hello", Some(50.seconds)) *>
+        IO.sleep(60.seconds) *> // sleep long enough for the entry to expire
+        cache.get("key1").map { _ shouldBe empty }
   }
 
 }
