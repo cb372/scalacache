@@ -1,8 +1,16 @@
 .idea
+.bloop
+.history
+.metals
+.bsp
+.vscode
 .idea_modules
+metals.sbt
 *.iml
 *.ipr
 *.jfr
+*.class
+*.cache
 target
 coveralls-token.txt
 /*.html
