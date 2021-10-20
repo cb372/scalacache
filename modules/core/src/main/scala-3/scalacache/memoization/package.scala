@@ -33,7 +33,7 @@ package object memoization {
     *   A result, either retrieved from the cache or calculated by executing the function `f`
     */
   inline def memoize[F[_], V](ttl: Option[Duration])(f: => V)(implicit cache: Cache[F, V], flags: Flags): F[V] =
-    $ { Macros.memoizeImpl[F, V]('ttl, 'f, 'cache, 'flags) }
+    ${ Macros.memoizeImpl[F, V]('ttl, 'f, 'cache, 'flags) }
 
   /** Perform the given operation and memoize its result to a cache before returning it. If the result is already in the
     * cache, return it without performing the operation.
@@ -61,5 +61,5 @@ package object memoization {
     *   A result, either retrieved from the cache or calculated by executing the function `f`
     */
   inline def memoizeF[F[_], V](ttl: Option[Duration])(f: F[V])(implicit cache: Cache[F, V], flags: Flags): F[V] =
-    $ { Macros.memoizeFImpl[F, V]('ttl, 'f, 'cache, 'flags) }
+    ${ Macros.memoizeFImpl[F, V]('ttl, 'f, 'cache, 'flags) }
 }
