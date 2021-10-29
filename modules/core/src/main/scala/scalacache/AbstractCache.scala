@@ -9,6 +9,8 @@ import cats.MonadError
 import cats.effect.Sync
 import cats.Applicative
 
+import scala.language.implicitConversions
+
 /** An abstract implementation of [[CacheAlg]] that takes care of some things that are common across all concrete
   * implementations.
   *
@@ -139,5 +141,12 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
 
   private def toKey(keyParts: Any*): String =
     config.cacheKeyBuilder.toCacheKey(keyParts)
+
+}
+
+object AbstractCache {
+
+  implicit def abstractCacheOps[F[_]: Monad, V](cache: AbstractCache[F, V]): AbstractCacheOps[F, V] =
+    new AbstractCacheOps(cache)
 
 }
