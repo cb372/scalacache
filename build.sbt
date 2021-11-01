@@ -167,7 +167,7 @@ lazy val mavenSettings = Seq(
 )
 
 val Scala30  = "3.0.1"
-val Scala213 = "2.13.6"
+val Scala213 = "2.13.7"
 val Scala212 = "2.12.14"
 val Jdk11    = "openjdk@1.11.0"
 
