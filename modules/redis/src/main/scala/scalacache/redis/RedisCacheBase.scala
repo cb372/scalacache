@@ -1,16 +1,19 @@
 package scalacache.redis
 
-import cats.effect.Resource
-import cats.syntax.all._
-import redis.clients.jedis._
-import redis.clients.util.Pool
-import scalacache.AbstractCache
+import redis.clients.jedis.commands.BinaryJedisCommands
+import redis.clients.jedis.util.Pool
+
+import java.io.Closeable
+
 import scalacache.logging.Logger
 import scalacache.serialization.Codec
 import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 
 import java.io.Closeable
 import scala.concurrent.duration._
+import cats.effect.Resource
+import cats.syntax.all._
+import scalacache.AbstractCache
 
 /** Contains implementations of all methods that can be implemented independent of the type of Redis client. This is
   * everything apart from `removeAll`, which needs to be implemented differently for sharded Redis.

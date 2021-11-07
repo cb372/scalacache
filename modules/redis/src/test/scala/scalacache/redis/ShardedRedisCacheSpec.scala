@@ -1,6 +1,6 @@
 package scalacache.redis
 
-import redis.clients.jedis.{JedisPoolConfig, JedisShardInfo, ShardedJedisPool}
+import redis.clients.jedis._
 import scalacache._
 import scalacache.serialization.Codec
 
@@ -8,6 +8,7 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 import cats.effect.IO
 import scalacache.serialization.binary.BinaryCodec
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 
 class ShardedRedisCacheSpec extends RedisCacheSpecBase {
 
@@ -28,7 +29,7 @@ class ShardedRedisCacheSpec extends RedisCacheSpecBase {
       val shard2 = new JedisShardInfo("localhost", 6380)
 
       val jedisPool =
-        new ShardedJedisPool(new JedisPoolConfig(), java.util.Arrays.asList(shard1, shard2))
+        new ShardedJedisPool(new GenericObjectPoolConfig[ShardedJedis], java.util.Arrays.asList(shard1, shard2))
       val jedis = jedisPool.getResource
 
       jedis.getAllShards.asScala.foreach(_.ping())

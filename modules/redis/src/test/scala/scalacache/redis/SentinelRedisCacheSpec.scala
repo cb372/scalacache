@@ -27,7 +27,7 @@ class SentinelRedisCacheSpec extends RedisCacheSpecBase {
     */
   def assumingRedisSentinelIsRunning(f: (JedisSentinelPool, JedisClient) => Unit): Unit = {
     Try {
-      val jedisPool = new JedisSentinelPool("master", Set("127.0.0.1:26379").asJava, new GenericObjectPoolConfig)
+      val jedisPool = new JedisSentinelPool("master", Set("127.0.0.1:26379").asJava, new GenericObjectPoolConfig[Jedis])
       val jedis     = jedisPool.getResource()
       jedis.ping()
       (jedisPool, new JedisClient(jedis))

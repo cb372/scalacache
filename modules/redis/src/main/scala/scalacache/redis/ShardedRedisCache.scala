@@ -3,6 +3,7 @@ package scalacache.redis
 import cats.effect.{MonadCancel, MonadCancelThrow, Sync}
 import redis.clients.jedis._
 import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 
 import scala.collection.JavaConverters._
 import scala.language.higherKinds
@@ -14,8 +15,7 @@ class ShardedRedisCache[F[_]: Sync: MonadCancelThrow, K, V](val jedisPool: Shard
     val codec: BinaryCodec[V]
 ) extends RedisCacheBase[F, K, V] {
 
-  protected def F: Sync[F]                             = Sync[F]
-  protected def MonadCancelThrowF: MonadCancelThrow[F] = MonadCancel[F, Throwable]
+  protected def F: Sync[F] = Sync[F]
 
   type JClient = ShardedJedis
 
@@ -37,7 +37,7 @@ object ShardedRedisCache {
     val shards = hosts.map { case (host, port) =>
       new JedisShardInfo(host, port)
     }
-    val pool = new ShardedJedisPool(new JedisPoolConfig(), shards.asJava)
+    val pool = new ShardedJedisPool(new GenericObjectPoolConfig[ShardedJedis], shards.asJava)
     apply(pool)
   }
 

@@ -13,8 +13,7 @@ class RedisCache[F[_]: Sync: MonadCancelThrow, K, V](val jedisPool: JedisPool)(i
     val codec: BinaryCodec[V]
 ) extends RedisCacheBase[F, K, V] {
 
-  protected def F: Sync[F]                             = Sync[F]
-  protected def MonadCancelThrowF: MonadCancelThrow[F] = MonadCancel[F, Throwable]
+  protected def F: Sync[F] = Sync[F]
   type JClient = Jedis
 
   protected val doRemoveAll: F[Unit] = withJedis { jedis =>

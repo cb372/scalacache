@@ -14,8 +14,7 @@ class SentinelRedisCache[F[_]: Sync: MonadCancelThrow, K, V](val jedisPool: Jedi
     val codec: BinaryCodec[V]
 ) extends RedisCacheBase[F, K, V] {
 
-  protected def F: Sync[F]                             = Sync[F]
-  protected def MonadCancelThrowF: MonadCancelThrow[F] = MonadCancel[F, Throwable]
+  protected def F: Sync[F] = Sync[F]
 
   type JClient = Jedis
 
@@ -41,7 +40,7 @@ object SentinelRedisCache {
       keyEncoder: BinaryEncoder[K],
       codec: BinaryCodec[V]
   ): SentinelRedisCache[F, K, V] =
-    apply(new JedisSentinelPool(clusterName, sentinels.asJava, new GenericObjectPoolConfig, password))
+    apply(new JedisSentinelPool(clusterName, sentinels.asJava, new GenericObjectPoolConfig[Jedis], password))
 
   /** Create a `SentinelRedisCache` that uses a `JedisSentinelPool` with a custom pool config.
     *
@@ -57,7 +56,7 @@ object SentinelRedisCache {
   def apply[F[_]: Sync: MonadCancelThrow, K, V](
       clusterName: String,
       sentinels: Set[String],
-      poolConfig: GenericObjectPoolConfig,
+      poolConfig: GenericObjectPoolConfig[Jedis],
       password: String
   )(implicit
       keyEncoder: BinaryEncoder[K],

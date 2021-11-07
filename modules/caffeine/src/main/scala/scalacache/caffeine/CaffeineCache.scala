@@ -25,7 +25,7 @@ class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]])(impli
   def doGet(key: K): F[Option[V]] = {
     F.delay {
       Option(underlying.getIfPresent(key))
-    }.flatMap(_.filterA(Entry.isExpired[F, V]))
+    }.flatMap(_.filterA(Entry.isBeforeExpiration[F, V]))
       .map(_.map(_.value))
       .flatTap { result =>
         logCacheHitOrMiss(key, result)

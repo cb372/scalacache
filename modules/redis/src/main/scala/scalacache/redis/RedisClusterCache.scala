@@ -1,15 +1,15 @@
 package scalacache.redis
 
-import cats.effect.Sync
-import cats.implicits._
-import redis.clients.jedis.JedisCluster
-import redis.clients.jedis.exceptions.JedisClusterException
-import scalacache.AbstractCache
 import scalacache.logging.Logger
 import scalacache.serialization.Codec
 import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 
 import scala.concurrent.duration.{Duration, _}
+import cats.implicits._
+import cats.effect.Sync
+import redis.clients.jedis.JedisCluster
+import redis.clients.jedis.exceptions.JedisClusterException
+import scalacache.AbstractCache
 
 class RedisClusterCache[F[_]: Sync, K, V](val jedisCluster: JedisCluster)(implicit
     val keyEncoder: BinaryEncoder[K],
@@ -48,9 +48,9 @@ class RedisClusterCache[F[_]: Sync, K, V](val jedisCluster: JedisCluster)(implic
           logger.warn(
             s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
           )
-        } *> F.delay(jedisCluster.setex(keyBytes, 1, valueBytes))
+        } *> F.delay(jedisCluster.setex(keyBytes, 1L, valueBytes))
       case Some(d) =>
-        F.delay(jedisCluster.setex(keyBytes, d.toSeconds.toInt, valueBytes))
+        F.delay(jedisCluster.setex(keyBytes, d.toSeconds, valueBytes))
     }
   }
 

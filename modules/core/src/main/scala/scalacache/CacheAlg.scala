@@ -8,27 +8,25 @@ import scala.language.higherKinds
   *
   * @tparam F
   *   The effect monad in which all cache operations will be performed.
-  * @tparam K
-  *   The type of keys stored in the cache.
   * @tparam V
-  *   The type of values stored in the cache.
+  *   The value of types stored in the cache.
   */
-trait Cache[F[_], K, V] {
+trait CacheAlg[F[_], V] {
 
   /** Get a value from the cache
     *
-    * @param key
+    * @param keyParts
     *   The cache key
     * @param flags
     *   Flags used to conditionally alter the behaviour of ScalaCache
     * @return
     *   The appropriate value, if it was found in the cache
     */
-  def get(key: K)(implicit flags: Flags): F[Option[V]]
+  def get(keyParts: Any*)(implicit flags: Flags): F[Option[V]]
 
   /** Insert a value into the cache, optionally setting a TTL (time-to-live)
     *
-    * @param key
+    * @param keyParts
     *   The cache key
     * @param value
     *   The value to insert
@@ -37,15 +35,16 @@ trait Cache[F[_], K, V] {
     * @param flags
     *   Flags used to conditionally alter the behaviour of ScalaCache
     */
-  def put(key: K)(value: V, ttl: Option[Duration] = None)(implicit flags: Flags): F[Unit]
+  def put(keyParts: Any*)(value: V, ttl: Option[Duration] = None)(implicit flags: Flags): F[Unit]
 
   /** Remove the given key and its associated value from the cache, if it exists. If the key is not in the cache, do
     * nothing.
     *
-    * @param key
-    *   The cache key
+    * @param keyParts
+    *   data to be used to generate the cache key. This could be as simple as just a single String. See
+    *   [[CacheKeyBuilder]].
     */
-  def remove(key: K): F[Unit]
+  def remove(keyParts: Any*): F[Unit]
 
   /** Delete the entire contents of the cache. Use wisely!
     */
@@ -53,7 +52,7 @@ trait Cache[F[_], K, V] {
 
   /** Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
     *
-    * @param key
+    * @param keyParts
     *   The cache key
     * @param ttl
     *   The time-to-live to use when inserting into the cache. The cache entry will expire after this time has elapsed.
@@ -64,11 +63,11 @@ trait Cache[F[_], K, V] {
     * @return
     *   The value, either retrieved from the cache or computed
     */
-  def caching(key: K)(ttl: Option[Duration])(f: => V)(implicit flags: Flags): F[V]
+  def caching(keyParts: Any*)(ttl: Option[Duration])(f: => V)(implicit flags: Flags): F[V]
 
   /** Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
     *
-    * @param key
+    * @param keyParts
     *   The cache key
     * @param ttl
     *   The time-to-live to use when inserting into the cache. The cache entry will expire after this time has elapsed.
@@ -79,7 +78,7 @@ trait Cache[F[_], K, V] {
     * @return
     *   The value, either retrieved from the cache or computed
     */
-  def cachingF(key: K)(ttl: Option[Duration])(f: F[V])(implicit flags: Flags): F[V]
+  def cachingF(keyParts: Any*)(ttl: Option[Duration])(f: F[V])(implicit flags: Flags): F[V]
 
   /** You should call this when you have finished using this Cache. (e.g. when your application shuts down)
     *

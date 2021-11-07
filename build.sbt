@@ -14,7 +14,7 @@ inThisBuild(
   )
 )
 
-val CatsEffectVersion = "3.2.8"
+val CatsEffectVersion = "3.2.9"
 
 scalafmtOnCompile in ThisBuild := true
 
@@ -67,7 +67,7 @@ lazy val memcached = createModule("memcached")
 lazy val redis = createModule("redis")
   .settings(
     libraryDependencies ++= Seq(
-      "redis.clients" % "jedis" % "2.10.2"
+      "redis.clients" % "jedis" % "3.7.0"
     ),
     coverageMinimum       := 56,
     coverageFailOnMinimum := true
@@ -145,7 +145,7 @@ lazy val benchmarks = createModule("benchmarks")
   )
   .dependsOn(caffeine)
 
-lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.9" % Test
+lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.10" % Test
 
 lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.3" % Test
 
@@ -183,9 +183,12 @@ ThisBuild / githubWorkflowBuild := Seq(
 )
 //sbt-ci-release settings
 ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
-ThisBuild / githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v")))
-ThisBuild / githubWorkflowPublishPreamble       := Seq(WorkflowStep.Use(UseRef.Public("olafurpg", "setup-gpg", "v3")))
-ThisBuild / githubWorkflowPublish               := Seq(WorkflowStep.Sbt(List("ci-release")))
+ThisBuild / githubWorkflowPublishTargetBranches := Seq(
+  RefPredicate.Equals(Ref.Branch("master")),
+  RefPredicate.StartsWith(Ref.Tag("v"))
+)
+ThisBuild / githubWorkflowPublishPreamble := Seq(WorkflowStep.Use(UseRef.Public("olafurpg", "setup-gpg", "v3")))
+ThisBuild / githubWorkflowPublish         := Seq(WorkflowStep.Sbt(List("ci-release")))
 ThisBuild / githubWorkflowEnv ++= List("PGP_PASSPHRASE", "PGP_SECRET", "SONATYPE_PASSWORD", "SONATYPE_USERNAME").map {
   envKey =>
     envKey -> s"$${{ secrets.$envKey }}"
