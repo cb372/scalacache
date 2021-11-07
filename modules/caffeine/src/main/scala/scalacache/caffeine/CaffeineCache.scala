@@ -60,8 +60,8 @@ object CaffeineCache {
 
   /** Create a new Caffeine cache.
     */
-  def apply[F[_]: Sync: Clock, K <: Object, V]: F[CaffeineCache[F, K, V]] =
-    Sync[F].delay(Caffeine.newBuilder().build[K, Entry[V]]()).map(apply(_))
+  def apply[F[_]: Sync: Clock, K <: AnyRef, V]: F[CaffeineCache[F, K, V]] =
+    Sync[F].delay(Caffeine.newBuilder.build[K, Entry[V]]()).map(apply(_))
 
   /** Create a new cache utilizing the given underlying Caffeine cache.
     *
