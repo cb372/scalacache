@@ -29,7 +29,7 @@ import cats.effect.unsafe.implicits.global
 
 final case class Cat(id: Int, name: String, colour: String)
 
-implicit val catsCache: Cache[IO, Cat] = MemcachedCache("localhost:11211")
+implicit val catsCache: Cache[IO, String, Cat] = MemcachedCache("localhost:11211")
 
 def getCatWithFlags(id: Int)(implicit flags: Flags): Cat = memoize(None) {
   // Do DB lookup here...
