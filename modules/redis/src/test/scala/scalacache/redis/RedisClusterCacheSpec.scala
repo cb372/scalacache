@@ -9,6 +9,7 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 import cats.effect.IO
 import scalacache.serialization.binary.BinaryCodec
+import scalacache.serialization.binary.StringBinaryCodec
 
 class RedisClusterCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 

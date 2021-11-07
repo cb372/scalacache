@@ -43,7 +43,7 @@ class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]])(impli
   override def doRemove(key: K): F[Unit] =
     F.delay(underlying.invalidate(key))
 
-  override def doRemoveAll(): F[Unit] =
+  override def doRemoveAll: F[Unit] =
     F.delay(underlying.invalidateAll())
 
   override def close: F[Unit] = {

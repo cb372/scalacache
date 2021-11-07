@@ -7,6 +7,7 @@ import scalacache.serialization.Codec
 import scala.language.postfixOps
 import cats.effect.IO
 import scalacache.serialization.binary.BinaryCodec
+import scalacache.serialization.binary.StringBinaryCodec
 
 class RedisCacheSpec extends RedisCacheSpecBase with RedisTestUtil {
 

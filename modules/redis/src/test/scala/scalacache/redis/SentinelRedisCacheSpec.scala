@@ -9,6 +9,7 @@ import scalacache._
 import scalacache.serialization.Codec
 import cats.effect.IO
 import scalacache.serialization.binary.BinaryCodec
+import scalacache.serialization.binary.StringBinaryCodec
 
 class SentinelRedisCacheSpec extends RedisCacheSpecBase {
 

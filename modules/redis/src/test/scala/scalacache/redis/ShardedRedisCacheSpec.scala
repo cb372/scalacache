@@ -9,6 +9,7 @@ import scala.util.{Failure, Success, Try}
 import cats.effect.IO
 import scalacache.serialization.binary.BinaryCodec
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
+import scalacache.serialization.binary.StringBinaryCodec
 
 class ShardedRedisCacheSpec extends RedisCacheSpecBase {
 
