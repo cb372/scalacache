@@ -1,6 +1,6 @@
 package scalacache.redis
 
-import cats.effect.{MonadCancel, MonadCancelThrow, Sync}
+import cats.effect.Sync
 import redis.clients.jedis._
 import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
@@ -10,7 +10,7 @@ import scala.language.higherKinds
 
 /** Thin wrapper around Jedis that works with sharded Redis.
   */
-class ShardedRedisCache[F[_]: Sync: MonadCancelThrow, K, V](val jedisPool: ShardedJedisPool)(implicit
+class ShardedRedisCache[F[_]: Sync, K, V](val jedisPool: ShardedJedisPool)(implicit
     val keyEncoder: BinaryEncoder[K],
     val codec: BinaryCodec[V]
 ) extends RedisCacheBase[F, K, V] {
@@ -31,7 +31,7 @@ object ShardedRedisCache {
 
   /** Create a sharded Redis client connecting to the given hosts and use it for caching
     */
-  def apply[F[_]: Sync: MonadCancelThrow, K, V](
+  def apply[F[_]: Sync, K, V](
       hosts: (String, Int)*
   )(implicit keyEncoder: BinaryEncoder[K], codec: BinaryCodec[V]): ShardedRedisCache[F, K, V] = {
     val shards = hosts.map { case (host, port) =>
@@ -45,7 +45,7 @@ object ShardedRedisCache {
     * @param jedisPool
     *   a ShardedJedis pool
     */
-  def apply[F[_]: Sync: MonadCancelThrow, K, V](
+  def apply[F[_]: Sync, K, V](
       jedisPool: ShardedJedisPool
   )(implicit keyEncoder: BinaryEncoder[K], codec: BinaryCodec[V]): ShardedRedisCache[F, K, V] =
     new ShardedRedisCache[F, K, V](jedisPool)

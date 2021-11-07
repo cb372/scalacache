@@ -1,6 +1,6 @@
 package scalacache.redis
 
-import cats.effect.{MonadCancel, MonadCancelThrow, Sync}
+import cats.effect.{MonadCancel, Sync}
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import redis.clients.jedis._
 import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
@@ -9,7 +9,7 @@ import scala.collection.JavaConverters._
 
 /** Thin wrapper around Jedis that works with Redis Sentinel.
   */
-class SentinelRedisCache[F[_]: Sync: MonadCancelThrow, K, V](val jedisPool: JedisSentinelPool)(implicit
+class SentinelRedisCache[F[_]: Sync, K, V](val jedisPool: JedisSentinelPool)(implicit
     val keyEncoder: BinaryEncoder[K],
     val codec: BinaryCodec[V]
 ) extends RedisCacheBase[F, K, V] {
@@ -36,7 +36,7 @@ object SentinelRedisCache {
     * @param password
     *   password of the cluster
     */
-  def apply[F[_]: Sync: MonadCancelThrow, K, V](clusterName: String, sentinels: Set[String], password: String)(implicit
+  def apply[F[_]: Sync, K, V](clusterName: String, sentinels: Set[String], password: String)(implicit
       keyEncoder: BinaryEncoder[K],
       codec: BinaryCodec[V]
   ): SentinelRedisCache[F, K, V] =
@@ -53,7 +53,7 @@ object SentinelRedisCache {
     * @param poolConfig
     *   config of the underlying pool
     */
-  def apply[F[_]: Sync: MonadCancelThrow, K, V](
+  def apply[F[_]: Sync, K, V](
       clusterName: String,
       sentinels: Set[String],
       poolConfig: GenericObjectPoolConfig[Jedis],
@@ -69,7 +69,7 @@ object SentinelRedisCache {
     * @param jedisSentinelPool
     *   a JedisSentinelPool
     */
-  def apply[F[_]: Sync: MonadCancelThrow, K, V](
+  def apply[F[_]: Sync, K, V](
       jedisSentinelPool: JedisSentinelPool
   )(implicit keyEncoder: BinaryEncoder[K], codec: BinaryCodec[V]): SentinelRedisCache[F, K, V] =
     new SentinelRedisCache[F, K, V](jedisSentinelPool)
