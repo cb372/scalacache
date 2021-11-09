@@ -27,11 +27,6 @@ class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
     cache.getCalledWithArgs(0) should be("foo")
   }
 
-  it should "use the CacheKeyBuilder to build the cache key" in {
-    cache.get("foo", 123).unsafeRunSync()
-    cache.getCalledWithArgs(0) should be("foo:123")
-  }
-
   it should "not call doGet on the concrete cache if cache reads are disabled" in {
     implicit val flags: Flags = Flags(readsEnabled = false)
     cache.get("foo").unsafeRunSync()
@@ -72,11 +67,6 @@ class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
   it should "call doRemove on the concrete cache" in {
     cache.remove("baz").unsafeRunSync()
     cache.removeCalledWithArgs(0) should be("baz")
-  }
-
-  it should "concatenate key parts correctly" in {
-    cache.remove("hey", "yeah").unsafeRunSync()
-    cache.removeCalledWithArgs(0) should be("hey:yeah")
   }
 
   behavior of "#caching"

@@ -1,17 +1,16 @@
 package scalacache.memcached
 
-import org.scalatest._
-import net.spy.memcached._
-import scala.concurrent.duration._
-import org.scalatest.concurrent.{ScalaFutures, Eventually, IntegrationPatience}
-import org.scalatest.time.{Span, Seconds}
-
-import scala.language.postfixOps
-import scalacache.serialization.Codec
-import scalacache.serialization.binary._
 import cats.effect.IO
+import net.spy.memcached._
+import org.scalatest._
+import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Seconds, Span}
+import scalacache.serialization.binary._
+
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class MemcachedCacheSpec
     extends AnyFlatSpec
@@ -37,7 +36,7 @@ class MemcachedCacheSpec
     } catch { case _: Exception => false }
   }
 
-  def serialise[A](v: A)(implicit codec: Codec[A]): Array[Byte] =
+  def serialise[A](v: A)(implicit codec: BinaryCodec[A]): Array[Byte] =
     codec.encode(v)
 
   if (!memcachedIsRunning) {

@@ -17,7 +17,7 @@ import cats.effect.IO
 
 final case class Cat(id: Int, name: String, colour: String)
 
-implicit val catsCache: Cache[IO, Cat] = MemcachedCache("localhost:11211")
+implicit val catsCache: Cache[IO, String, Cat] = MemcachedCache("localhost:11211")
 
 def getCat(id: Int): IO[Cat] = memoize(Some(10.seconds)) {
   // Retrieve data from a remote API here ...
@@ -75,7 +75,7 @@ val result = Bar.baz(1, "hello")("world")
 
 would be cached with the key: `foo.bar.Baz(1, hello)(world)`.
 
-Note that the cache key generation logic is customizable. Just provide your own implementation of [MethodCallToStringConverter](https://github.com/cb372/scalacache/blob/master/modules/core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala)
+Note that the cache key generation logic is customizable. Just provide your own implementation of [MethodCallToStringConverter](https://github.com/cb372/scalacache/blob/master/modules/core/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala)
 
 #### Enclosing class's constructor arguments
 
@@ -95,7 +95,7 @@ class Bar(a: Int) {
 }
 ```
 
-then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](https://github.com/cb372/scalacache/blob/master/modules/core/shared/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
+then you want the cache key to depend on the values of both `a` and `b`. In that case, you need to use a different implementation of [MethodCallToStringConverter](https://github.com/cb372/scalacache/blob/master/modules/core/src/main/scala/scalacache/memoization/MethodCallToStringConverter.scala), like this:
 
 ```scala
 implicit val cacheConfig: CacheConfig = CacheConfig(

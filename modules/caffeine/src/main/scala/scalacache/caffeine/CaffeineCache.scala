@@ -1,43 +1,38 @@
 package scalacache.caffeine
 
-import java.time.temporal.ChronoUnit
-import java.time.{Instant}
-
+import cats.effect.{Clock, Sync}
+import cats.implicits._
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
-import cats.effect.Clock
 import scalacache.logging.Logger
-import scalacache.{AbstractCache, CacheConfig, Entry}
+import scalacache.{AbstractCache, Entry}
+
+import java.time.Instant
 import scala.concurrent.duration.Duration
 import scala.language.higherKinds
-import cats.effect.Sync
-import java.util.concurrent.TimeUnit
-import cats.implicits._
-import cats.MonadError
 
 /*
  * Thin wrapper around Caffeine.
  *
  * This cache implementation is synchronous.
  */
-class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[V]])(implicit
-    val config: CacheConfig,
-    clock: Clock[F]
-) extends AbstractCache[F, V] {
+class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]])(implicit
+    val clock: Clock[F]
+) extends AbstractCache[F, K, V] {
   protected val F: Sync[F] = Sync[F]
 
   override protected final val logger = Logger.getLogger(getClass.getName)
 
-  def doGet(key: String): F[Option[V]] = {
+  def doGet(key: K): F[Option[V]] = {
     F.delay {
       Option(underlying.getIfPresent(key))
-    }.flatMap(_.filterA(Entry.isExpired[F, V]))
+    }.flatMap(_.filterA(Entry.isBeforeExpiration[F, V]))
       .map(_.map(_.value))
       .flatTap { result =>
         logCacheHitOrMiss(key, result)
       }
   }
 
-  def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] =
+  def doPut(key: K, value: V, ttl: Option[Duration]): F[Unit] =
     ttl.traverse(toExpiryTime).flatMap { expiry =>
       F.delay {
         val entry = Entry(value, expiry)
@@ -45,7 +40,7 @@ class CaffeineCache[F[_]: Sync, V](val underlying: CCache[String, Entry[V]])(imp
       } *> logCachePut(key, ttl)
     }
 
-  override def doRemove(key: String): F[Unit] =
+  override def doRemove(key: K): F[Unit] =
     F.delay(underlying.invalidate(key))
 
   override def doRemoveAll: F[Unit] =
@@ -65,17 +60,17 @@ object CaffeineCache {
 
   /** Create a new Caffeine cache.
     */
-  def apply[F[_]: Sync: Clock, V](implicit config: CacheConfig): F[CaffeineCache[F, V]] =
-    Sync[F].delay(Caffeine.newBuilder().build[String, Entry[V]]()).map(apply(_))
+  def apply[F[_]: Sync: Clock, K <: AnyRef, V]: F[CaffeineCache[F, K, V]] =
+    Sync[F].delay(Caffeine.newBuilder.build[K, Entry[V]]()).map(apply(_))
 
   /** Create a new cache utilizing the given underlying Caffeine cache.
     *
     * @param underlying
     *   a Caffeine cache
     */
-  def apply[F[_]: Sync: Clock, V](
-      underlying: CCache[String, Entry[V]]
-  )(implicit config: CacheConfig): CaffeineCache[F, V] =
+  def apply[F[_]: Sync: Clock, K, V](
+      underlying: CCache[K, Entry[V]]
+  ): CaffeineCache[F, K, V] =
     new CaffeineCache(underlying)
 
 }
