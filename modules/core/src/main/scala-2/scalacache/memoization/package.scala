@@ -34,7 +34,9 @@ package object memoization {
     * @return
     *   A result, either retrieved from the cache or calculated by executing the function `f`
     */
-  def memoize[F[_], V](ttl: Option[Duration])(f: => V)(implicit cache: Cache[F, V], flags: Flags): F[V] =
+  def memoize[F[_], V](ttl: Option[Duration])(
+      f: => V
+  )(implicit cache: Cache[F, String, V], config: MemoizationConfig, flags: Flags): F[V] =
     macro Macros.memoizeImpl[F, V]
 
   /** Perform the given operation and memoize its result to a cache before returning it. If the result is already in the
@@ -64,6 +66,6 @@ package object memoization {
     */
   def memoizeF[F[_], V](
       ttl: Option[Duration]
-  )(f: F[V])(implicit cache: Cache[F, V], flags: Flags): F[V] =
+  )(f: F[V])(implicit cache: Cache[F, String, V], config: MemoizationConfig, flags: Flags): F[V] =
     macro Macros.memoizeFImpl[F, V]
 }

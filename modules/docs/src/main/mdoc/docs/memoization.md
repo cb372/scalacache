@@ -17,7 +17,7 @@ import cats.effect.IO
 
 final case class Cat(id: Int, name: String, colour: String)
 
-implicit val catsCache: Cache[IO, Cat] = MemcachedCache("localhost:11211")
+implicit val catsCache: Cache[IO, String, Cat] = MemcachedCache("localhost:11211")
 
 def getCat(id: Int): IO[Cat] = memoize(Some(10.seconds)) {
   // Retrieve data from a remote API here ...

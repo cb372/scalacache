@@ -9,21 +9,23 @@ object Macros {
   def memoizeImpl[F[_], V](
       ttl: Expr[Option[Duration]],
       f: Expr[V],
-      cache: Expr[Cache[F, V]],
+      cache: Expr[Cache[F, String, V]],
+      config: Expr[MemoizationConfig],
       flags: Expr[Flags]
   )(using Quotes, Type[F], Type[V]): Expr[F[V]] =
-    commonMacroImpl(cache, keyName => '{ ${ cache }.cachingForMemoize(${ keyName })(${ ttl })(${ f })(${ flags }) })
+    commonMacroImpl(config, keyName => '{ ${ cache }.caching(${ keyName })(${ ttl })(${ f })(${ flags }) })
 
   def memoizeFImpl[F[_], V](
       ttl: Expr[Option[Duration]],
       f: Expr[F[V]],
-      cache: Expr[Cache[F, V]],
+      cache: Expr[Cache[F, String, V]],
+      config: Expr[MemoizationConfig],
       flags: Expr[Flags]
   )(using Quotes, Type[F], Type[V]): Expr[F[V]] =
-    commonMacroImpl(cache, keyName => '{ ${ cache }.cachingForMemoizeF(${ keyName })(${ ttl })(${ f })(${ flags }) })
+    commonMacroImpl(config, keyName => '{ ${ cache }.cachingF(${ keyName })(${ ttl })(${ f })(${ flags }) })
 
   private def commonMacroImpl[F[_], V](
-      cache: Expr[Cache[F, V]],
+      config: Expr[MemoizationConfig],
       keyNameToCachingCall: Expr[String] => Expr[F[V]]
   )(using Quotes, Type[F], Type[V]): Expr[F[V]] = {
     import quotes.reflect.*
@@ -69,7 +71,7 @@ object Macros {
     val classParamExpr: Expr[IndexedSeq[IndexedSeq[Any]]] = traverse(classParams map traverse)
 
     val keyValue: Expr[String] = '{
-      ${ cache }.config.memoization.toStringConverter.toString(
+      ${ config }.toStringConverter.toString(
         ${ Expr(classdefSymbol.fullName) },
         $classParamExpr,
         ${ Expr(defdef.name) },

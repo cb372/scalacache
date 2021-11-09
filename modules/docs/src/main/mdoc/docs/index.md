@@ -32,7 +32,7 @@ import scalacache.serialization.binary._
 
 final case class Cat(id: Int, name: String, colour: String)
 
-implicit val catsCache: Cache[IO, Cat] = MemcachedCache("localhost:11211")
+implicit val catsCache: Cache[IO, String, Cat] = MemcachedCache("localhost:11211")
 ```
 
 Note that we made the cache `implicit` so that the ScalaCache API can find it.
@@ -57,7 +57,7 @@ get("eric")
 remove("doraemon")
 
 // Flush the cache
-removeAll[Cat]
+removeAll[String, Cat]
 
 // Wrap any block with caching: if the key is not present in the cache,
 // the block will be executed and the value will be cached and returned
@@ -73,9 +73,6 @@ cachingF("benjamin")(ttl = None) {
     Cat(2, "Benjamin", "ginger")
   }
 }
-
-// You can also pass multiple parts to be combined into one key
-put("foo", 123, "bar")(ericTheCat) // Will be cached with key "foo:123:bar"
 ```
 
 ```scala mdoc:invisible
