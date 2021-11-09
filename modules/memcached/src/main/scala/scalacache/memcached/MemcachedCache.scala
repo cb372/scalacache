@@ -1,18 +1,17 @@
 package scalacache.memcached
 
+import cats.effect.Async
 import net.spy.memcached.internal.{GetCompletionListener, GetFuture, OperationCompletionListener, OperationFuture}
 import net.spy.memcached.ops.StatusCode
 import net.spy.memcached.{AddrUtil, BinaryConnectionFactory, MemcachedClient}
-
+import scalacache.AbstractCache
 import scalacache.logging.Logger
-import scalacache.serialization.Codec
-import scalacache.{AbstractCache, CacheConfig}
+import scalacache.serialization.binary.BinaryCodec
+
 import scala.concurrent.duration.Duration
-import scala.util.Success
 import scala.language.higherKinds
+import scala.util.Success
 import scala.util.control.NonFatal
-import cats.effect.Async
-import cats.effect.Sync
 
 class MemcachedException(message: String) extends Exception(message)
 
@@ -21,8 +20,8 @@ class MemcachedException(message: String) extends Exception(message)
 class MemcachedCache[F[_]: Async, V](
     val client: MemcachedClient,
     val keySanitizer: MemcachedKeySanitizer = ReplaceAndTruncateSanitizer()
-)(implicit val config: CacheConfig, codec: Codec[V])
-    extends AbstractCache[F, V]
+)(implicit val codec: BinaryCodec[V])
+    extends AbstractCache[F, String, V]
     with MemcachedTTLConverter {
 
   protected def F: Async[F] = Async[F]
@@ -109,7 +108,7 @@ object MemcachedCache {
 
   /** Create a Memcached client connecting to localhost:11211 and use it for caching
     */
-  def apply[F[_]: Async, V](implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[F, V] =
+  def apply[F[_]: Async, V](implicit codec: BinaryCodec[V]): MemcachedCache[F, V] =
     apply("localhost:11211")
 
   /** Create a Memcached client connecting to the given host(s) and use it for caching
@@ -119,7 +118,7 @@ object MemcachedCache {
     */
   def apply[F[_]: Async, V](
       addressString: String
-  )(implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[F, V] =
+  )(implicit codec: BinaryCodec[V]): MemcachedCache[F, V] =
     apply(new MemcachedClient(new BinaryConnectionFactory(), AddrUtil.getAddresses(addressString)))
 
   /** Create a cache that uses the given Memcached client
@@ -129,7 +128,7 @@ object MemcachedCache {
     */
   def apply[F[_]: Async, V](
       client: MemcachedClient
-  )(implicit config: CacheConfig, codec: Codec[V]): MemcachedCache[F, V] =
+  )(implicit codec: BinaryCodec[V]): MemcachedCache[F, V] =
     new MemcachedCache[F, V](client)
 
 }

@@ -86,7 +86,7 @@ trait CacheAlg[F[_], V] {
     *
     * Note that you should not try to use this Cache instance after you have called this method.
     */
-  //TODO: Replace with Resource-based API?
+  // TODO: Replace with Resource-based API?
   def close: F[Unit]
 
 }
