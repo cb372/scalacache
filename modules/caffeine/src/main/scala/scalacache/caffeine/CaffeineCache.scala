@@ -1,6 +1,6 @@
 package scalacache.caffeine
 
-import cats.effect.{Clock, Sync}
+import cats.effect.Sync
 import cats.implicits._
 import com.github.benmanes.caffeine.cache.{Caffeine, Cache => CCache}
 import scalacache.logging.Logger
@@ -15,9 +15,7 @@ import scala.language.higherKinds
  *
  * This cache implementation is synchronous.
  */
-class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]])(implicit
-    val clock: Clock[F]
-) extends AbstractCache[F, K, V] {
+class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]]) extends AbstractCache[F, K, V] {
   protected val F: Sync[F] = Sync[F]
 
   override protected final val logger = Logger.getLogger(getClass.getName)
@@ -52,7 +50,7 @@ class CaffeineCache[F[_]: Sync, K, V](val underlying: CCache[K, Entry[V]])(impli
   }
 
   private def toExpiryTime(ttl: Duration): F[Instant] =
-    clock.monotonic.map(m => Instant.ofEpochMilli(m.toMillis).plusMillis(ttl.toMillis))
+    Sync[F].monotonic.map(m => Instant.ofEpochMilli(m.toMillis).plusMillis(ttl.toMillis))
 
 }
 
@@ -60,7 +58,7 @@ object CaffeineCache {
 
   /** Create a new Caffeine cache.
     */
-  def apply[F[_]: Sync: Clock, K <: AnyRef, V]: F[CaffeineCache[F, K, V]] =
+  def apply[F[_]: Sync, K <: AnyRef, V]: F[CaffeineCache[F, K, V]] =
     Sync[F].delay(Caffeine.newBuilder.build[K, Entry[V]]()).map(apply(_))
 
   /** Create a new cache utilizing the given underlying Caffeine cache.
@@ -68,7 +66,7 @@ object CaffeineCache {
     * @param underlying
     *   a Caffeine cache
     */
-  def apply[F[_]: Sync: Clock, K, V](
+  def apply[F[_]: Sync, K, V](
       underlying: CCache[K, Entry[V]]
   ): CaffeineCache[F, K, V] =
     new CaffeineCache(underlying)
