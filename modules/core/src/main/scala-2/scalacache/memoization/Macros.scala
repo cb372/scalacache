@@ -1,38 +1,39 @@
 package scalacache.memoization
 
-import scala.language.experimental.macros
-import scala.reflect.macros.blackbox
+import scalacache.{Cache, Flags}
+
 import scala.concurrent.duration.Duration
+import scala.language.experimental.macros
 import scala.language.higherKinds
-import scalacache.{Flags, Cache}
+import scala.reflect.macros.blackbox
 
 class Macros(val c: blackbox.Context) {
   import c.universe._
 
   def memoizeImpl[F[_], V: c.WeakTypeTag](
       ttl: c.Expr[Option[Duration]]
-  )(f: c.Tree)(cache: c.Expr[Cache[F, V]], flags: c.Expr[Flags]): c.Tree = {
+  )(f: c.Tree)(cache: c.Expr[Cache[F, String, V]], config: c.Expr[MemoizationConfig], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(
-      cache,
+      config,
       { keyName =>
-        q"""$cache.cachingForMemoize($keyName)($ttl)($f)($flags)"""
+        q"""$cache.caching($keyName)($ttl)($f)($flags)"""
       }
     )
   }
 
   def memoizeFImpl[F[_], V: c.WeakTypeTag](
       ttl: c.Expr[Option[Duration]]
-  )(f: c.Tree)(cache: c.Expr[Cache[F, V]], flags: c.Expr[Flags]): c.Tree = {
+  )(f: c.Tree)(cache: c.Expr[Cache[F, String, V]], config: c.Expr[MemoizationConfig], flags: c.Expr[Flags]): c.Tree = {
     commonMacroImpl(
-      cache,
+      config,
       { keyName =>
-        q"""$cache.cachingForMemoizeF($keyName)($ttl)($f)($flags)"""
+        q"""$cache.cachingF($keyName)($ttl)($f)($flags)"""
       }
     )
   }
 
   private def commonMacroImpl[F[_], V: c.WeakTypeTag](
-      cache: c.Expr[Cache[F, V]],
+      config: c.Expr[MemoizationConfig],
       keyNameToCachingCall: (c.TermName) => c.Tree
   ): Tree = {
 
@@ -52,11 +53,11 @@ class Macros(val c: blackbox.Context) {
     val keyName     = createKeyName()
     val cachingCall = keyNameToCachingCall(keyName)
     val tree = q"""
-          val $keyName = $cache.config.memoization.toStringConverter.toString($classNameTree, $classParamssTree, $methodNameTree, $methodParamssTree)
+          val $keyName = $config.toStringConverter.toString($classNameTree, $classParamssTree, $methodNameTree, $methodParamssTree)
           $cachingCall
         """
-    //println(showCode(tree))
-    //println(showRaw(tree, printIds = true, printTypes = true))
+    // println(showCode(tree))
+    // println(showRaw(tree, printIds = true, printTypes = true))
     tree
   }
 

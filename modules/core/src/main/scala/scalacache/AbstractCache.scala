@@ -9,23 +9,25 @@ import cats.MonadError
 import cats.effect.Sync
 import cats.Applicative
 
-/** An abstract implementation of [[CacheAlg]] that takes care of some things that are common across all concrete
+/** An abstract implementation of [[Cache]] that takes care of some things that are common across all concrete
   * implementations.
   *
-  * If you are writing a cache implementation, you probably want to extend this trait rather than extending [[CacheAlg]]
+  * If you are writing a cache implementation, you probably want to extend this trait rather than extending [[Cache]]
   * directly.
   *
+  * @tparam K
+  *   The type of keys stored in the cache.
   * @tparam V
-  *   The value of types stored in the cache.
+  *   The type of values stored in the cache.
   */
-trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
+trait AbstractCache[F[_], K, V] extends Cache[F, K, V] with LoggingSupport[F, K] {
 
   protected implicit def F: Sync[F]
   // GET
 
-  protected def doGet(key: String): F[Option[V]]
+  protected def doGet(key: K): F[Option[V]]
 
-  private def checkFlagsAndGet(key: String)(implicit flags: Flags): F[Option[V]] = {
+  private def checkFlagsAndGet(key: K)(implicit flags: Flags): F[Option[V]] = {
     if (flags.readsEnabled) {
       doGet(key)
     } else
@@ -36,16 +38,15 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
         .as(None)
   }
 
-  final override def get(keyParts: Any*)(implicit flags: Flags): F[Option[V]] = {
-    val key = toKey(keyParts: _*)
+  final override def get(key: K)(implicit flags: Flags): F[Option[V]] = {
     checkFlagsAndGet(key)
   }
 
   // PUT
 
-  protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit]
+  protected def doPut(key: K, value: V, ttl: Option[Duration]): F[Unit]
 
-  private def checkFlagsAndPut(key: String, value: V, ttl: Option[Duration])(implicit
+  private def checkFlagsAndPut(key: K, value: V, ttl: Option[Duration])(implicit
       flags: Flags
   ): F[Unit] = {
     if (flags.writesEnabled) {
@@ -57,19 +58,18 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
   }
 
   final override def put(
-      keyParts: Any*
+      key: K
   )(value: V, ttl: Option[Duration])(implicit flags: Flags): F[Unit] = {
-    val key       = toKey(keyParts: _*)
     val finiteTtl = ttl.filter(_.isFinite) // discard Duration.Inf, Duration.Undefined
     checkFlagsAndPut(key, value, finiteTtl)
   }
 
   // REMOVE
 
-  protected def doRemove(key: String): F[Unit]
+  protected def doRemove(key: K): F[Unit]
 
-  final override def remove(keyParts: Any*): F[Unit] =
-    doRemove(toKey(keyParts: _*))
+  final override def remove(key: K): F[Unit] =
+    doRemove(key)
 
   // REMOVE ALL
 
@@ -81,42 +81,12 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
   // CACHING
 
   final override def caching(
-      keyParts: Any*
-  )(ttl: Option[Duration] = None)(f: => V)(implicit flags: Flags): F[V] = {
-    val key = toKey(keyParts: _*)
-    _caching(key, ttl, f)
-  }
+      key: K
+  )(ttl: Option[Duration] = None)(f: => V)(implicit flags: Flags): F[V] = cachingF(key)(ttl)(Sync[F].delay(f))
 
   override def cachingF(
-      keyParts: Any*
+      key: K
   )(ttl: Option[Duration] = None)(f: F[V])(implicit flags: Flags): F[V] = {
-    val key = toKey(keyParts: _*)
-    _cachingF(key, ttl, f)
-  }
-
-  // MEMOIZE
-
-  override def cachingForMemoize(
-      baseKey: String
-  )(ttl: Option[Duration] = None)(f: => V)(implicit flags: Flags): F[V] = {
-    val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
-    _caching(key, ttl, f)
-  }
-
-  override def cachingForMemoizeF(
-      baseKey: String
-  )(ttl: Option[Duration])(f: F[V])(implicit flags: Flags): F[V] = {
-    val key = config.cacheKeyBuilder.stringToCacheKey(baseKey)
-    _cachingF(key, ttl, f)
-  }
-
-  private def _caching(key: String, ttl: Option[Duration], f: => V)(implicit
-      flags: Flags
-  ): F[V] = _cachingF(key, ttl, Sync[F].delay(f))
-
-  private def _cachingF(key: String, ttl: Option[Duration], f: => F[V])(implicit
-      flags: Flags
-  ): F[V] = {
     checkFlagsAndGet(key)
       .handleErrorWith { e =>
         logger
@@ -136,8 +106,4 @@ trait AbstractCache[F[_], V] extends Cache[F, V] with LoggingSupport[F] {
           }
       }
   }
-
-  private def toKey(keyParts: Any*): String =
-    config.cacheKeyBuilder.toCacheKey(keyParts)
-
 }

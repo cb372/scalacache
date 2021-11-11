@@ -6,7 +6,7 @@ package object pkg {
 
   import cats.effect.SyncIO
 
-  implicit var cache: Cache[SyncIO, Int] = null
+  implicit var cache: Cache[SyncIO, String, Int] = null
 
   def insidePackageObject(a: Int): SyncIO[Int] = memoize(None) {
     123
