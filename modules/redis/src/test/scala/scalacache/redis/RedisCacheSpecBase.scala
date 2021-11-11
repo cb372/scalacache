@@ -30,14 +30,14 @@ trait RedisCacheSpecBase
   type JClient <: BaseJedisClient
 
   case object AlwaysFailing
-  implicit val alwaysFailingCodec: Codec[AlwaysFailing.type] = new Codec[AlwaysFailing.type] {
+  implicit val alwaysFailingCodec: BinaryCodec[AlwaysFailing.type] = new BinaryCodec[AlwaysFailing.type] {
     override def encode(value: AlwaysFailing.type): Array[Byte] = Array(0)
     override def decode(bytes: Array[Byte]): DecodingResult[AlwaysFailing.type] =
       Left(FailedToDecode(new Exception("Failed to decode")))
   }
 
   def withJedis: ((JPool, JClient) => Unit) => Unit
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[IO, V]
+  def constructCache[V](pool: JPool)(implicit codec: BinaryCodec[V]): Cache[IO, String, V]
   def flushRedis(client: JClient): Unit
 
   def runTestsIfPossible() = {
@@ -114,7 +114,7 @@ trait RedisCacheSpecBase
 
       behavior of "caching with serialization"
 
-      def roundTrip[V](key: String, value: V)(implicit codec: Codec[V]): Future[Option[V]] = {
+      def roundTrip[V](key: String, value: V)(implicit codec: BinaryCodec[V]): Future[Option[V]] = {
         val c = constructCache[V](pool)
         c.put(key)(value, None).flatMap(_ => c.get(key)).unsafeToFuture()
       }

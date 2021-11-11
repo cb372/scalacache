@@ -21,7 +21,7 @@ import scalacache.memcached._
 import scalacache.serialization.binary._
 import cats.effect.IO
 
-implicit val memcachedCache: Cache[IO, String] = MemcachedCache("localhost:11211")
+implicit val memcachedCache: Cache[IO, String, String] = MemcachedCache("localhost:11211")
 ```
 
 or provide your own Memcached client, like this:
@@ -36,7 +36,7 @@ val memcachedClient = new MemcachedClient(
   new BinaryConnectionFactory(), 
   AddrUtil.getAddresses("localhost:11211")
 )
-implicit val customisedMemcachedCache: Cache[IO, String] = MemcachedCache(memcachedClient)
+implicit val customisedMemcachedCache: Cache[IO, String, String] = MemcachedCache(memcachedClient)
 ```
 
 #### Keys
@@ -65,7 +65,7 @@ import scalacache.redis._
 import scalacache.serialization.binary._
 import cats.effect.IO
 
-implicit val redisCache: Cache[IO, String] = RedisCache("host1", 6379)
+implicit val redisCache: Cache[IO, String, String] = RedisCache("host1", 6379)
 ```
 
 or provide your own [Jedis](https://github.com/xetorthio/jedis) client, like this:
@@ -78,7 +78,7 @@ import _root_.redis.clients.jedis._
 import cats.effect.IO
 
 val jedisPool = new JedisPool("localhost", 6379)
-implicit val customisedRedisCache: Cache[IO, String] = RedisCache(jedisPool)
+implicit val customisedRedisCache: Cache[IO, String, String] = RedisCache(jedisPool)
 ```
 
 ScalaCache also supports [sharded Redis](https://github.com/xetorthio/jedis/wiki/AdvancedUsage#shardedjedis) and [Redis Sentinel](http://redis.io/topics/sentinel). Just create a `ShardedRedisCache` or `SentinelRedisCache` respectively.
@@ -101,7 +101,7 @@ import cats.effect.unsafe.implicits.global
 
 implicit val clock: Clock[IO] = Clock[IO]
 
-implicit val caffeineCache: Cache[IO, String] = CaffeineCache[IO, String].unsafeRunSync()
+implicit val caffeineCache: Cache[IO, String, String] = CaffeineCache[IO, String, String].unsafeRunSync()
 ```
 
 This will build a Caffeine cache with all the default settings. If you want to customize your Caffeine cache, then build it yourself and pass it to `CaffeineCache` like this:
@@ -114,7 +114,7 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 
 val underlyingCaffeineCache = Caffeine.newBuilder().maximumSize(10000L).build[String, Entry[String]]
-implicit val customisedCaffeineCache: Cache[IO, String] = CaffeineCache(underlyingCaffeineCache)
+implicit val customisedCaffeineCache: Cache[IO, String, String] = CaffeineCache(underlyingCaffeineCache)
 ```
 
 ```scala mdoc:invisible

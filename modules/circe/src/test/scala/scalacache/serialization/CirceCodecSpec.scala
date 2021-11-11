@@ -6,6 +6,7 @@ import io.circe.syntax._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import scalacache.serialization.binary.BinaryCodec
 
 case class Fruit(name: String, tastinessQuotient: Double)
 
@@ -15,8 +16,8 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenProp
 
   import scalacache.serialization.circe._
 
-  private def serdesCheck[A: Arbitrary](expectedJson: A => String)(implicit codec: Codec[A]): Unit = {
-    forAll(minSuccessful(10000)) { a: A =>
+  private def serdesCheck[A: Arbitrary](expectedJson: A => String)(implicit codec: BinaryCodec[A]): Unit = {
+    forAll(minSuccessful(10000)) { (a: A) =>
       val serialised = codec.encode(a)
       new String(serialised, "utf-8") shouldBe expectedJson(a)
       val deserialised = codec.decode(serialised)
@@ -62,7 +63,7 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenProp
 
   it should "serialize and deserialize a case class" in {
     import io.circe.generic.auto._
-    val fruitCodec = implicitly[Codec[Fruit]]
+    val fruitCodec = implicitly[BinaryCodec[Fruit]]
 
     val banana     = Fruit("banana", 0.7)
     val serialised = fruitCodec.encode(banana)

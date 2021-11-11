@@ -1,16 +1,14 @@
 package scalacache.serialization.binary
 
-import scalacache.serialization.Codec
 import scalacache.serialization.Codec._
 
-/**
-  * Codecs for all the Java primitive types, plus String and Array[Byte]
+/** Codecs for all the Java primitive types, plus String and Array[Byte]
   *
   * Credit: Shade @ https://github.com/alexandru/shade/blob/master/src/main/scala/shade/memcached/Codec.scala
   */
 trait BinaryPrimitiveCodecs {
 
-  implicit object IntBinaryCodec extends Codec[Int] {
+  implicit object IntBinaryCodec extends BinaryCodec[Int] {
     def encode(value: Int): Array[Byte] =
       Array(
         (value >>> 24).asInstanceOf[Byte],
@@ -27,7 +25,7 @@ trait BinaryPrimitiveCodecs {
     )
   }
 
-  implicit object DoubleBinaryCodec extends Codec[Double] {
+  implicit object DoubleBinaryCodec extends BinaryCodec[Double] {
     import java.lang.{Double => JvmDouble}
     def encode(value: Double): Array[Byte] = {
       val l = JvmDouble.doubleToLongBits(value)
@@ -42,7 +40,7 @@ trait BinaryPrimitiveCodecs {
     }
   }
 
-  implicit object FloatBinaryCodec extends Codec[Float] {
+  implicit object FloatBinaryCodec extends BinaryCodec[Float] {
     import java.lang.{Float => JvmFloat}
     def encode(value: Float): Array[Byte] = {
       val i = JvmFloat.floatToIntBits(value)
@@ -57,7 +55,7 @@ trait BinaryPrimitiveCodecs {
     }
   }
 
-  implicit object LongBinaryCodec extends Codec[Long] {
+  implicit object LongBinaryCodec extends BinaryCodec[Long] {
     def encode(value: Long): Array[Byte] =
       Array(
         (value >>> 56).asInstanceOf[Byte],
@@ -82,7 +80,7 @@ trait BinaryPrimitiveCodecs {
     )
   }
 
-  implicit object BooleanBinaryCodec extends Codec[Boolean] {
+  implicit object BooleanBinaryCodec extends BinaryCodec[Boolean] {
     def encode(value: Boolean): Array[Byte] =
       Array((if (value) 1 else 0).asInstanceOf[Byte])
 
@@ -90,7 +88,7 @@ trait BinaryPrimitiveCodecs {
       tryDecode(data.isDefinedAt(0) && data(0) == 1)
   }
 
-  implicit object CharBinaryCodec extends Codec[Char] {
+  implicit object CharBinaryCodec extends BinaryCodec[Char] {
     def encode(value: Char): Array[Byte] = Array(
       (value >>> 8).asInstanceOf[Byte],
       value.asInstanceOf[Byte]
@@ -103,7 +101,7 @@ trait BinaryPrimitiveCodecs {
     )
   }
 
-  implicit object ShortBinaryCodec extends Codec[Short] {
+  implicit object ShortBinaryCodec extends BinaryCodec[Short] {
     def encode(value: Short): Array[Byte] = Array(
       (value >>> 8).asInstanceOf[Byte],
       value.asInstanceOf[Byte]
@@ -116,12 +114,12 @@ trait BinaryPrimitiveCodecs {
     )
   }
 
-  implicit object StringBinaryCodec extends Codec[String] {
+  implicit object StringBinaryCodec extends BinaryCodec[String] {
     def encode(value: String): Array[Byte]                = value.getBytes("UTF-8")
     def decode(data: Array[Byte]): DecodingResult[String] = tryDecode(new String(data, "UTF-8"))
   }
 
-  implicit object ArrayByteBinaryCodec extends Codec[Array[Byte]] {
+  implicit object ArrayByteBinaryCodec extends BinaryCodec[Array[Byte]] {
     def encode(value: Array[Byte]): Array[Byte]                = value
     def decode(data: Array[Byte]): DecodingResult[Array[Byte]] = Right(data)
   }
