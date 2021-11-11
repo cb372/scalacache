@@ -1,27 +1,27 @@
 package scalacache.redis
 
-import redis.clients.jedis.JedisCluster
-import redis.clients.jedis.exceptions.JedisClusterException
 import scalacache.logging.Logger
-import scalacache.redis.StringEnrichment._
 import scalacache.serialization.Codec
-import scalacache.{AbstractCache, CacheConfig}
+import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 
 import scala.concurrent.duration.{Duration, _}
 import cats.implicits._
 import cats.effect.Sync
+import redis.clients.jedis.JedisCluster
+import redis.clients.jedis.exceptions.JedisClusterException
+import scalacache.AbstractCache
 
-class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(
-    implicit val config: CacheConfig,
-    val codec: Codec[V]
-) extends AbstractCache[F, V] {
+class RedisClusterCache[F[_]: Sync, K, V](val jedisCluster: JedisCluster)(implicit
+    val keyEncoder: BinaryEncoder[K],
+    val codec: BinaryCodec[V]
+) extends AbstractCache[F, K, V] {
 
   protected def F: Sync[F] = Sync[F]
 
   override protected final val logger = Logger.getLogger(getClass.getName)
 
-  override protected def doGet(key: String): F[Option[V]] = F.defer {
-    val bytes = jedisCluster.get(key.utf8bytes)
+  override protected def doGet(key: K): F[Option[V]] = F.defer {
+    val bytes = jedisCluster.get(keyEncoder.encode(key))
     val result: Codec.DecodingResult[Option[V]] = {
       if (bytes != null)
         codec.decode(bytes).right.map(Some(_))
@@ -37,8 +37,8 @@ class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(
     }
   }
 
-  override protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = {
-    val keyBytes   = key.utf8bytes
+  override protected def doPut(key: K, value: V, ttl: Option[Duration]): F[Unit] = {
+    val keyBytes   = keyEncoder.encode(key)
     val valueBytes = codec.encode(value)
     ttl match {
       case None                => F.delay(jedisCluster.set(keyBytes, valueBytes))
@@ -48,14 +48,14 @@ class RedisClusterCache[F[_]: Sync, V](val jedisCluster: JedisCluster)(
           logger.warn(
             s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
           )
-        } *> F.delay(jedisCluster.setex(keyBytes, 1, valueBytes))
+        } *> F.delay(jedisCluster.setex(keyBytes, 1L, valueBytes))
       case Some(d) =>
-        F.delay(jedisCluster.setex(keyBytes, d.toSeconds.toInt, valueBytes))
+        F.delay(jedisCluster.setex(keyBytes, d.toSeconds, valueBytes))
     }
   }
 
-  override protected def doRemove(key: String): F[Unit] = F.delay {
-    jedisCluster.del(key.utf8bytes)
+  override protected def doRemove(key: K): F[Unit] = F.delay {
+    jedisCluster.del(keyEncoder.encode(key))
   }
 
   @deprecated(

@@ -1,22 +1,19 @@
 package scalacache.redis
 
+import cats.effect.{MonadCancel, Sync}
 import redis.clients.jedis._
+import scalacache.serialization.binary.{BinaryCodec, BinaryEncoder}
 
 import scala.language.higherKinds
-import scalacache.CacheConfig
-import scalacache.serialization.Codec
-import cats.effect.{MonadCancel, MonadCancelThrow, Resource, Sync}
 
-/**
-  * Thin wrapper around Jedis
+/** Thin wrapper around Jedis
   */
-class RedisCache[F[_]: Sync: MonadCancelThrow, V](val jedisPool: JedisPool)(
-    implicit val config: CacheConfig,
-    val codec: Codec[V]
-) extends RedisCacheBase[F, V] {
+class RedisCache[F[_]: Sync, K, V](val jedisPool: JedisPool)(implicit
+    val keyEncoder: BinaryEncoder[K],
+    val codec: BinaryCodec[V]
+) extends RedisCacheBase[F, K, V] {
 
-  protected def F: Sync[F]                             = Sync[F]
-  protected def MonadCancelThrowF: MonadCancelThrow[F] = MonadCancel[F, Throwable]
+  protected def F: Sync[F] = Sync[F]
   type JClient = Jedis
 
   protected val doRemoveAll: F[Unit] = withJedis { jedis =>
@@ -26,22 +23,21 @@ class RedisCache[F[_]: Sync: MonadCancelThrow, V](val jedisPool: JedisPool)(
 
 object RedisCache {
 
-  /**
-    * Create a Redis client connecting to the given host and use it for caching
+  /** Create a Redis client connecting to the given host and use it for caching
     */
-  def apply[F[_]: Sync: MonadCancelThrow, V](
+  def apply[F[_]: Sync, K, V](
       host: String,
       port: Int
-  )(implicit config: CacheConfig, codec: Codec[V]): RedisCache[F, V] =
+  )(implicit keyEncoder: BinaryEncoder[K], codec: BinaryCodec[V]): RedisCache[F, K, V] =
     apply(new JedisPool(host, port))
 
-  /**
-    * Create a cache that uses the given Jedis client pool
-    * @param jedisPool a Jedis pool
+  /** Create a cache that uses the given Jedis client pool
+    * @param jedisPool
+    *   a Jedis pool
     */
-  def apply[F[_]: Sync: MonadCancelThrow, V](
+  def apply[F[_]: Sync, K, V](
       jedisPool: JedisPool
-  )(implicit config: CacheConfig, codec: Codec[V]): RedisCache[F, V] =
-    new RedisCache[F, V](jedisPool)
+  )(implicit keyEncoder: BinaryEncoder[K], codec: BinaryCodec[V]): RedisCache[F, K, V] =
+    new RedisCache[F, K, V](jedisPool)
 
 }

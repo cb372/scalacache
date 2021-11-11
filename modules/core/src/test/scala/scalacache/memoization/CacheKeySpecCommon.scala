@@ -8,7 +8,7 @@ import org.scalatest.matchers.should.Matchers
 
 trait CacheKeySpecCommon extends Suite with Matchers with BeforeAndAfter {
 
-  implicit def config: CacheConfig
+  implicit lazy val config: MemoizationConfig = scalacache.memoization.MemoizationConfig.defaultMemoizationConfig
 
   implicit lazy val cache: MockCache[SyncIO, Int] = new MockCache()
 
@@ -16,7 +16,7 @@ trait CacheKeySpecCommon extends Suite with Matchers with BeforeAndAfter {
     cache.mmap.clear()
   }
 
-  def checkCacheKey(expectedKey: String)(call: => Int) {
+  def checkCacheKey(expectedKey: String)(call: => Int): Unit = {
     // Run the memoize block, putting some value into the cache
     val value = call
 
@@ -50,7 +50,7 @@ trait CacheKeySpecCommon extends Suite with Matchers with BeforeAndAfter {
 
 }
 
-class AClass[F[_]](implicit cache: Cache[F, Int]) {
+class AClass[F[_]]()(implicit cache: Cache[F, String, Int], config: MemoizationConfig) {
   def insideClass(a: Int): F[Int] = memoize(None) {
     123
   }
@@ -70,7 +70,8 @@ class AClass[F[_]](implicit cache: Cache[F, Int]) {
 }
 
 trait ATrait[F[_]] {
-  implicit val cache: Cache[F, Int]
+  implicit val cache: Cache[F, String, Int]
+  implicit val config: MemoizationConfig
 
   def insideTrait(a: Int): F[Int] = memoize(None) {
     123
@@ -78,21 +79,24 @@ trait ATrait[F[_]] {
 }
 
 object AnObject {
-  implicit var cache: Cache[SyncIO, Int] = null
+  implicit var cache: Cache[SyncIO, String, Int] = null
+  implicit var config: MemoizationConfig         = null
   def insideObject(a: Int): SyncIO[Int] = memoize(None) {
     123
   }
 }
 
 class ClassWithConstructorParams[F[_]](b: Int) {
-  implicit var cache: Cache[F, Int] = null
+  implicit var cache: Cache[F, String, Int] = null
+  implicit var config: MemoizationConfig    = null
   def foo(a: Int): F[Int] = memoize(None) {
     a + b
   }
 }
 
 class ClassWithExcludedConstructorParam[F[_]](b: Int, @cacheKeyExclude c: Int) {
-  implicit var cache: Cache[F, Int] = null
+  implicit var cache: Cache[F, String, Int] = null
+  implicit var config: MemoizationConfig    = null
   def foo(a: Int): F[Int] = memoize(None) {
     a + b + c
   }

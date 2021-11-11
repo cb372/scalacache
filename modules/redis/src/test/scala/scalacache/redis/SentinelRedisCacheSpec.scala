@@ -8,6 +8,8 @@ import scala.util.{Failure, Success, Try}
 import scalacache._
 import scalacache.serialization.Codec
 import cats.effect.IO
+import scalacache.serialization.binary.BinaryCodec
+import scalacache.serialization.binary.StringBinaryCodec
 
 class SentinelRedisCacheSpec extends RedisCacheSpecBase {
 
@@ -16,18 +18,17 @@ class SentinelRedisCacheSpec extends RedisCacheSpecBase {
 
   val withJedis = assumingRedisSentinelIsRunning _
 
-  def constructCache[V](pool: JPool)(implicit codec: Codec[V]): CacheAlg[IO, V] =
-    new SentinelRedisCache[IO, V](jedisPool = pool)
+  def constructCache[V](pool: JPool)(implicit codec: BinaryCodec[V]): Cache[IO, String, V] =
+    new SentinelRedisCache[IO, String, V](jedisPool = pool)
 
   def flushRedis(client: JClient): Unit = client.underlying.flushDB()
 
-  /**
-    * This assumes that Redis master with name "master" and password "master-local" is running,
-    * and a sentinel is also running with to monitor this master on port 26379.
+  /** This assumes that Redis master with name "master" and password "master-local" is running, and a sentinel is also
+    * running with to monitor this master on port 26379.
     */
   def assumingRedisSentinelIsRunning(f: (JedisSentinelPool, JedisClient) => Unit): Unit = {
     Try {
-      val jedisPool = new JedisSentinelPool("master", Set("127.0.0.1:26379").asJava, new GenericObjectPoolConfig)
+      val jedisPool = new JedisSentinelPool("master", Set("127.0.0.1:26379").asJava, new GenericObjectPoolConfig[Jedis])
       val jedis     = jedisPool.getResource()
       jedis.ping()
       (jedisPool, new JedisClient(jedis))
