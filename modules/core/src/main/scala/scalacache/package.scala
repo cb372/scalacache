@@ -1,5 +1,20 @@
+/*
+ * Copyright 2021 scalacache
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import scala.concurrent.duration.Duration
-import scala.language.higherKinds
 
 package object scalacache {
 
@@ -68,16 +83,12 @@ package object scalacache {
   def remove[F[_], K, V](key: K)(implicit cache: Cache[F, K, V]): F[Unit] =
     cache.remove(key)
 
-  final class RemoveAll[K, V] {
-    def apply[F[_]]()(implicit cache: Cache[F, K, V]): F[Unit] = cache.removeAll
-  }
-
   /** Remove all values from the cache.
     *
     * @tparam V
     *   The type of values to be removed
     */
-  def removeAll[K, V]: RemoveAll[K, V] = new RemoveAll[K, V]
+  def removeAll[K, V]: syntax.RemoveAll[K, V] = new syntax.RemoveAll[K, V]
 
   /** Wrap the given block with a caching decorator. First look in the cache. If the value is found, then return it
     * immediately. Otherwise run the block and save the result in the cache before returning it.

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 scalacache
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package scalacache.redis
 
 import java.nio.charset.StandardCharsets
@@ -18,7 +34,7 @@ class RedisSerializationSpec extends AnyFlatSpec with Matchers with RedisSeriali
 
   it should "round-trip a byte array" in {
     val bytes = serialize("world".getBytes("UTF-8"))
-    deserialize[Array[Byte]](bytes).right.map(new String(_, StandardCharsets.UTF_8)) should be(Right("world"))
+    deserialize[Array[Byte]](bytes).map(new String(_, StandardCharsets.UTF_8)) should be(Right("world"))
   }
 
   it should "round-trip an Int" in {
