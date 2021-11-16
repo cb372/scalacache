@@ -200,3 +200,5 @@ ThisBuild / githubWorkflowEnv ++= List("PGP_PASSPHRASE", "PGP_SECRET", "SONATYPE
   envKey =>
     envKey -> s"$${{ secrets.$envKey }}"
 }.toMap
+ThisBuild / spiewakCiReleaseSnapshots := true
+ThisBuild / spiewakMainBranches := Seq("master")
