@@ -41,13 +41,16 @@ lazy val core =
     .settings(
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
-        "org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0",
         "org.slf4j"      % "slf4j-api"   % "1.7.32",
         "org.typelevel" %% "cats-effect" % CatsEffectVersion,
         scalatest,
         scalacheck
-      ) ++ (if (scalaVersion.value.startsWith("2.")) Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
-            else Nil),
+      ) ++ (if (scalaVersion.value.startsWith("2.")) {
+        Seq(
+          "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+          "org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0"
+          )
+      } else Nil),
       coverageMinimum       := 60,
       coverageFailOnMinimum := true
     )
