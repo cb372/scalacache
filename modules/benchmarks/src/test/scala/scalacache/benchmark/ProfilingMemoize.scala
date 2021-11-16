@@ -7,6 +7,7 @@ import scalacache.caffeine._
 import scalacache.memoization._
 import cats.effect.SyncIO
 import cats.effect.Clock
+import scala.annotation.nowarn
 
 /** Just runs forever, endlessly calling memoize, so Java Flight Recorder can output sampling data.
   */
@@ -19,6 +20,7 @@ object ProfilingMemoize extends App {
   val key           = "key"
   val value: String = "value"
 
+  @nowarn
   def itemCachedMemoize(key: String): String =
     memoize(None) {
       value

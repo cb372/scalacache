@@ -11,6 +11,7 @@ import caffeine._
 import memoization._
 import cats.effect.SyncIO
 import cats.effect.Clock
+import scala.annotation.nowarn
 
 @State(Scope.Thread)
 class CaffeineBenchmark {
@@ -28,6 +29,7 @@ class CaffeineBenchmark {
     cache.get(key).unsafeRunSync()
   }
 
+  @nowarn
   def itemCachedMemoize(key: String): String =
     memoize(None) {
       value
