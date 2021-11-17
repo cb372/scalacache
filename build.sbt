@@ -136,6 +136,7 @@ lazy val docs = createModule("docs")
 lazy val benchmarks = createModule("benchmarks")
   .enablePlugins(JmhPlugin)
   .settings(
+    githubWorkflowArtifactUpload := false,
     publishArtifact        := false,
     fork in (Compile, run) := true,
     javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking"),
@@ -176,29 +177,14 @@ lazy val mavenSettings = Seq(
 val Scala30  = "3.1.0"
 val Scala213 = "2.13.7"
 val Scala212 = "2.12.15"
-val Jdk11    = "openjdk@1.11.0"
 
-ThisBuild / scalaVersion               := Scala213
-ThisBuild / crossScalaVersions         := Seq(Scala213, Scala212, Scala30)
-ThisBuild / githubWorkflowJavaVersions := Seq(Jdk11)
+ThisBuild / scalaVersion        := Scala213
+ThisBuild / crossScalaVersions  := Seq(Scala213, Scala212, Scala30)
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check Formatting")),
   WorkflowStep.Run(List("docker-compose up -d"), name = Some("Setup Dependencies")),
-  WorkflowStep.Sbt(List("test"), name = Some("Run Tests")),
-  WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Compile Docs")),
-  WorkflowStep.Sbt(List("benchmarks/compile"), name = Some("Compile Benchmarks")),
-  WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check Binary Compat"))
+  WorkflowStep.Sbt(List("ci"), name = Some("Run ci task from sbt-spiewak")),
+  WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Compile Docs"))
 )
-//sbt-ci-release settings
-ThisBuild / githubWorkflowPublishTargetBranches := Seq(
-  RefPredicate.Equals(Ref.Branch("master")),
-  RefPredicate.StartsWith(Ref.Tag("v"))
-)
-ThisBuild / githubWorkflowPublishPreamble := Seq(WorkflowStep.Use(UseRef.Public("olafurpg", "setup-gpg", "v3")))
-ThisBuild / githubWorkflowPublish         := Seq(WorkflowStep.Sbt(List("ci-release")))
-ThisBuild / githubWorkflowEnv ++= List("PGP_PASSPHRASE", "PGP_SECRET", "SONATYPE_PASSWORD", "SONATYPE_USERNAME").map {
-  envKey =>
-    envKey -> s"$${{ secrets.$envKey }}"
-}.toMap
 ThisBuild / spiewakCiReleaseSnapshots := true
 ThisBuild / spiewakMainBranches := Seq("master")
