@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 scalacache
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package scalacache.serialization
 
 import io.circe.Json
@@ -7,6 +23,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import scalacache.serialization.binary.BinaryCodec
+import org.scalatest.compatible.Assertion
 
 case class Fruit(name: String, tastinessQuotient: Double)
 
@@ -16,12 +33,12 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenProp
 
   import scalacache.serialization.circe._
 
-  private def serdesCheck[A: Arbitrary](expectedJson: A => String)(implicit codec: BinaryCodec[A]): Unit = {
+  private def serdesCheck[A: Arbitrary](expectedJson: A => String)(implicit codec: BinaryCodec[A]): Assertion = {
     forAll(minSuccessful(10000)) { (a: A) =>
       val serialised = codec.encode(a)
       new String(serialised, "utf-8") shouldBe expectedJson(a)
       val deserialised = codec.decode(serialised)
-      deserialised.right.get shouldBe a
+      deserialised.toOption.get shouldBe a
     }
   }
 
@@ -69,7 +86,7 @@ class CirceCodecSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenProp
     val serialised = fruitCodec.encode(banana)
     new String(serialised, "utf-8") shouldBe """{"name":"banana","tastinessQuotient":0.7}"""
     val deserialised = fruitCodec.decode(serialised)
-    deserialised.right.get shouldBe banana
+    deserialised.toOption.get shouldBe banana
   }
 
 }

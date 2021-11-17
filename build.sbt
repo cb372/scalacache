@@ -1,6 +1,8 @@
 inThisBuild(
   List(
+    baseVersion := "1.0",
     organization := "com.github.cb372",
+    organizationName := "scalacache",
     homepage     := Some(url("https://github.com/cb372/scalacache")),
     licenses     := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     developers := List(
@@ -19,6 +21,7 @@ val CatsEffectVersion = "3.2.9"
 scalafmtOnCompile in ThisBuild := true
 
 lazy val root: Project = Project(id = "scalacache", base = file("."))
+  .enablePlugins(SonatypeCiReleasePlugin)
   .settings(
     commonSettings,
     publishArtifact := false
@@ -42,8 +45,12 @@ lazy val core =
         "org.typelevel" %% "cats-effect" % CatsEffectVersion,
         scalatest,
         scalacheck
-      ) ++ (if (scalaVersion.value.startsWith("2.")) Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
-            else Nil),
+      ) ++ (if (scalaVersion.value.startsWith("2.")) {
+        Seq(
+          "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+          "org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0"
+          )
+      } else Nil),
       coverageMinimum       := 60,
       coverageFailOnMinimum := true
     )
@@ -155,7 +162,7 @@ lazy val commonSettings =
   mavenSettings ++
     Seq(
       organization := "com.github.cb372",
-      scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-language:higherKinds"),
+      scalacOptions ++= Seq("-language:higherKinds", "-language:postfixOps"),
       parallelExecution in Test := false
     )
 
@@ -179,10 +186,10 @@ ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Run(List("docker-compose up -d"), name = Some("Setup Dependencies")),
   WorkflowStep.Sbt(List("test"), name = Some("Run Tests")),
   WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Compile Docs")),
-  WorkflowStep.Sbt(List("benchmarks/compile"), name = Some("Compile Benchmarks"))
+  WorkflowStep.Sbt(List("benchmarks/compile"), name = Some("Compile Benchmarks")),
+  WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check Binary Compat"))
 )
 //sbt-ci-release settings
-ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
 ThisBuild / githubWorkflowPublishTargetBranches := Seq(
   RefPredicate.Equals(Ref.Branch("master")),
   RefPredicate.StartsWith(Ref.Tag("v"))
@@ -193,3 +200,5 @@ ThisBuild / githubWorkflowEnv ++= List("PGP_PASSPHRASE", "PGP_SECRET", "SONATYPE
   envKey =>
     envKey -> s"$${{ secrets.$envKey }}"
 }.toMap
+ThisBuild / spiewakCiReleaseSnapshots := true
+ThisBuild / spiewakMainBranches := Seq("master")

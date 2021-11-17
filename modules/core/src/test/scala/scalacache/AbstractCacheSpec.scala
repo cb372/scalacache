@@ -1,11 +1,25 @@
+/*
+ * Copyright 2021 scalacache
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package scalacache
 
 import org.scalatest.BeforeAndAfter
 
 import scala.concurrent.duration._
-import scala.language.postfixOps
 
-import scala.util.{Success, Try}
 import cats.effect.SyncIO
 import cats.implicits._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -34,12 +48,12 @@ class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
   }
 
   it should "conditionally call doGet on the concrete cache depending on the readsEnabled flag" in {
-    def possiblyGetFromCache(key: String): Unit = {
+    def possiblyGetFromCache(key: String): Option[String] = {
       implicit def flags: Flags = Flags(readsEnabled = (key == "foo"))
       cache.get(key).unsafeRunSync()
     }
-    possiblyGetFromCache("foo")
-    possiblyGetFromCache("bar")
+    possiblyGetFromCache("foo"): Unit
+    possiblyGetFromCache("bar"): Unit
     cache.getCalledWithArgs.size should be(1)
     cache.getCalledWithArgs(0) should be("foo")
   }
@@ -81,7 +95,7 @@ class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
       .unsafeRunSync()
 
     cache.getCalledWithArgs(0) should be("myKey")
-    cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
+    cache.putCalledWithArgs(0) should be(("myKey", "result of block", None))
     called should be(true)
     result should be("result of block")
   }
@@ -96,7 +110,7 @@ class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
       .unsafeRunSync()
 
     cache.getCalledWithArgs(0) should be("myKey")
-    cache.putCalledWithArgs(0) should be("myKey", "result of block", Some(5 seconds))
+    cache.putCalledWithArgs(0) should be(("myKey", "result of block", Some(5 seconds)))
     called should be(true)
     result should be("result of block")
   }
@@ -132,7 +146,7 @@ class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
       .unsafeRunSync()
 
     cache.getCalledWithArgs(0) should be("myKey")
-    cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
+    cache.putCalledWithArgs(0) should be(("myKey", "result of block", None))
     called should be(true)
     tResult should be("result of block")
   }
@@ -168,7 +182,7 @@ class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
       .unsafeRunSync()
 
     cache.getCalledWithArgs(0) should be("myKey")
-    cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
+    cache.putCalledWithArgs(0) should be(("myKey", "result of block", None))
     called should be(true)
     result should be("result of block")
   }
@@ -208,7 +222,7 @@ class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
     called should be(true)
     result should be("result of block")
 
-    cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
+    cache.putCalledWithArgs(0) should be(("myKey", "result of block", None))
   }
 
   it should "run the block but not cache its result if cache writes are disabled" in {
@@ -247,7 +261,7 @@ class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
     called should be(true)
     result should be("result of block")
 
-    cache.putCalledWithArgs(0) should be("myKey", "result of block", None)
+    cache.putCalledWithArgs(0) should be(("myKey", "result of block", None))
   }
 
   it should "run the block but not cache its result if cache writes are disabled" in {

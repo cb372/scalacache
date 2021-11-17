@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 scalacache
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package scalacache.memoization
 
 /** Converts information about a method call to a String for use in a cache key
@@ -34,7 +50,7 @@ object MethodCallToStringConverter {
   private def appendClassNamePart(sb: JStringBuilder)(className: String): Unit = {
     if (className.nonEmpty) {
       sb.append(className.stripSuffix("$"))
-      sb.append('.')
+      val _ = sb.append('.')
     }
   }
 
@@ -44,7 +60,7 @@ object MethodCallToStringConverter {
     if (className.nonEmpty) {
       sb.append(className.stripSuffix("$"))
       appendParamssPart(sb)(constructorParamss)
-      sb.append('.')
+      val _ = sb.append('.')
     }
   }
 
@@ -70,8 +86,7 @@ object MethodCallToStringConverter {
     if (i < params.size) {
       sb.append(params(i))
     }
-    sb.append(')')
-    sb.toString
+    val _ = sb.append(')')
   }
 
   /** A converter that builds keys of the form: "package.class.method(arg, ...)(arg, ...)..." e.g.

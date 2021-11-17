@@ -13,7 +13,7 @@ ScalaCache provides efficient `Codec` instances for all primitive types, and als
 
 To use this codec, you need one import:
 
-```scala mdoc:silent
+```scala mdoc:fail:silent
 import scalacache.serialization.binary._
 ```
 
@@ -29,7 +29,7 @@ libraryDependencies += "com.github.cb372" %% "scalacache-circe" % "0.28.0"
 
 Then import the codec:
 
-```scala mdoc:silent
+```scala mdoc:fail:silent
 import scalacache.serialization.circe._
 ```
 

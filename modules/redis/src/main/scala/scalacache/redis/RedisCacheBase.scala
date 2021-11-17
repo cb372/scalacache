@@ -1,9 +1,23 @@
+/*
+ * Copyright 2021 scalacache
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package scalacache.redis
 
 import redis.clients.jedis.commands.BinaryJedisCommands
 import redis.clients.jedis.util.Pool
-
-import java.io.Closeable
 
 import scalacache.logging.Logger
 import scalacache.serialization.Codec
@@ -34,7 +48,7 @@ trait RedisCacheBase[F[_], K, V] extends AbstractCache[F, K, V] {
       val bytes = jedis.get(keyEncoder.encode(key))
       val result: Codec.DecodingResult[Option[V]] = {
         if (bytes != null)
-          codec.decode(bytes).right.map(Some(_))
+          codec.decode(bytes).map(Some(_))
         else
           Right(None)
       }
@@ -60,17 +74,17 @@ trait RedisCacheBase[F[_], K, V] extends AbstractCache[F, K, V] {
               s"Because Redis (pre 2.6.12) does not support sub-second expiry, TTL of $d will be rounded up to 1 second"
             )
           } *> F.delay {
-            jedis.setex(keyBytes, 1, valueBytes)
+            jedis.setex(keyBytes, 1L, valueBytes)
           }
         case Some(d) =>
-          F.delay(jedis.setex(keyBytes, d.toSeconds.toInt, valueBytes))
+          F.delay(jedis.setex(keyBytes, d.toSeconds.toLong, valueBytes))
       }
     } *> logCachePut(key, ttl)
   }
 
   protected def doRemove(key: K): F[Unit] = {
     withJedis { jedis =>
-      F.delay(jedis.del(keyEncoder.encode(key)))
+      F.delay(jedis.del(keyEncoder.encode(key))).void
     }
   }
 

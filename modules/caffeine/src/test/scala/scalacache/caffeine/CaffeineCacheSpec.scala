@@ -1,18 +1,30 @@
+/*
+ * Copyright 2021 scalacache
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package scalacache.caffeine
 
 import java.time.Instant
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 import cats.effect.Clock
 import cats.effect.IO
 import cats.effect.Sync
-import cats.effect.SyncIO
 import cats.effect.testkit.TestContext
 import cats.effect.testkit.TestInstances
-import cats.effect.unsafe.IORuntime
-import cats.effect.unsafe.Scheduler
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.scalatest.BeforeAndAfter
 import org.scalatest.concurrent.ScalaFutures
@@ -61,9 +73,8 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
     newIOCache(underlying).get(MyInt(2)).map(_ shouldBe None)
   }
 
-  it should "return None if the given key exists but the value has expired" in ticked { ticker =>
+  it should "return None if the given key exists but the value has expired" in ticked { _ =>
     Clock[IO].monotonic.flatMap { now =>
-      val ctx        = ticker.ctx
       val underlying = newCCache
       val expiredEntry =
         Entry("hello", expiresAt = Some(Instant.ofEpochMilli(now.toMillis).minusSeconds(60)))
@@ -72,9 +83,8 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
     }
   }
 
-  it should "return the value stored in the underlying cache if the value has not expired" in ticked { ticker =>
+  it should "return the value stored in the underlying cache if the value has not expired" in ticked { _ =>
     Clock[IO].monotonic.flatMap { now =>
-      val ctx        = ticker.ctx
       val underlying = newCCache
       val expiredEntry =
         Entry("hello", expiresAt = Some(Instant.ofEpochMilli(now.toMillis).plusSeconds(60)))
@@ -140,17 +150,16 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
 
   behavior of "get after put with TTL"
 
-  it should "store the given key-value pair with the given TTL, then get it back when not expired" in ticked {
-    implicit ticker =>
-      val underlying = newCCache
-      val cache      = newFCache[IO, String](underlying)
+  it should "store the given key-value pair with the given TTL, then get it back when not expired" in ticked { _ =>
+    val underlying = newCCache
+    val cache      = newFCache[IO, String](underlying)
 
-      cache.put(MyInt(1))("hello", Some(5.seconds)) *>
-        cache.get(MyInt(1)).map { _ shouldBe defined }
+    cache.put(MyInt(1))("hello", Some(5.seconds)) *>
+      cache.get(MyInt(1)).map { _ shouldBe defined }
   }
 
   it should "store the given key-value pair with the given TTL, then get it back (after a sleep) when not expired" in ticked {
-    implicit ticker =>
+    _ =>
       val underlying = newCCache
       val cache      = newFCache[IO, String](underlying)
 
@@ -160,7 +169,7 @@ class CaffeineCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter wi
   }
 
   it should "store the given key-value pair with the given TTL, then return None if the entry has expired" in ticked {
-    implicit ticker =>
+    _ =>
       val underlying = newCCache
       val cache      = newFCache[IO, String](underlying)
 

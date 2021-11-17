@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
-package scalacache.serialization
+package scalacache
 
-package object binary extends BinaryPrimitiveCodecs with BinaryAnyRefCodecs_0
+object syntax {
+
+  final class RemoveAll[K, V] {
+    def apply[F[_]]()(implicit cache: Cache[F, K, V]): F[Unit] = cache.removeAll
+  }
+
+}
