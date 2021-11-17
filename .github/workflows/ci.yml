@@ -15,11 +15,10 @@ on:
     tags: [v*]
 
 env:
-  PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-  SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-  SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-  PGP_SECRET: ${{ secrets.PGP_SECRET }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+  SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+  PGP_SECRET: ${{ secrets.PGP_SECRET }}
 
 jobs:
   build:
@@ -62,20 +61,14 @@ jobs:
       - name: Setup Dependencies
         run: docker-compose up -d
 
-      - name: Run Tests
-        run: sbt ++${{ matrix.scala }} test
+      - name: Run ci task from sbt-spiewak
+        run: sbt ++${{ matrix.scala }} ci
 
       - name: Compile Docs
         run: sbt ++${{ matrix.scala }} docs/mdoc
 
-      - name: Compile Benchmarks
-        run: sbt ++${{ matrix.scala }} benchmarks/compile
-
-      - name: Check Binary Compat
-        run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
-
       - name: Compress target directories
-        run: tar cf targets.tar modules/benchmarks/target target modules/docs/target modules/tests/target modules/caffeine/target modules/memcached/target modules/circe/target modules/redis/target modules/core/target project/target
+        run: tar cf targets.tar target modules/docs/target modules/tests/target modules/caffeine/target modules/memcached/target modules/circe/target modules/redis/target modules/core/target project/target
 
       - name: Upload target directories
         uses: actions/upload-artifact@v2
@@ -86,7 +79,7 @@ jobs:
   publish:
     name: Publish Artifacts
     needs: [build]
-    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
+    if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master')
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -146,6 +139,7 @@ jobs:
           tar xf targets.tar
           rm targets.tar
 
-      - uses: olafurpg/setup-gpg@v3
+      - name: Import signing key
+        run: echo $PGP_SECRET | base64 -d | gpg --import
 
-      - run: sbt ++${{ matrix.scala }} ci-release
+      - run: sbt ++${{ matrix.scala }} release
