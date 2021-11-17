@@ -177,10 +177,12 @@ lazy val mavenSettings = Seq(
 val Scala30  = "3.1.0"
 val Scala213 = "2.13.7"
 val Scala212 = "2.12.15"
+val Jdk11    = "openjdk@1.11.0"
 
-ThisBuild / scalaVersion        := Scala213
-ThisBuild / crossScalaVersions  := Seq(Scala213, Scala212, Scala30)
-ThisBuild / githubWorkflowBuild := Seq(
+ThisBuild / scalaVersion               := Scala213
+ThisBuild / crossScalaVersions         := Seq(Scala213, Scala212, Scala30)
+ThisBuild / githubWorkflowJavaVersions := Seq(Jdk11)
+ThisBuild / githubWorkflowBuild        := Seq(
   WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check Formatting")),
   WorkflowStep.Run(List("docker-compose up -d"), name = Some("Setup Dependencies")),
   WorkflowStep.Sbt(List("ci"), name = Some("Run ci task from sbt-spiewak")),
