@@ -189,5 +189,11 @@ ThisBuild / githubWorkflowBuild        := Seq(
   WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Compile Docs"))
 )
 ThisBuild / githubWorkflowEnv += ("GPG_TTY" -> "$(tty)")
+ThisBuild / githubWorkflowPublishPreamble := Seq(
+  WorkflowStep.Run(
+    List("echo $PGP_SECRET | base64 -d | gpg --batch --import"),
+    name = Some("Import signing key")
+  )
+)
 ThisBuild / spiewakCiReleaseSnapshots := true
 ThisBuild / spiewakMainBranches := Seq("master")
