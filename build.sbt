@@ -188,5 +188,6 @@ ThisBuild / githubWorkflowBuild        := Seq(
   WorkflowStep.Sbt(List("ci"), name = Some("Run ci task from sbt-spiewak")),
   WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Compile Docs"))
 )
+ThisBuild / githubWorkflowEnv += ("GPG_TTY" -> "$(tty)")
 ThisBuild / spiewakCiReleaseSnapshots := true
 ThisBuild / spiewakMainBranches := Seq("master")
