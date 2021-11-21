@@ -22,12 +22,12 @@ package object scalacache {
     *
     * @param cache
     *   The cache
-    * @param mode
-    *   The operation mode, which decides the type of container in which to wrap the result
     * @param flags
     *   Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F
-    *   The type of container in which the result will be wrapped. This is decided by the mode.
+    *   The type of container in which the result will be wrapped.
+    * @tparam K
+    *   The type of the key
     * @tparam V
     *   The type of the corresponding value
     * @return
@@ -40,21 +40,20 @@ package object scalacache {
     *
     * Depending on the cache implementation, this may be done synchronously or asynchronously, so it returns a Future.
     *
-    * @param keyParts
-    *   Data to be used to generate the cache key. This could be as simple as just a single String. See
-    *   [[CacheKeyBuilder]].
+    * @param key
+    *   the key of the value to be cached
     * @param value
     *   the value to be cached
     * @param ttl
     *   Time To Live (optional, if not specified then the entry will be cached indefinitely)
     * @param cache
     *   The cache
-    * @param mode
-    *   The operation mode, which decides the type of container in which to wrap the result
     * @param flags
     *   Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F
-    *   The type of container in which the result will be wrapped. This is decided by the mode.
+    *   The type of container in which the result will be wrapped.
+    * @tparam K
+    *   The type of the corresponding key
     * @tparam V
     *   The type of the corresponding value
     */
@@ -68,15 +67,14 @@ package object scalacache {
     *
     * Depending on the cache implementation, this may be done synchronously or asynchronously, so it returns a Future.
     *
-    * @param keyParts
-    *   Data to be used to generate the cache key. This could be as simple as just a single String. See
-    *   [[CacheKeyBuilder]].
+    * @param key
+    *   The key that references the cached value
     * @param cache
     *   The cache
-    * @param mode
-    *   The operation mode, which decides the type of container in which to wrap the result
     * @tparam F
-    *   The type of container in which the result will be wrapped. This is decided by the mode.
+    *   The type of container in which the result will be wrapped.
+    * @tparam K
+    *   The type of the value's key
     * @tparam V
     *   The type of the value to be removed
     */
@@ -95,9 +93,8 @@ package object scalacache {
     *
     * Note: If ttl is set to None, the result will be stored in the cache indefinitely.
     *
-    * @param keyParts
-    *   Data to be used to generate the cache key. This could be as simple as just a single String. See
-    *   [[CacheKeyBuilder]].
+    * @param key
+    *   Key to cache this item under
     * @param ttl
     *   The time-to-live to use when inserting into the cache. If specified, the cache entry will expire after this time
     *   has elapsed.
@@ -105,12 +102,12 @@ package object scalacache {
     *   The block to run
     * @param cache
     *   The cache
-    * @param mode
-    *   The operation mode, which decides the type of container in which to wrap the result
     * @param flags
     *   Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F
-    *   The type of container in which the result will be wrapped. This is decided by the mode.
+    *   The type of container in which the result will be wrapped.
+    * @tparam K
+    *   The type of the key
     * @tparam V
     *   the type of the block's result
     * @return
@@ -126,9 +123,8 @@ package object scalacache {
     *
     * Note: If ttl is set to None, the result will be stored in the cache indefinitely.
     *
-    * @param keyParts
-    *   Data to be used to generate the cache key. This could be as simple as just a single String. See
-    *   [[CacheKeyBuilder]].
+    * @param key
+    *   The key to cache under
     * @param ttl
     *   The time-to-live to use when inserting into the cache. If specified, the cache entry will expire after this time
     *   has elapsed.
@@ -136,12 +132,12 @@ package object scalacache {
     *   The block to run
     * @param cache
     *   The cache
-    * @param mode
-    *   The operation mode, which decides the type of container in which to wrap the result
     * @param flags
     *   Flags used to conditionally alter the behaviour of ScalaCache
     * @tparam F
-    *   The type of container in which the result will be wrapped. This is decided by the mode.
+    *   The type of container in which the result will be wrapped.
+    * @tparam K
+    *   The type of the key
     * @tparam V
     *   the type of the block's result
     * @return

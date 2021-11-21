@@ -38,8 +38,8 @@ sealed trait HashingAlgorithm {
         java.security.MessageDigest.getInstance(name)
     }
 
-  /** Returns a [[java.lang.ThreadLocal]] instance of [[MessageDigest]] that implements the hashing algorithm specified
-    * by the "name" string.
+  /** Returns a [[java.lang.ThreadLocal]] instance of [[java.security.MessageDigest]] that implements the hashing
+    * algorithm specified by the "name" string.
     *
     * Since it is an unshared [[java.lang.ThreadLocal]] instance, calling various methods on the
     * [[java.security.MessageDigest]] returned by this method is "thread-safe".
