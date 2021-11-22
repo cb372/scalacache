@@ -187,7 +187,7 @@ ThisBuild / githubWorkflowBuild        := Seq(
   WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check Formatting")),
   WorkflowStep.Run(List("docker-compose up -d"), name = Some("Setup Dependencies")),
   WorkflowStep.Sbt(List("ci"), name = Some("Run ci task from sbt-spiewak")),
-  WorkflowStep.Sbt(List("unidoc"), name = Some("Run unidoc"), cond = Some(s"matrix.scala == $Scala213")),
+  WorkflowStep.Sbt(List("unidoc"), name = Some("Run unidoc"), cond = Some(s"matrix.scala == '$Scala213'")),
   WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Compile Docs"))
 )
 ThisBuild / githubWorkflowEnv += ("GPG_TTY" -> "$(tty)")
