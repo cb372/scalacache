@@ -1,10 +1,10 @@
 inThisBuild(
   List(
-    baseVersion := "1.0",
-    organization := "com.github.cb372",
+    baseVersion      := "1.0",
+    organization     := "com.github.cb372",
     organizationName := "scalacache",
-    homepage     := Some(url("https://github.com/cb372/scalacache")),
-    licenses     := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    homepage         := Some(url("https://github.com/cb372/scalacache")),
+    licenses         := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     developers := List(
       Developer(
         "cb372",
@@ -46,11 +46,11 @@ lazy val core =
         scalatest,
         scalacheck
       ) ++ (if (scalaVersion.value.startsWith("2.")) {
-        Seq(
-          "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-          "org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0"
-          )
-      } else Nil),
+              Seq(
+                "org.scala-lang"          % "scala-reflect"           % scalaVersion.value,
+                "org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0"
+              )
+            } else Nil),
       coverageMinimum       := 60,
       coverageFailOnMinimum := true
     )
@@ -137,8 +137,8 @@ lazy val benchmarks = createModule("benchmarks")
   .enablePlugins(JmhPlugin)
   .settings(
     githubWorkflowArtifactUpload := false,
-    publishArtifact        := false,
-    fork in (Compile, run) := true,
+    publishArtifact              := false,
+    fork in (Compile, run)       := true,
     javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking"),
     javaOptions in (Test, run) ++= Seq(
       "-XX:+UnlockCommercialFeatures",
@@ -182,7 +182,7 @@ val Jdk11    = "openjdk@1.11.0"
 ThisBuild / scalaVersion               := Scala213
 ThisBuild / crossScalaVersions         := Seq(Scala213, Scala212, Scala30)
 ThisBuild / githubWorkflowJavaVersions := Seq(Jdk11)
-ThisBuild / githubWorkflowBuild        := Seq(
+ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("scalafmtCheckAll"), name = Some("Check Formatting")),
   WorkflowStep.Run(List("docker-compose up -d"), name = Some("Setup Dependencies")),
   WorkflowStep.Sbt(List("ci"), name = Some("Run ci task from sbt-spiewak")),
@@ -196,4 +196,4 @@ ThisBuild / githubWorkflowPublishPreamble := Seq(
   )
 )
 ThisBuild / spiewakCiReleaseSnapshots := true
-ThisBuild / spiewakMainBranches := Seq("master")
+ThisBuild / spiewakMainBranches       := Seq("master")
