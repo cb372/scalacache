@@ -65,6 +65,10 @@ jobs:
       - name: Run ci task from sbt-spiewak
         run: sbt ++${{ matrix.scala }} ci
 
+      - name: Run unidoc
+        if: matrix.scala == '2.13.7'
+        run: sbt ++${{ matrix.scala }} unidoc
+
       - name: Compile Docs
         run: sbt ++${{ matrix.scala }} docs/mdoc
 
