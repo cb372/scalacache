@@ -16,7 +16,7 @@ inThisBuild(
   )
 )
 
-val CatsEffectVersion = "3.3.0"
+val CatsEffectVersion = "3.3.1"
 
 scalafmtOnCompile in ThisBuild := true
 
