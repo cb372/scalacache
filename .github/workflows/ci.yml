@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.7, 2.12.15, 3.1.0]
+        scala: [2.13.8, 2.12.15, 3.1.0]
         java: [openjdk@1.11.0]
     runs-on: ${{ matrix.os }}
     steps:
@@ -66,7 +66,7 @@ jobs:
         run: sbt ++${{ matrix.scala }} ci
 
       - name: Run unidoc
-        if: matrix.scala == '2.13.7'
+        if: matrix.scala == '2.13.8'
         run: sbt ++${{ matrix.scala }} unidoc
 
       - name: Compile Docs
@@ -88,7 +88,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.7]
+        scala: [2.13.8]
         java: [openjdk@1.11.0]
     runs-on: ${{ matrix.os }}
     steps:
