@@ -42,7 +42,7 @@ lazy val core =
     .settings(
       moduleName := "scalacache-core",
       libraryDependencies ++= Seq(
-        "org.slf4j"      % "slf4j-api"   % "1.7.33",
+        "org.slf4j"      % "slf4j-api"   % "1.7.34",
         "org.typelevel" %% "cats-effect" % CatsEffectVersion,
         scalatest,
         scalacheck
