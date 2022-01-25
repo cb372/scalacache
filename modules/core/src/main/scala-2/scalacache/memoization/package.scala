@@ -35,8 +35,6 @@ package object memoization {
     *   Time-To-Live
     * @param f
     *   A function that computes some result. This result is the value that will be cached.
-    * @param mode
-    *   The operation mode, which decides the type of container in which to wrap the result
     * @param cache
     *   The cache
     * @param flags
@@ -65,8 +63,6 @@ package object memoization {
     *   Time-To-Live
     * @param f
     *   A function that computes some result wrapped in an `F`. This result is the value that will be cached.
-    * @param mode
-    *   The operation mode, which decides the type of container in which to wrap the result
     * @param cache
     *   The cache
     * @param flags
