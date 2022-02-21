@@ -24,14 +24,15 @@ import org.bson.BsonValue
 import org.bson.Document
 import org.mongodb.scala.{MongoClient => ScalaClient}
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.concurrent.IntegrationPatience
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Seconds, Span}
 import scalacache.serialization.Codec
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.bson.BsonCodec
 
+import scala.concurrent.duration._
 import java.time.Instant
 
 class MongoCacheSpec
@@ -39,7 +40,8 @@ class MongoCacheSpec
     with Matchers
     with BeforeAndAfterAll
     with ScalaFutures
-    with IntegrationPatience {
+    with IntegrationPatience
+    with Eventually {
 
   val collectionName = "Test-Cache"
   val databaseName   = "Test-Database"
@@ -61,7 +63,7 @@ class MongoCacheSpec
   }
 
   override def beforeAll() = {
-    collection.deleteMany(Filters.empty())
+    collection.drop()
   }
 
   override def afterAll() = {
@@ -90,6 +92,36 @@ class MongoCacheSpec
   it should "return None if the given key does not exist in the underlying cache" in {
     whenReady(mongoCache.get("non-existent-key").unsafeToFuture()) {
       _ should be(None)
+    }
+  }
+
+  behavior of "put"
+
+  it should "store the given key-value pair in the underlying cache" in {
+    whenReady(mongoCache.put("key2")(123, None).unsafeToFuture()) { _ =>
+      val document = collection.find(Filters.eq("_id", "key2")).first()
+
+      document.getInteger("value") should be(123)
+    }
+  }
+
+  behavior of "put with TTL"
+
+  it should "store the given key-value pair in the underlying cache" in {
+    whenReady(MongoCache[IO, Int](scalaClient, databaseName, collectionName).unsafeToFuture()) {
+      mongoCache =>
+      whenReady(mongoCache.put("key3")(123, Some(3.seconds)).unsafeToFuture()) { _ =>
+        val document = collection.find(Filters.eq("_id", "key3")).first()
+
+        document.getInteger("value") should be(123)
+
+        // mongoDB expiry checks do not run extremely often
+        eventually(timeout(Span(60, Seconds))) {
+          val document = collection.find(Filters.eq("_id", "key3")).first()
+
+          document should be(null)
+        }
+      }
     }
   }
 

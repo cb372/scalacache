@@ -18,12 +18,16 @@ package scalacache.mongo
 
 import cats.effect.Async
 import cats.syntax.all._
-import org.mongodb.scala.MongoClient
-import org.mongodb.scala.model.Filters
 import scalacache.AbstractCache
 import scalacache.logging.Logger
 import scalacache.serialization.bson.BsonCodec
+import org.mongodb.scala._
+import org.mongodb.scala.bson.BsonDateTime
+import org.mongodb.scala.model._
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 
 class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, collectionName: String)(implicit
@@ -54,7 +58,34 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
     }
   }
 
-  override protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = ???
+  override protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = {
+    F.realTimeInstant.flatMap { currentTime =>
+      F.fromFuture {
+        F.delay {
+          val document = Document(
+            "_id"   -> key,
+            "value" -> codec.encode(value)
+          )
+          val expiresAt = ttl
+            .map { ttl =>
+              val expiryTime = currentTime.plus(ttl.toMillis, ChronoUnit.MILLIS)
+
+              Document.builder
+                .addOne(
+                  "expiresAt" -> BsonDateTime(expiryTime.toEpochMilli)
+                )
+                .result()
+            }
+            .getOrElse(Document.empty)
+
+          collection
+            .insertOne(document ++ expiresAt)
+            .head()
+        }
+      }.void
+    }
+
+  }
 
   override protected def doRemove(key: String): F[Unit] = ???
 
@@ -70,4 +101,22 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
   override def close: F[Unit] = F.delay(client.close())
 }
 
-object MongoCache {}
+object MongoCache {
+  def apply[F[_]: Async, V](client: MongoClient, databaseName: String, collectionName: String)(implicit
+      codec: BsonCodec[V]
+  ): F[MongoCache[F, V]] = {
+    val collection = client
+      .getDatabase(databaseName)
+      .getCollection(collectionName)
+
+    val F = Async[F]
+
+    F.fromFuture {
+      F.delay {
+        collection
+          .createIndex(Indexes.ascending("expiresAt"), IndexOptions().expireAfter(0, TimeUnit.MILLISECONDS))
+          .head()
+      }
+    }.as(new MongoCache[F,V](client: MongoClient, databaseName: String, collectionName: String))
+  }
+}
