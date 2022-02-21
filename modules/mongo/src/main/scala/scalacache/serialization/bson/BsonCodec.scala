@@ -17,8 +17,9 @@
 package scalacache.serialization.bson
 
 import org.bson.BsonValue
-import scalacache.serialization.{Codec, Decoder, Encoder}
-import org.bson.conversions.Bson
+import scalacache.serialization.Codec
+import scalacache.serialization.Decoder
+import scalacache.serialization.Encoder
 
 trait BsonEncoder[T] extends Encoder[T, BsonValue] {
   override def encode(value: T): BsonValue

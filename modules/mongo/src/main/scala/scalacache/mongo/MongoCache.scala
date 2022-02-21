@@ -70,6 +70,4 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
   override def close: F[Unit] = F.delay(client.close())
 }
 
-object MongoCache {
-
-}
+object MongoCache {}
