@@ -16,14 +16,14 @@
 
 package scalacache.mongo
 
-import cats.effect.{Async, Sync}
+import cats.effect.Async
+import cats.syntax.all._
 import org.mongodb.scala.MongoClient
 import org.mongodb.scala.model.Filters
 import scalacache.AbstractCache
 import scalacache.logging.Logger
 import scalacache.serialization.bson.BsonCodec
 
-import java.time.Instant
 import scala.concurrent.duration.Duration
 
 class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, collectionName: String)(implicit
@@ -38,21 +38,18 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
     Logger.getLogger[F](getClass.getName)
 
   override protected def doGet(key: String): F[Option[V]] = {
-    F.fromFuture(
-      F.delay(
-        collection
-          .find(Filters.eq("_id", key))
-          .map { document =>
-            val valueField = document("value")
-            codec.decode(valueField) match {
-              case Left(decodingError) => throw decodingError
-              case Right(value)        => value
+    F.rethrow {
+      F.fromFuture {
+        F.delay {
+          collection
+            .find(Filters.eq("_id", key))
+            .map { document =>
+              codec.decode(document("value"))
             }
-          }
-          .headOption()
-      )
-    )
-
+            .headOption()
+        }
+      }.map(_.sequence)
+    }
   }
 
   override protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = ???

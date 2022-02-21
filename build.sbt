@@ -73,7 +73,6 @@ lazy val memcached = createModule("memcached")
     )
   )
 
-
 lazy val mongo = createModule("mongo")
   .settings(
     libraryDependencies ++= Seq(
