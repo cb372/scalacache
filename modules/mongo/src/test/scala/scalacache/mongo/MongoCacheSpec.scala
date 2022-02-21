@@ -37,9 +37,11 @@ class MongoCacheSpec
   val collection = database.getCollection(collectionName)
 
   implicit val bsonIntCodec: BsonCodec[Int] = new BsonCodec[Int] {
-    override def encode(value: Int): BsonValue = new BsonInt32(value)
+    override def encode(value: Int): BsonValue =
+      new BsonInt32(value)
 
-    override def decode(bytes: BsonValue): DecodingResult[Int] = Codec.tryDecode(bytes.asInt32().getValue)
+    override def decode(bytes: BsonValue): DecodingResult[Int] =
+      Codec.tryDecode(bytes.asInt32().getValue)
   }
 
   override def beforeAll() = {

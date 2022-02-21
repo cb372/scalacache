@@ -30,12 +30,14 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
     val codec: BsonCodec[V]
 ) extends AbstractCache[F, String, V] {
 
-  val collection = client.getDatabase(databaseName).getCollection(collectionName)
-
   protected def F: Async[F] = Async[F]
 
-  override protected final val logger =
+  protected final val logger =
     Logger.getLogger[F](getClass.getName)
+
+  private val collection = client
+    .getDatabase(databaseName)
+    .getCollection(collectionName)
 
   override protected def doGet(key: String): F[Option[V]] = {
     F.rethrow {
@@ -69,6 +71,5 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
 }
 
 object MongoCache {
-  // case class Entry[V](key: String, value: V, creationTime: Instant)
 
 }
