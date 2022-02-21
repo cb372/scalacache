@@ -33,7 +33,8 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
     redis,
     caffeine,
     circe,
-    tests
+    tests,
+    mongo
   )
 
 lazy val core =
@@ -69,6 +70,15 @@ lazy val memcached = createModule("memcached")
   .settings(
     libraryDependencies ++= Seq(
       "net.spy" % "spymemcached" % "2.12.3"
+    )
+  )
+
+
+lazy val mongo = createModule("mongo")
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.mongodb" % "mongodb-driver-sync" % "4.4.1" % Test,
+      "org.mongodb.scala" %% "mongo-scala-driver" % "4.4.1"
     )
   )
 
