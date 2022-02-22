@@ -29,7 +29,7 @@ trait Decoder[L, R] {
 
 /** Represents a type class that needs to be implemented for serialization/deserialization to work.
   */
-@implicitNotFound(msg = """Could not find any Codecs for types ${L, R}.
+@implicitNotFound(msg = """Could not find any Codecs for types ${L}, ${R}.
 If you would like to serialize values in a binary format, please import the binary codec:
 
 import scalacache.serialization.binary._

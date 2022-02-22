@@ -23,7 +23,15 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import scalacache.serialization.bson.BsonCodec
 
-case class Fruit(name: String, tastinessQuotient: Double)
+sealed abstract class Item                                extends Product with Serializable
+case class Fruit(name: String, tastinessQuotient: Double) extends Item
+case class Veg(name: String, tastinessQuotient: Double)   extends Item
+case class Purchase(item: Item, quantity: Int)
+case class Basket(contents: Set[Purchase])
+
+sealed abstract class FolderEntry                           extends Product with Serializable
+case class Folder(name: String, contents: Set[FolderEntry]) extends FolderEntry
+case class File(name: String)                               extends FolderEntry
 
 class BsonCirceCodecSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
@@ -88,5 +96,21 @@ class BsonCirceCodecSpec extends AnyFlatSpec with Matchers with ScalaCheckDriven
     val banana       = Fruit("banana", 0.7)
     val deserialised = fruitCodec.decode(fruitCodec.encode(banana))
     deserialised.toOption.get shouldBe banana
+  }
+
+  it should "serialize and deserialize a nested case class" in {
+    import io.circe.generic.auto._
+    val basketCodec  = implicitly[BsonCodec[Basket]]
+    val basket       = Basket(Set(Purchase(Fruit("banana", 0.7), 1), Purchase(Veg("carrot", 0.7), 2)))
+    val deserialised = basketCodec.decode(basketCodec.encode(basket))
+    deserialised.toOption.get shouldBe basket
+  }
+
+  it should "serialize and deserialize a recursive case class" in {
+    import io.circe.generic.auto._
+    val folderEntryCodec = implicitly[BsonCodec[FolderEntry]]
+    val folder = Folder("folder", Set(File("foo.txt"), Folder("subfolder", Set(File("bar.txt"))), File("baz.txt")))
+    val deserialised = folderEntryCodec.decode(folderEntryCodec.encode(folder))
+    deserialised.toOption.get shouldBe folder
   }
 }
