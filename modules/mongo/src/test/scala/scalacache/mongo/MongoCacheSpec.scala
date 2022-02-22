@@ -114,8 +114,9 @@ class MongoCacheSpec
 
         document.getInteger("value") should be(123)
 
-        // mongoDB expiry checks do not run extremely often
-        eventually(timeout(Span(60, Seconds))) {
+        // MongoDB TTL expiry checks do not run extremely often
+        // For more details see https://docs.mongodb.com/manual/core/index-ttl/#timing-of-the-delete-operation
+        eventually(timeout(Span(65, Seconds))) {
           val document = collection.find(Filters.eq("_id", "key3")).first()
 
           document should be(null)

@@ -95,7 +95,8 @@ trait BsonCirceCodec {
             else new BsonString(bd.toString)
           }
           .getOrElse {
-            new BsonString(value.toString)
+            // Should not be possible; these numbers are the result of encoding Java primitives
+            throw new NumberFormatException("For input string \"" + value.toString + "\"")
           }
       }
 

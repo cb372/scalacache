@@ -23,9 +23,9 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import scalacache.serialization.bson.BsonCodec
 
-sealed abstract class Item                                extends Product with Serializable
-case class Fruit(name: String, tastinessQuotient: Double) extends Item
-case class Veg(name: String, tastinessQuotient: Double)   extends Item
+sealed abstract class Item                                            extends Product with Serializable
+case class Fruit(name: String, tastinessQuotient: Option[BigDecimal]) extends Item
+case class Veg(name: String, tastinessQuotient: Option[BigDecimal])   extends Item
 case class Purchase(item: Item, quantity: Int)
 case class Basket(contents: Set[Purchase])
 
@@ -93,23 +93,36 @@ class BsonCirceCodecSpec extends AnyFlatSpec with Matchers with ScalaCheckDriven
   it should "serialize and deserialize a case class" in {
     import io.circe.generic.auto._
     val fruitCodec   = implicitly[BsonCodec[Fruit]]
-    val banana       = Fruit("banana", 0.7)
+    val banana       = Fruit("banana", Some(BigDecimal(0.7)))
     val deserialised = fruitCodec.decode(fruitCodec.encode(banana))
     deserialised.toOption.get shouldBe banana
   }
 
   it should "serialize and deserialize a nested case class" in {
     import io.circe.generic.auto._
-    val basketCodec  = implicitly[BsonCodec[Basket]]
-    val basket       = Basket(Set(Purchase(Fruit("banana", 0.7), 1), Purchase(Veg("carrot", 0.7), 2)))
+
+    val basketCodec = implicitly[BsonCodec[Basket]]
+
+    val basket = Basket(
+      Set(
+        Purchase(Fruit("banana", Some(BigDecimal(0.7))), 1),
+        Purchase(Veg("carrot", Some(BigDecimal(0.7))), 2),
+        Purchase(Fruit("mango", Some(BigDecimal("1" * 100))), 1),
+        Purchase(Fruit("strawberry", None), 10)
+      )
+    )
+
     val deserialised = basketCodec.decode(basketCodec.encode(basket))
     deserialised.toOption.get shouldBe basket
   }
 
   it should "serialize and deserialize a recursive case class" in {
     import io.circe.generic.auto._
+
     val folderEntryCodec = implicitly[BsonCodec[FolderEntry]]
+
     val folder = Folder("folder", Set(File("foo.txt"), Folder("subfolder", Set(File("bar.txt"))), File("baz.txt")))
+
     val deserialised = folderEntryCodec.decode(folderEntryCodec.encode(folder))
     deserialised.toOption.get shouldBe folder
   }
