@@ -20,11 +20,13 @@ import cats.effect.Async
 import cats.syntax.all._
 import org.mongodb.scala._
 import org.mongodb.scala.bson.BsonDateTime
+import org.mongodb.scala.bson.BsonNull
 import org.mongodb.scala.model._
 import scalacache.AbstractCache
 import scalacache.logging.Logger
 import scalacache.serialization.bson.BsonCodec
 
+import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
@@ -43,47 +45,54 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
     .getCollection(collectionName)
 
   override protected def doGet(key: String): F[Option[V]] = {
-    F.rethrow {
-      F.fromFuture {
-        F.delay {
-          collection
-            .find(Filters.eq("_id", key))
-            .map { document =>
-              codec.decode(document("value"))
-            }
-            .headOption()
+    val findAndDecode = F.delay {
+      collection
+        .find(Filters.eq("_id", key))
+        .map { document =>
+          codec.decode(document("value"))
         }
-      }.map(_.sequence)
+        .headOption()
     }
+
+    F.rethrow(
+      F.fromFuture(
+        findAndDecode
+      ).map(_.sequence)
+    )
+  }
+
+  private def makeCacheEntry(key: String, value: V, maybeTtl: Option[Duration], currentTime: Instant): Document = {
+    val expiresAt = maybeTtl
+      .map { ttl =>
+        val ttlInstant = currentTime.plus(ttl.toMillis, ChronoUnit.MILLIS)
+        BsonDateTime(ttlInstant.toEpochMilli)
+      }
+      .getOrElse {
+        BsonNull()
+      }
+
+    Document(
+      "_id"       -> key,
+      "value"     -> codec.encode(value),
+      "expiresAt" -> expiresAt
+    )
   }
 
   override protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = {
-    F.realTimeInstant.flatMap { currentTime =>
-      F.fromFuture {
-        F.delay {
-          val document = Document(
-            "_id"   -> key,
-            "value" -> codec.encode(value)
-          )
-          val expiresAt = ttl
-            .map { ttl =>
-              val expiryTime = currentTime.plus(ttl.toMillis, ChronoUnit.MILLIS)
+    for {
+      currentTime <- F.realTimeInstant
 
-              Document.builder
-                .addOne(
-                  "expiresAt" -> BsonDateTime(expiryTime.toEpochMilli)
-                )
-                .result()
-            }
-            .getOrElse(Document.empty)
+      cacheEntry = makeCacheEntry(key, value, ttl, currentTime)
 
-          collection
-            .insertOne(document ++ expiresAt)
-            .head()
-        }
-      }.void
-    }
+      encodeAndPut = F.delay {
+        collection
+          .insertOne(cacheEntry)
+          .head()
+      }
 
+      _ <- F.fromFuture(encodeAndPut)
+
+    } yield ()
   }
 
   override protected def doRemove(key: String): F[Unit] = ???
