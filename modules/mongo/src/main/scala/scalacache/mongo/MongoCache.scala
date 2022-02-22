@@ -18,14 +18,13 @@ package scalacache.mongo
 
 import cats.effect.Async
 import cats.syntax.all._
-import scalacache.AbstractCache
-import scalacache.logging.Logger
-import scalacache.serialization.bson.BsonCodec
 import org.mongodb.scala._
 import org.mongodb.scala.bson.BsonDateTime
 import org.mongodb.scala.model._
+import scalacache.AbstractCache
+import scalacache.logging.Logger
+import scalacache.serialization.bson.BsonCodec
 
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
@@ -102,21 +101,25 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
 }
 
 object MongoCache {
-  def apply[F[_]: Async, V](client: MongoClient, databaseName: String, collectionName: String)(implicit
+  def apply[F[_], V](client: MongoClient, databaseName: String, collectionName: String)(implicit
+      F: Async[F],
       codec: BsonCodec[V]
   ): F[MongoCache[F, V]] = {
     val collection = client
       .getDatabase(databaseName)
       .getCollection(collectionName)
 
-    val F = Async[F]
+    val indexName    = Indexes.ascending("expiresAt")
+    val indexOptions = IndexOptions().expireAfter(0, TimeUnit.MILLISECONDS)
 
-    F.fromFuture {
-      F.delay {
-        collection
-          .createIndex(Indexes.ascending("expiresAt"), IndexOptions().expireAfter(0, TimeUnit.MILLISECONDS))
-          .head()
-      }
-    }.as(new MongoCache[F,V](client: MongoClient, databaseName: String, collectionName: String))
+    val createIndex = F.delay {
+      collection
+        .createIndex(indexName, indexOptions)
+        .head()
+    }
+
+    val mongoCache = new MongoCache[F, V](client, databaseName, collectionName)
+
+    F.fromFuture(createIndex).as(mongoCache)
   }
 }

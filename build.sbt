@@ -17,6 +17,7 @@ inThisBuild(
 )
 
 val CatsEffectVersion = "3.3.5"
+val CirceVersion      = "0.14.1"
 
 scalafmtOnCompile in ThisBuild := true
 
@@ -34,7 +35,8 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
     caffeine,
     circe,
     tests,
-    mongo
+    mongo,
+    mongoCirce
   )
 
 lazy val core =
@@ -76,10 +78,21 @@ lazy val memcached = createModule("memcached")
 lazy val mongo = createModule("mongo")
   .settings(
     libraryDependencies ++= Seq(
-      "org.mongodb" % "mongodb-driver-sync" % "4.4.1" % Test,
-      "org.mongodb.scala" %% "mongo-scala-driver" % "4.4.1"
+      "org.mongodb"        % "mongodb-driver-sync" % "4.4.1" % Test,
+      "org.mongodb.scala" %% "mongo-scala-driver"  % "4.4.1"
     )
   )
+
+lazy val mongoCirce = createModule("mongo-circe")
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core"    % CirceVersion,
+      "io.circe" %% "circe-generic" % CirceVersion % Test,
+      scalacheck,
+      scalatestplus
+    )
+  )
+  .dependsOn(mongo)
 
 lazy val redis = createModule("redis")
   .settings(
@@ -104,9 +117,9 @@ lazy val caffeine = createModule("caffeine")
 lazy val circe = createModule("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core"    % "0.14.1",
-      "io.circe" %% "circe-parser"  % "0.14.1",
-      "io.circe" %% "circe-generic" % "0.14.1" % Test,
+      "io.circe" %% "circe-core"    % CirceVersion,
+      "io.circe" %% "circe-parser"  % CirceVersion,
+      "io.circe" %% "circe-generic" % CirceVersion % Test,
       scalacheck,
       scalatestplus
     ),
@@ -116,7 +129,7 @@ lazy val circe = createModule("circe")
 
 lazy val tests = createModule("tests")
   .settings(publishArtifact := false)
-  .dependsOn(caffeine, memcached, redis, circe)
+  .dependsOn(caffeine, memcached, redis, circe, mongo, mongoCirce)
 
 lazy val docs = createModule("docs")
   .enablePlugins(MicrositesPlugin)

@@ -108,8 +108,7 @@ class MongoCacheSpec
   behavior of "put with TTL"
 
   it should "store the given key-value pair in the underlying cache" in {
-    whenReady(MongoCache[IO, Int](scalaClient, databaseName, collectionName).unsafeToFuture()) {
-      mongoCache =>
+    whenReady(MongoCache[IO, Int](scalaClient, databaseName, collectionName).unsafeToFuture()) { mongoCache =>
       whenReady(mongoCache.put("key3")(123, Some(3.seconds)).unsafeToFuture()) { _ =>
         val document = collection.find(Filters.eq("_id", "key3")).first()
 
