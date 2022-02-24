@@ -17,7 +17,6 @@
 package integrationtests
 
 import java.util.UUID
-
 import org.scalatest._
 import cats.effect.{IO => CatsIO}
 import net.spy.memcached.{AddrUtil, MemcachedClient}
@@ -30,8 +29,15 @@ import scalacache.memcached.MemcachedCache
 import scalacache.redis.RedisCache
 import cats.effect.Clock
 import cats.effect.unsafe.implicits.global
+import com.mongodb.client.MongoClients
+import com.mongodb.{ConnectionString, MongoException}
+import org.bson.{BsonDocument, BsonInt64}
+import org.mongodb.scala.{MongoClient, MongoClientSettings}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scalacache.mongo.MongoCache
+
+import java.util.concurrent.TimeUnit
 
 class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
@@ -39,6 +45,12 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
 
   private val memcachedClient = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
   private val jedisPool       = new JedisPool("localhost", 6379)
+  private val mongoClientSettings = MongoClientSettings
+    .builder()
+    .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
+    .applyToSocketSettings(_.connectTimeout(5, TimeUnit.SECONDS))
+    .applyToClusterSettings(_.serverSelectionTimeout(5,TimeUnit.SECONDS))
+    .build()
 
   override def afterAll(): Unit = {
     memcachedClient.shutdown()
@@ -64,6 +76,15 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
     } catch {
       case NonFatal(_) => false
     }
+  }
+
+  private def mongoIsRunning = {
+    try {
+      MongoClients.create(mongoClientSettings)
+        .getDatabase("admin")
+        .runCommand(new BsonDocument("ping", new BsonInt64(1)))
+      true
+    } catch { case _: MongoException => false }
   }
 
   case class CacheBackend(name: String, cache: Cache[CatsIO, String, String])
@@ -101,7 +122,19 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
       Nil
     }
 
-  val backends: List[CacheBackend] = List(caffeine) ++ memcached ++ redis
+  private val mongo: Seq[CacheBackend] =
+    if (mongoIsRunning) {
+      Seq(
+        {
+          import scalacache.serialization.bson.circe._
+          CacheBackend("(Mongo) ⇔ (circe BSON codec)", MongoCache[CatsIO, String](mongoClientSettings, "scalacache-test", "cache").unsafeRunSync())
+        }
+      )
+    } else {
+      Seq.empty
+    }
+
+  val backends: List[CacheBackend] = List(caffeine) ++ memcached ++ redis ++ mongo
 
   for (CacheBackend(name, cache) <- backends) {
 

@@ -84,9 +84,11 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
 
       cacheEntry = makeCacheEntry(key, value, ttl, currentTime)
 
+      upsert = ReplaceOptions().upsert(true)
+
       encodeAndPut = F.delay {
         collection
-          .insertOne(cacheEntry)
+          .replaceOne(Filters.eq("_id", key), cacheEntry, upsert)
           .head()
       }
 
@@ -95,9 +97,21 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
     } yield ()
   }
 
-  override protected def doRemove(key: String): F[Unit] = ???
+  override protected def doRemove(key: String): F[Unit] = {
+    F.fromFuture {
+      F.delay {
+        collection.deleteOne(Filters.eq("_id", key)).head()
+      }
+    }.void
+  }
 
-  override protected def doRemoveAll: F[Unit] = ???
+  override protected def doRemoveAll: F[Unit] = {
+    F.fromFuture {
+      F.delay {
+        collection.deleteMany(Filters.empty()).head()
+      }
+    }.void
+  }
 
   /** You should call this when you have finished using this Cache. (e.g. when your application shuts down)
     *
@@ -110,6 +124,29 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
 }
 
 object MongoCache {
+  def apply[F[_], V](databaseName: String, collectionName: String)(implicit
+      F: Async[F],
+      codec: BsonCodec[V]
+  ): F[MongoCache[F, V]] = {
+    apply("mongodb://localhost:27017", databaseName, collectionName)
+  }
+
+  def apply[F[_], V](connectionString: String, databaseName: String, collectionName: String)(implicit
+      F: Async[F],
+      codec: BsonCodec[V]
+  ): F[MongoCache[F, V]] = {
+    val mongoClient = MongoClient(connectionString)
+    apply(mongoClient, databaseName, collectionName)
+  }
+
+  def apply[F[_], V](mongoClientSettings: MongoClientSettings, databaseName: String, collectionName: String)(implicit
+      F: Async[F],
+      codec: BsonCodec[V]
+  ): F[MongoCache[F, V]] = {
+    val mongoClient = MongoClient(mongoClientSettings)
+    apply(mongoClient, databaseName, collectionName)
+  }
+
   def apply[F[_], V](client: MongoClient, databaseName: String, collectionName: String)(implicit
       F: Async[F],
       codec: BsonCodec[V]
@@ -131,4 +168,5 @@ object MongoCache {
 
     F.fromFuture(createIndex).as(mongoCache)
   }
+
 }

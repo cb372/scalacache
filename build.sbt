@@ -128,7 +128,7 @@ lazy val circe = createModule("circe")
   )
 
 lazy val tests = createModule("tests")
-  .settings(publishArtifact := false)
+  .settings(publishArtifact := false, libraryDependencies += "org.mongodb" % "mongodb-driver-sync" % "4.4.1" % Test)
   .dependsOn(caffeine, memcached, redis, circe, mongo, mongoCirce)
 
 lazy val docs = createModule("docs")

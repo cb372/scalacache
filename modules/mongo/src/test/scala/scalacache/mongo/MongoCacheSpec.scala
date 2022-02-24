@@ -17,12 +17,12 @@
 package scalacache.mongo
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import com.mongodb.client.model.Filters
 import com.mongodb.client.{MongoClients => SyncClients}
-import org.bson.BsonInt32
-import org.bson.BsonValue
-import org.bson.Document
-import org.mongodb.scala.{MongoClient => ScalaClient}
+import com.mongodb.{ConnectionString, MongoException}
+import org.bson._
+import org.mongodb.scala.MongoClientSettings
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -32,8 +32,9 @@ import scalacache.serialization.Codec
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.bson.BsonCodec
 
-import scala.concurrent.duration._
 import java.time.Instant
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration._
 
 class MongoCacheSpec
     extends AnyFlatSpec
@@ -48,8 +49,14 @@ class MongoCacheSpec
 
   val mongoUri = "mongodb://localhost:27017"
 
-  val syncClient  = SyncClients.create(mongoUri)
-  val scalaClient = ScalaClient(mongoUri)
+  val mongoClientSettings = MongoClientSettings
+    .builder()
+    .applyConnectionString(new ConnectionString(mongoUri))
+    .applyToSocketSettings(_.connectTimeout(5, TimeUnit.SECONDS))
+    .applyToClusterSettings(_.serverSelectionTimeout(5, TimeUnit.SECONDS))
+    .build()
+
+  val syncClient = SyncClients.create(mongoClientSettings)
 
   val database   = syncClient.getDatabase(databaseName)
   val collection = database.getCollection(collectionName)
@@ -62,53 +69,65 @@ class MongoCacheSpec
       Codec.tryDecode(bytes.asInt32().getValue)
   }
 
-  override def beforeAll() = {
-    collection.drop()
+  val mongoCache = MongoCache[IO, Int](mongoClientSettings, databaseName, collectionName).unsafeRunSync()
+
+  def mongoIsRunning = {
+    try {
+      syncClient
+        .getDatabase("admin")
+        .runCommand(new BsonDocument("ping", new BsonInt64(1)))
+      true
+    } catch { case _: MongoException => false }
   }
 
   override def afterAll() = {
+    collection.drop()
     syncClient.close()
+    mongoCache.close.unsafeRunSync()
   }
 
-  import cats.effect.unsafe.implicits.global
-
-  val mongoCache = new MongoCache[IO, Int](scalaClient, databaseName, collectionName)
-
-  behavior of "get"
-
-  it should "return the value stored in Mongodb" in {
+  def insertCacheEntry(key: String, value: Int, expiry: Option[Instant]): Unit = {
     val document = new Document()
-      .append("_id", "key1")
-      .append("value", 123)
-      .append("expiresAt", Instant.now)
+      .append("_id", key)
+      .append("value", value)
+      .append("expiresAt", expiry.orNull)
 
     collection.insertOne(document)
-
-    whenReady(mongoCache.get("key1").unsafeToFuture()) {
-      _ should be(Some(123))
-    }
   }
 
-  it should "return None if the given key does not exist in the underlying cache" in {
-    whenReady(mongoCache.get("non-existent-key").unsafeToFuture()) {
-      _ should be(None)
+  if (!mongoIsRunning) {
+    alert("Skipping tests because Mongodb does not appear to be running on localhost.")
+  } else {
+
+    behavior of "get"
+
+    it should "return the value stored in Mongodb" in {
+      insertCacheEntry("key1", 123, Some(Instant.now()))
+
+      whenReady(mongoCache.get("key1").unsafeToFuture()) {
+        _ should be(Some(123))
+      }
     }
-  }
 
-  behavior of "put"
-
-  it should "store the given key-value pair in the underlying cache" in {
-    whenReady(mongoCache.put("key2")(123, None).unsafeToFuture()) { _ =>
-      val document = collection.find(Filters.eq("_id", "key2")).first()
-
-      document.getInteger("value") should be(123)
+    it should "return None if the given key does not exist in the underlying cache" in {
+      whenReady(mongoCache.get("non-existent-key").unsafeToFuture()) {
+        _ should be(None)
+      }
     }
-  }
 
-  behavior of "put with TTL"
+    behavior of "put"
 
-  it should "store the given key-value pair in the underlying cache" in {
-    whenReady(MongoCache[IO, Int](scalaClient, databaseName, collectionName).unsafeToFuture()) { mongoCache =>
+    it should "store the given key-value pair in the underlying cache" in {
+      whenReady(mongoCache.put("key2")(123, None).unsafeToFuture()) { _ =>
+        val document = collection.find(Filters.eq("_id", "key2")).first()
+
+        document.getInteger("value") should be(123)
+      }
+    }
+
+    behavior of "put with TTL"
+
+    it should "store the given key-value pair in the underlying cache" in {
       whenReady(mongoCache.put("key3")(123, Some(3.seconds)).unsafeToFuture()) { _ =>
         val document = collection.find(Filters.eq("_id", "key3")).first()
 
@@ -121,6 +140,28 @@ class MongoCacheSpec
 
           document should be(null)
         }
+      }
+    }
+
+    behavior of "remove"
+
+    it should "delete the given key and its value from the underlying cache" in {
+      insertCacheEntry("key4", 123, expiry = None)
+
+      whenReady(mongoCache.remove("key4").unsafeToFuture()) { _ =>
+        val document = collection.find(Filters.eq("_id", "key4")).first()
+
+        document should be(null)
+      }
+    }
+
+    behavior of "removeAll"
+    it should "delete all keys from the underlying cache" in {
+      for (idx <- 5 to 10)
+        insertCacheEntry(s"key$idx", 123, expiry = None)
+
+      whenReady(mongoCache.removeAll.unsafeToFuture()) { _ =>
+        collection.find(Filters.empty()).iterator().hasNext should be(false)
       }
     }
   }
