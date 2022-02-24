@@ -19,7 +19,7 @@ package scalacache.mongo
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import com.mongodb.client.model.Filters
-import com.mongodb.client.{MongoClients => SyncClients}
+import com.mongodb.client.MongoClients
 import com.mongodb.{ConnectionString, MongoException}
 import org.bson._
 import org.mongodb.scala.MongoClientSettings
@@ -27,6 +27,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.tagobjects.Slow
 import org.scalatest.time.{Seconds, Span}
 import scalacache.serialization.Codec
 import scalacache.serialization.Codec.DecodingResult
@@ -52,13 +53,13 @@ class MongoCacheSpec
   val mongoClientSettings = MongoClientSettings
     .builder()
     .applyConnectionString(new ConnectionString(mongoUri))
-    .applyToSocketSettings(_.connectTimeout(5, TimeUnit.SECONDS))
-    .applyToClusterSettings(_.serverSelectionTimeout(5, TimeUnit.SECONDS))
+    .applyToSocketSettings(_.connectTimeout(5, TimeUnit.SECONDS): Unit)
+    .applyToClusterSettings(_.serverSelectionTimeout(5, TimeUnit.SECONDS): Unit)
     .build()
 
-  val syncClient = SyncClients.create(mongoClientSettings)
+  val mongoClient = MongoClients.create(mongoClientSettings)
 
-  val database   = syncClient.getDatabase(databaseName)
+  val database   = mongoClient.getDatabase(databaseName)
   val collection = database.getCollection(collectionName)
 
   implicit val bsonIntCodec: BsonCodec[Int] = new BsonCodec[Int] {
@@ -73,7 +74,7 @@ class MongoCacheSpec
 
   def mongoIsRunning = {
     try {
-      syncClient
+      mongoClient
         .getDatabase("admin")
         .runCommand(new BsonDocument("ping", new BsonInt64(1)))
       true
@@ -82,7 +83,7 @@ class MongoCacheSpec
 
   override def afterAll() = {
     collection.drop()
-    syncClient.close()
+    mongoClient.close()
     mongoCache.close.unsafeRunSync()
   }
 
@@ -92,7 +93,7 @@ class MongoCacheSpec
       .append("value", value)
       .append("expiresAt", expiry.orNull)
 
-    collection.insertOne(document)
+    collection.insertOne(document): Unit
   }
 
   if (!mongoIsRunning) {
@@ -127,7 +128,7 @@ class MongoCacheSpec
 
     behavior of "put with TTL"
 
-    it should "store the given key-value pair in the underlying cache" in {
+    it should "store the given key-value pair in the underlying cache" taggedAs (Slow) in {
       whenReady(mongoCache.put("key3")(123, Some(3.seconds)).unsafeToFuture()) { _ =>
         val document = collection.find(Filters.eq("_id", "key3")).first()
 
@@ -148,6 +149,9 @@ class MongoCacheSpec
     it should "delete the given key and its value from the underlying cache" in {
       insertCacheEntry("key4", 123, expiry = None)
 
+      val document = collection.find(Filters.eq("_id", "key4")).first()
+      document.getInteger("value") should be(123)
+
       whenReady(mongoCache.remove("key4").unsafeToFuture()) { _ =>
         val document = collection.find(Filters.eq("_id", "key4")).first()
 
@@ -156,9 +160,15 @@ class MongoCacheSpec
     }
 
     behavior of "removeAll"
+
     it should "delete all keys from the underlying cache" in {
-      for (idx <- 5 to 10)
-        insertCacheEntry(s"key$idx", 123, expiry = None)
+      val cacheKeys      = for (idx <- 5 to 10) yield s"key$idx"
+      val cacheKeyFilter = Filters.in("_id", cacheKeys: _*)
+
+      for (key <- cacheKeys)
+        insertCacheEntry(key, 123, expiry = None)
+
+      collection.find(cacheKeyFilter).iterator().hasNext should be(true)
 
       whenReady(mongoCache.removeAll.unsafeToFuture()) { _ =>
         collection.find(Filters.empty()).iterator().hasNext should be(false)

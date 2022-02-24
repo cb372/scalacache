@@ -16,8 +16,9 @@ inThisBuild(
   )
 )
 
-val CatsEffectVersion = "3.3.5"
-val CirceVersion      = "0.14.1"
+val CatsEffectVersion  = "3.3.5"
+val CirceVersion       = "0.14.1"
+val MongoDriverVersion = "4.5.0"
 
 scalafmtOnCompile in ThisBuild := true
 
@@ -78,8 +79,8 @@ lazy val memcached = createModule("memcached")
 lazy val mongo = createModule("mongo")
   .settings(
     libraryDependencies ++= Seq(
-      "org.mongodb"        % "mongodb-driver-sync" % "4.4.1" % Test,
-      "org.mongodb.scala" %% "mongo-scala-driver"  % "4.4.1"
+      "org.mongodb.scala" %% "mongo-scala-driver"  % MongoDriverVersion,
+      "org.mongodb"        % "mongodb-driver-sync" % MongoDriverVersion % Test
     )
   )
 
@@ -128,7 +129,12 @@ lazy val circe = createModule("circe")
   )
 
 lazy val tests = createModule("tests")
-  .settings(publishArtifact := false, libraryDependencies += "org.mongodb" % "mongodb-driver-sync" % "4.4.1" % Test)
+  .settings(
+    publishArtifact := false,
+    libraryDependencies ++= Seq(
+      "org.mongodb" % "mongodb-driver-sync" % MongoDriverVersion % Test
+    )
+  )
   .dependsOn(caffeine, memcached, redis, circe, mongo, mongoCirce)
 
 lazy val docs = createModule("docs")

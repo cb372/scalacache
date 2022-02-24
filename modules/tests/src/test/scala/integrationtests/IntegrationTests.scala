@@ -16,28 +16,30 @@
 
 package integrationtests
 
-import java.util.UUID
-import org.scalatest._
+import cats.effect.Clock
+import cats.effect.unsafe.implicits.global
 import cats.effect.{IO => CatsIO}
-import net.spy.memcached.{AddrUtil, MemcachedClient}
+import com.mongodb.ConnectionString
+import com.mongodb.MongoException
+import com.mongodb.client.MongoClients
+import net.spy.memcached.AddrUtil
+import net.spy.memcached.MemcachedClient
+import org.bson.BsonDocument
+import org.bson.BsonInt64
+import org.mongodb.scala.MongoClientSettings
+import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import redis.clients.jedis.JedisPool
-
-import scala.util.control.NonFatal
 import scalacache._
 import scalacache.caffeine.CaffeineCache
 import scalacache.memcached.MemcachedCache
-import scalacache.redis.RedisCache
-import cats.effect.Clock
-import cats.effect.unsafe.implicits.global
-import com.mongodb.client.MongoClients
-import com.mongodb.{ConnectionString, MongoException}
-import org.bson.{BsonDocument, BsonInt64}
-import org.mongodb.scala.{MongoClient, MongoClientSettings}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 import scalacache.mongo.MongoCache
+import scalacache.redis.RedisCache
 
+import java.util.UUID
 import java.util.concurrent.TimeUnit
+import scala.util.control.NonFatal
 
 class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
@@ -48,8 +50,8 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
   private val mongoClientSettings = MongoClientSettings
     .builder()
     .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
-    .applyToSocketSettings(_.connectTimeout(5, TimeUnit.SECONDS))
-    .applyToClusterSettings(_.serverSelectionTimeout(5,TimeUnit.SECONDS))
+    .applyToSocketSettings(_.connectTimeout(5, TimeUnit.SECONDS): Unit)
+    .applyToClusterSettings(_.serverSelectionTimeout(5, TimeUnit.SECONDS): Unit)
     .build()
 
   override def afterAll(): Unit = {
@@ -80,10 +82,13 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
 
   private def mongoIsRunning = {
     try {
-      MongoClients.create(mongoClientSettings)
-        .getDatabase("admin")
-        .runCommand(new BsonDocument("ping", new BsonInt64(1)))
-      true
+      val mongoClient = MongoClients.create(mongoClientSettings)
+      try {
+        mongoClient
+          .getDatabase("admin")
+          .runCommand(new BsonDocument("ping", new BsonInt64(1)))
+        true
+      } finally { mongoClient.close() }
     } catch { case _: MongoException => false }
   }
 
@@ -127,7 +132,10 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
       Seq(
         {
           import scalacache.serialization.bson.circe._
-          CacheBackend("(Mongo) ⇔ (circe BSON codec)", MongoCache[CatsIO, String](mongoClientSettings, "scalacache-test", "cache").unsafeRunSync())
+          CacheBackend(
+            "(Mongo) ⇔ (circe BSON codec)",
+            MongoCache[CatsIO, String](mongoClientSettings, "scalacache-test", "cache").unsafeRunSync()
+          )
         }
       )
     } else {
@@ -151,11 +159,13 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
           updatedValue = "prepended " + readFromCache.getOrElse("couldn't find in cache!")
           _                   <- put(key)(updatedValue)
           finalValueFromCache <- get(key)
+          _                   <- cache.close
         } yield finalValueFromCache
 
       checkComputationHasNotRun(key)
 
       val result: Option[String] = program.unsafeRunSync()
+
       assert(result.contains("prepended " + initialValue))
     }
   }
