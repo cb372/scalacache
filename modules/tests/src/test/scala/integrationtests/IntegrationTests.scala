@@ -134,7 +134,7 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
           import scalacache.serialization.bson.circe._
           CacheBackend(
             "(Mongo) ⇔ (circe BSON codec)",
-            MongoCache[CatsIO, String](mongoClientSettings, "scalacache-test", "cache").unsafeRunSync()
+            MongoCache[CatsIO, String, String](mongoClientSettings, "scalacache-test", "cache").unsafeRunSync()
           )
         }
       )

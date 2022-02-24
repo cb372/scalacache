@@ -18,20 +18,26 @@ package scalacache.mongo
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import com.mongodb.client.model.Filters
+import com.mongodb.ConnectionString
+import com.mongodb.MongoException
 import com.mongodb.client.MongoClients
-import com.mongodb.{ConnectionString, MongoException}
+import com.mongodb.client.model.Filters
 import org.bson._
+import org.mongodb.scala.MongoClient
 import org.mongodb.scala.MongoClientSettings
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
+import org.scalatest.concurrent.Eventually
+import org.scalatest.concurrent.IntegrationPatience
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.tagobjects.Slow
-import org.scalatest.time.{Seconds, Span}
+import org.scalatest.time.Seconds
+import org.scalatest.time.Span
 import scalacache.serialization.Codec
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.bson.BsonCodec
+import scalacache.serialization.bson.BsonEncoder
 
 import java.time.Instant
 import java.util.concurrent.TimeUnit
@@ -62,6 +68,11 @@ class MongoCacheSpec
   val database   = mongoClient.getDatabase(databaseName)
   val collection = database.getCollection(collectionName)
 
+  implicit val bsonStringEncoder: BsonEncoder[String] = new BsonEncoder[String] {
+    override def encode(value: String): BsonValue =
+      new BsonString(value)
+  }
+
   implicit val bsonIntCodec: BsonCodec[Int] = new BsonCodec[Int] {
     override def encode(value: Int): BsonValue =
       new BsonInt32(value)
@@ -70,7 +81,7 @@ class MongoCacheSpec
       Codec.tryDecode(bytes.asInt32().getValue)
   }
 
-  val mongoCache = MongoCache[IO, Int](mongoClientSettings, databaseName, collectionName).unsafeRunSync()
+  val mongoCache = MongoCache[IO, String, Int](mongoClientSettings, databaseName, collectionName).unsafeRunSync()
 
   def mongoIsRunning = {
     try {
@@ -172,6 +183,22 @@ class MongoCacheSpec
 
       whenReady(mongoCache.removeAll.unsafeToFuture()) { _ =>
         collection.find(Filters.empty()).iterator().hasNext should be(false)
+      }
+    }
+
+    behavior of "resource"
+
+    it should "ensure that the MongoClient that is created is closed" in {
+      val mongoClient        = MongoClient(mongoUri)
+      val mongoCacheResource = MongoCache.resource[IO, String, Int](mongoClient, databaseName, collectionName)
+
+      whenReady(mongoCacheResource.use_.unsafeToFuture()) { _ =>
+        val pingCommand = mongoClient
+          .getDatabase("admin")
+          .runCommand(new BsonDocument("ping", new BsonInt64(1)))
+          .head()
+
+        pingCommand.failed.futureValue shouldBe an[IllegalStateException]
       }
     }
   }

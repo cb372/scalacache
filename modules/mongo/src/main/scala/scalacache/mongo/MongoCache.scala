@@ -17,6 +17,7 @@
 package scalacache.mongo
 
 import cats.effect.Async
+import cats.effect.Resource
 import cats.syntax.all._
 import org.mongodb.scala._
 import org.mongodb.scala.bson.BsonDateTime
@@ -25,15 +26,17 @@ import org.mongodb.scala.model._
 import scalacache.AbstractCache
 import scalacache.logging.Logger
 import scalacache.serialization.bson.BsonCodec
+import scalacache.serialization.bson.BsonEncoder
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 
-class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, collectionName: String)(implicit
-    val codec: BsonCodec[V]
-) extends AbstractCache[F, String, V] {
+class MongoCache[F[_]: Async, K, V](client: MongoClient, databaseName: String, collectionName: String)(implicit
+    val keyEncoder: BsonEncoder[K],
+    val valueCodec: BsonCodec[V]
+) extends AbstractCache[F, K, V] {
 
   protected def F: Async[F] = Async[F]
 
@@ -44,12 +47,12 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
     .getDatabase(databaseName)
     .getCollection(collectionName)
 
-  override protected def doGet(key: String): F[Option[V]] = {
+  override protected def doGet(key: K): F[Option[V]] = {
     val findAndDecode = F.delay {
       collection
-        .find(Filters.eq("_id", key))
+        .find(Filters.eq("_id", keyEncoder.encode(key)))
         .map { document =>
-          codec.decode(document("value"))
+          valueCodec.decode(document("value"))
         }
         .headOption()
     }
@@ -61,7 +64,7 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
     )
   }
 
-  private def makeCacheEntry(key: String, value: V, maybeTtl: Option[Duration], currentTime: Instant): Document = {
+  private def makeCacheEntry(key: K, value: V, maybeTtl: Option[Duration], currentTime: Instant): Document = {
     val expiresAt = maybeTtl
       .map { ttl =>
         val ttlInstant = currentTime.plus(ttl.toMillis, ChronoUnit.MILLIS)
@@ -72,13 +75,13 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
       }
 
     Document(
-      "_id"       -> key,
-      "value"     -> codec.encode(value),
+      "_id"       -> keyEncoder.encode(key),
+      "value"     -> valueCodec.encode(value),
       "expiresAt" -> expiresAt
     )
   }
 
-  override protected def doPut(key: String, value: V, ttl: Option[Duration]): F[Unit] = {
+  override protected def doPut(key: K, value: V, ttl: Option[Duration]): F[Unit] = {
     for {
       currentTime <- F.realTimeInstant
 
@@ -86,9 +89,11 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
 
       upsert = ReplaceOptions().upsert(true)
 
+      keyFilter = Filters.eq("_id", keyEncoder.encode(key))
+
       encodeAndPut = F.delay {
         collection
-          .replaceOne(Filters.eq("_id", key), cacheEntry, upsert)
+          .replaceOne(keyFilter, cacheEntry, upsert)
           .head()
       }
 
@@ -97,10 +102,14 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
     } yield ()
   }
 
-  override protected def doRemove(key: String): F[Unit] = {
+  override protected def doRemove(key: K): F[Unit] = {
     F.fromFuture {
       F.delay {
-        collection.deleteOne(Filters.eq("_id", key)).head()
+        collection
+          .deleteOne(
+            Filters.eq("_id", keyEncoder.encode(key))
+          )
+          .head()
       }
     }.void
   }
@@ -108,49 +117,49 @@ class MongoCache[F[_]: Async, V](client: MongoClient, databaseName: String, coll
   override protected def doRemoveAll: F[Unit] = {
     F.fromFuture {
       F.delay {
-        collection.deleteMany(Filters.empty()).head()
+        collection
+          .deleteMany(Filters.empty())
+          .head()
       }
     }.void
   }
 
-  /** You should call this when you have finished using this Cache. (e.g. when your application shuts down)
-    *
-    * It will take care of gracefully shutting down the underlying cache client.
-    *
-    * Note that you should not try to use this Cache instance after you have called this method.
-    */
-
-  override def close: F[Unit] = F.delay(client.close())
+  override def close: F[Unit] =
+    F.delay(client.close())
 }
 
 object MongoCache {
-  def apply[F[_], V](databaseName: String, collectionName: String)(implicit
+  def apply[F[_], K, V](databaseName: String, collectionName: String)(implicit
       F: Async[F],
-      codec: BsonCodec[V]
-  ): F[MongoCache[F, V]] = {
+      keyEncoder: BsonEncoder[K],
+      valueCodec: BsonCodec[V]
+  ): F[MongoCache[F, K, V]] = {
     apply("mongodb://localhost:27017", databaseName, collectionName)
   }
 
-  def apply[F[_], V](connectionString: String, databaseName: String, collectionName: String)(implicit
+  def apply[F[_], K, V](connectionString: String, databaseName: String, collectionName: String)(implicit
       F: Async[F],
-      codec: BsonCodec[V]
-  ): F[MongoCache[F, V]] = {
+      keyEncoder: BsonEncoder[K],
+      valueCodec: BsonCodec[V]
+  ): F[MongoCache[F, K, V]] = {
     val mongoClient = MongoClient(connectionString)
     apply(mongoClient, databaseName, collectionName)
   }
 
-  def apply[F[_], V](mongoClientSettings: MongoClientSettings, databaseName: String, collectionName: String)(implicit
+  def apply[F[_], K, V](mongoClientSettings: MongoClientSettings, databaseName: String, collectionName: String)(implicit
       F: Async[F],
-      codec: BsonCodec[V]
-  ): F[MongoCache[F, V]] = {
+      keyEncoder: BsonEncoder[K],
+      valueCodec: BsonCodec[V]
+  ): F[MongoCache[F, K, V]] = {
     val mongoClient = MongoClient(mongoClientSettings)
     apply(mongoClient, databaseName, collectionName)
   }
 
-  def apply[F[_], V](client: MongoClient, databaseName: String, collectionName: String)(implicit
+  def apply[F[_], K, V](client: MongoClient, databaseName: String, collectionName: String)(implicit
       F: Async[F],
-      codec: BsonCodec[V]
-  ): F[MongoCache[F, V]] = {
+      keyEncoder: BsonEncoder[K],
+      valueCodec: BsonCodec[V]
+  ): F[MongoCache[F, K, V]] = {
     val collection = client
       .getDatabase(databaseName)
       .getCollection(collectionName)
@@ -164,9 +173,42 @@ object MongoCache {
         .head()
     }
 
-    val mongoCache = new MongoCache[F, V](client, databaseName, collectionName)
-
-    F.fromFuture(createIndex).as(mongoCache)
+    F.fromFuture(createIndex).as {
+      new MongoCache[F, K, V](client, databaseName, collectionName)
+    }
   }
 
+  def resource[F[_], K, V](databaseName: String, collectionName: String)(implicit
+      F: Async[F],
+      keyEncoder: BsonEncoder[K],
+      valueCodec: BsonCodec[V]
+  ): Resource[F, MongoCache[F, K, V]] = {
+    resource("mongodb://localhost:27017", databaseName, collectionName)
+  }
+
+  def resource[F[_], K, V](connectionString: String, databaseName: String, collectionName: String)(implicit
+      F: Async[F],
+      keyEncoder: BsonEncoder[K],
+      valueCodec: BsonCodec[V]
+  ): Resource[F, MongoCache[F, K, V]] = {
+    val mongoClient = MongoClient(connectionString)
+    resource(mongoClient, databaseName, collectionName)
+  }
+
+  def resource[F[_], K, V](mongoClientSettings: MongoClientSettings, databaseName: String, collectionName: String)(
+      implicit
+      F: Async[F],
+      keyEncoder: BsonEncoder[K],
+      valueCodec: BsonCodec[V]
+  ): Resource[F, MongoCache[F, K, V]] = {
+    val mongoClient = MongoClient(mongoClientSettings)
+    resource(mongoClient, databaseName, collectionName)
+  }
+
+  private[mongo] def resource[F[_], K, V](client: MongoClient, databaseName: String, collectionName: String)(implicit
+      F: Async[F],
+      keyEncoder: BsonEncoder[K],
+      valueCodec: BsonCodec[V]
+  ): Resource[F, MongoCache[F, K, V]] =
+    Resource.make(apply[F, K, V](client, databaseName, collectionName))(_.close)
 }
