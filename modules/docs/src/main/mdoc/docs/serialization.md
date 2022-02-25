@@ -50,7 +50,7 @@ implicit val catDecoder: Decoder[Cat] = deriveDecoder[Cat]
 
 For more information, please consult the [circe docs](https://circe.github.io/circe/).
 
-### BSON Codec
+### BSON codec
 
 If you are using the MongoDB cache implementation, you must provide a `BsonCodec` for serializing your data as BSON.
 
