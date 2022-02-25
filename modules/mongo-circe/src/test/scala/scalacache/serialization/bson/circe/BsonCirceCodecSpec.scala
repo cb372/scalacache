@@ -117,9 +117,13 @@ class BsonCirceCodecSpec extends AnyFlatSpec with Matchers with ScalaCheckDriven
   }
 
   it should "serialize and deserialize a recursive case class" in {
-    import io.circe.generic.auto._
+    import io.circe.generic.semiauto._
 
-    val folderEntryCodec = implicitly[BsonCodec[FolderEntry]]
+    // Circe auto derivation of recursive case classes does not work on Scala 3.x
+    implicit lazy val folderEntryCirceCodec: io.circe.Codec[FolderEntry] =
+      deriveCodec[FolderEntry]
+
+    val folderEntryCodec: BsonCodec[FolderEntry] = implicitly[BsonCodec[FolderEntry]]
 
     val folder = Folder("folder", Set(File("foo.txt"), Folder("subfolder", Set(File("bar.txt"))), File("baz.txt")))
 
