@@ -20,13 +20,14 @@ import cats.effect.Clock
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO => CatsIO}
 import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
 import com.mongodb.MongoException
-import com.mongodb.client.MongoClients
+import com.mongodb.client.{MongoClients => MongoSync}
+import com.mongodb.reactivestreams.client.{MongoClients => MongoReactive}
 import net.spy.memcached.AddrUtil
 import net.spy.memcached.MemcachedClient
 import org.bson.BsonDocument
 import org.bson.BsonInt64
-import org.mongodb.scala.MongoClientSettings
 import org.scalatest._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -47,6 +48,7 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
 
   private val memcachedClient = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
   private val jedisPool       = new JedisPool("localhost", 6379)
+
   private val mongoClientSettings = MongoClientSettings
     .builder()
     .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
@@ -54,9 +56,12 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
     .applyToClusterSettings(_.serverSelectionTimeout(5, TimeUnit.SECONDS): Unit)
     .build()
 
+  private val mongoClient = MongoReactive.create(mongoClientSettings)
+
   override def afterAll(): Unit = {
     memcachedClient.shutdown()
     jedisPool.close()
+    mongoClient.close()
   }
 
   private def memcachedIsRunning: Boolean = {
@@ -82,7 +87,7 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
 
   private def mongoIsRunning = {
     try {
-      val mongoClient = MongoClients.create(mongoClientSettings)
+      val mongoClient = MongoSync.create(mongoClientSettings)
       try {
         mongoClient
           .getDatabase("admin")
@@ -134,7 +139,7 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
           import scalacache.serialization.bson.circe._
           CacheBackend(
             "(Mongo) ⇔ (circe BSON codec)",
-            MongoCache[CatsIO, String, String](mongoClientSettings, "scalacache-test", "cache").unsafeRunSync()
+            MongoCache[CatsIO, String, String](mongoClient, "scalacache-test", "cache").unsafeRunSync()
           )
         }
       )
@@ -159,7 +164,6 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
           updatedValue = "prepended " + readFromCache.getOrElse("couldn't find in cache!")
           _                   <- put(key)(updatedValue)
           finalValueFromCache <- get(key)
-          _                   <- cache.close
         } yield finalValueFromCache
 
       checkComputationHasNotRun(key)

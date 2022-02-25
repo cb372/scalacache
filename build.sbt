@@ -79,8 +79,8 @@ lazy val memcached = createModule("memcached")
 lazy val mongo = createModule("mongo")
   .settings(
     libraryDependencies ++= Seq(
-      "org.mongodb.scala" %% "mongo-scala-driver"  % MongoDriverVersion,
-      "org.mongodb"        % "mongodb-driver-sync" % MongoDriverVersion % Test
+      "org.mongodb" % "mongodb-driver-reactivestreams" % MongoDriverVersion,
+      "org.mongodb" % "mongodb-driver-sync"            % MongoDriverVersion % Test
     )
   )
 

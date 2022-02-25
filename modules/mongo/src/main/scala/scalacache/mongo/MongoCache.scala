@@ -19,10 +19,20 @@ package scalacache.mongo
 import cats.effect.Async
 import cats.effect.Resource
 import cats.syntax.all._
-import org.mongodb.scala._
-import org.mongodb.scala.bson.BsonDateTime
-import org.mongodb.scala.bson.BsonNull
-import org.mongodb.scala.model._
+import com.mongodb.MongoClientSettings
+import com.mongodb.client.model.Filters
+import com.mongodb.client.model.IndexOptions
+import com.mongodb.client.model.Indexes
+import com.mongodb.client.model.ReplaceOptions
+import com.mongodb.reactivestreams.client.MongoClient
+import com.mongodb.reactivestreams.client.MongoClients
+import org.bson.BsonDateTime
+import org.bson.BsonNull
+import org.bson.Document
+import org.bson.conversions.Bson
+import org.reactivestreams.Publisher
+import org.reactivestreams.Subscription
+import reactor.core.publisher.Mono
 import scalacache.AbstractCache
 import scalacache.logging.Logger
 import scalacache.serialization.bson.BsonCodec
@@ -47,20 +57,20 @@ class MongoCache[F[_]: Async, K, V](client: MongoClient, databaseName: String, c
     .getDatabase(databaseName)
     .getCollection(collectionName)
 
-  override protected def doGet(key: K): F[Option[V]] = {
-    val findAndDecode = F.delay {
-      collection
-        .find(Filters.eq("_id", keyEncoder.encode(key)))
-        .map { document =>
-          valueCodec.decode(document("value"))
-        }
-        .headOption()
-    }
+  private def keyFilter(key: K): Bson =
+    Filters.eq("_id", keyEncoder.encode(key))
 
-    F.rethrow(
-      F.fromFuture(
-        findAndDecode
-      ).map(_.sequence)
+  override protected def doGet(key: K): F[Option[V]] = {
+    val findCommand = F.delay(collection.find(keyFilter(key))).widen[Publisher[Document]]
+
+    MongoCache.monoSubscriber[F, Document, Option[V]](findCommand)(
+      onComplete = cb => cb(Right(None)),
+      onValue = cb => { doc =>
+        val bsonDocument = doc.toBsonDocument()
+        val valueBson    = bsonDocument.get("value")
+        val decodeResult = valueCodec.decode(valueBson).map(Some(_))
+        cb(decodeResult)
+      }
     )
   }
 
@@ -68,17 +78,16 @@ class MongoCache[F[_]: Async, K, V](client: MongoClient, databaseName: String, c
     val expiresAt = maybeTtl
       .map { ttl =>
         val ttlInstant = currentTime.plus(ttl.toMillis, ChronoUnit.MILLIS)
-        BsonDateTime(ttlInstant.toEpochMilli)
+        new BsonDateTime(ttlInstant.toEpochMilli)
       }
       .getOrElse {
-        BsonNull()
+        BsonNull.VALUE
       }
 
-    Document(
-      "_id"       -> keyEncoder.encode(key),
-      "value"     -> valueCodec.encode(value),
-      "expiresAt" -> expiresAt
-    )
+    new Document()
+      .append("_id", keyEncoder.encode(key))
+      .append("value", valueCodec.encode(value))
+      .append("expiresAt", expiresAt)
   }
 
   override protected def doPut(key: K, value: V, ttl: Option[Duration]): F[Unit] = {
@@ -87,41 +96,23 @@ class MongoCache[F[_]: Async, K, V](client: MongoClient, databaseName: String, c
 
       cacheEntry = makeCacheEntry(key, value, ttl, currentTime)
 
-      upsert = ReplaceOptions().upsert(true)
+      upsert = new ReplaceOptions().upsert(true)
 
-      keyFilter = Filters.eq("_id", keyEncoder.encode(key))
+      putCommand = F.delay(collection.replaceOne(keyFilter(key), cacheEntry, upsert))
 
-      encodeAndPut = F.delay {
-        collection
-          .replaceOne(keyFilter, cacheEntry, upsert)
-          .head()
-      }
-
-      _ <- F.fromFuture(encodeAndPut)
+      _ <- MongoCache.voidSubscriber(putCommand)
 
     } yield ()
   }
 
   override protected def doRemove(key: K): F[Unit] = {
-    F.fromFuture {
-      F.delay {
-        collection
-          .deleteOne(
-            Filters.eq("_id", keyEncoder.encode(key))
-          )
-          .head()
-      }
-    }.void
+    val removeCommand = F.delay(collection.deleteOne(keyFilter(key)))
+    MongoCache.voidSubscriber(removeCommand)
   }
 
   override protected def doRemoveAll: F[Unit] = {
-    F.fromFuture {
-      F.delay {
-        collection
-          .deleteMany(Filters.empty())
-          .head()
-      }
-    }.void
+    val removeAllCommand = F.delay(collection.deleteMany(Filters.empty()))
+    MongoCache.voidSubscriber(removeAllCommand)
   }
 
   override def close: F[Unit] =
@@ -142,7 +133,7 @@ object MongoCache {
       keyEncoder: BsonEncoder[K],
       valueCodec: BsonCodec[V]
   ): F[MongoCache[F, K, V]] = {
-    val mongoClient = MongoClient(connectionString)
+    val mongoClient = MongoClients.create(connectionString)
     apply(mongoClient, databaseName, collectionName)
   }
 
@@ -151,7 +142,7 @@ object MongoCache {
       keyEncoder: BsonEncoder[K],
       valueCodec: BsonCodec[V]
   ): F[MongoCache[F, K, V]] = {
-    val mongoClient = MongoClient(mongoClientSettings)
+    val mongoClient = MongoClients.create(mongoClientSettings)
     apply(mongoClient, databaseName, collectionName)
   }
 
@@ -165,15 +156,12 @@ object MongoCache {
       .getCollection(collectionName)
 
     val indexName    = Indexes.ascending("expiresAt")
-    val indexOptions = IndexOptions().expireAfter(0, TimeUnit.MILLISECONDS)
+    val indexOptions = new IndexOptions().expireAfter(0, TimeUnit.MILLISECONDS)
 
-    val createIndex = F.delay {
-      collection
-        .createIndex(indexName, indexOptions)
-        .head()
-    }
+    val createIndexCommand = F.delay(collection.createIndex(indexName, indexOptions))
+    val createIndex        = MongoCache.voidSubscriber(createIndexCommand)
 
-    F.fromFuture(createIndex).as {
+    createIndex.as {
       new MongoCache[F, K, V](client, databaseName, collectionName)
     }
   }
@@ -191,7 +179,7 @@ object MongoCache {
       keyEncoder: BsonEncoder[K],
       valueCodec: BsonCodec[V]
   ): Resource[F, MongoCache[F, K, V]] = {
-    val mongoClient = MongoClient(connectionString)
+    val mongoClient = MongoClients.create(connectionString)
     resource(mongoClient, databaseName, collectionName)
   }
 
@@ -201,7 +189,7 @@ object MongoCache {
       keyEncoder: BsonEncoder[K],
       valueCodec: BsonCodec[V]
   ): Resource[F, MongoCache[F, K, V]] = {
-    val mongoClient = MongoClient(mongoClientSettings)
+    val mongoClient = MongoClients.create(mongoClientSettings)
     resource(mongoClient, databaseName, collectionName)
   }
 
@@ -211,4 +199,32 @@ object MongoCache {
       valueCodec: BsonCodec[V]
   ): Resource[F, MongoCache[F, K, V]] =
     Resource.make(apply[F, K, V](client, databaseName, collectionName))(_.close)
+
+  private[mongo] def voidSubscriber[F[_], A](publisher: F[Publisher[A]])(implicit F: Async[F]): F[Unit] =
+    monoSubscriber(publisher)(
+      onValue = cb => _ => cb(Right(())),
+      onComplete = _ => {}
+    )
+
+  private[mongo] def monoSubscriber[F[_], A, B](publisher: F[Publisher[A]])(
+      onValue: (Either[Throwable, B] => Unit) => A => Unit,
+      onComplete: (Either[Throwable, B] => Unit) => Unit
+  )(implicit F: Async[F]): F[B] = {
+    F.async[B] { cb =>
+      publisher.map { pub =>
+        val subscription = Mono
+          .from(pub)
+          .subscribe(
+            (value: A) => onValue(cb)(value),
+            (error: Throwable) => cb(Left(error)),
+            () => onComplete(cb),
+            (sub: Subscription) => sub.request(1)
+          )
+
+        // Cancel the subscription if the fiber is cancelled
+        Some(F.delay(subscription.dispose()))
+      }
+    }
+  }
+
 }

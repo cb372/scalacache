@@ -19,12 +19,13 @@ package scalacache.mongo
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
 import com.mongodb.MongoException
-import com.mongodb.client.MongoClients
 import com.mongodb.client.model.Filters
+import com.mongodb.client.{MongoClients => SyncClients}
+import com.mongodb.reactivestreams.client.{MongoClients => ReactiveClients}
 import org.bson._
-import org.mongodb.scala.MongoClient
-import org.mongodb.scala.MongoClientSettings
+import org.reactivestreams.Subscription
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually
 import org.scalatest.concurrent.IntegrationPatience
@@ -34,6 +35,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.tagobjects.Slow
 import org.scalatest.time.Seconds
 import org.scalatest.time.Span
+import reactor.core.publisher.Mono
 import scalacache.serialization.Codec
 import scalacache.serialization.Codec.DecodingResult
 import scalacache.serialization.bson.BsonCodec
@@ -41,6 +43,7 @@ import scalacache.serialization.bson.BsonEncoder
 
 import java.time.Instant
 import java.util.concurrent.TimeUnit
+import scala.concurrent.Promise
 import scala.concurrent.duration._
 
 class MongoCacheSpec
@@ -63,7 +66,7 @@ class MongoCacheSpec
     .applyToClusterSettings(_.serverSelectionTimeout(5, TimeUnit.SECONDS): Unit)
     .build()
 
-  val mongoClient = MongoClients.create(mongoClientSettings)
+  val mongoClient = SyncClients.create(mongoClientSettings)
 
   val database   = mongoClient.getDatabase(databaseName)
   val collection = database.getCollection(collectionName)
@@ -189,16 +192,26 @@ class MongoCacheSpec
     behavior of "resource"
 
     it should "ensure that the MongoClient that is created is closed" in {
-      val mongoClient        = MongoClient(mongoUri)
+      val mongoClient        = ReactiveClients.create(mongoUri)
       val mongoCacheResource = MongoCache.resource[IO, String, Int](mongoClient, databaseName, collectionName)
 
       whenReady(mongoCacheResource.use_.unsafeToFuture()) { _ =>
+        val pingResult = Promise[Unit]()
+
         val pingCommand = mongoClient
           .getDatabase("admin")
           .runCommand(new BsonDocument("ping", new BsonInt64(1)))
-          .head()
 
-        pingCommand.failed.futureValue shouldBe an[IllegalStateException]
+        Mono
+          .from(pingCommand)
+          .subscribe(
+            (_: Document) => pingResult.success(()),
+            (error: Throwable) => pingResult.failure(error),
+            () => {},
+            (sub: Subscription) => sub.request(1)
+          )
+
+        pingResult.future.failed.futureValue shouldBe an[IllegalStateException]
       }
     }
   }
