@@ -37,6 +37,16 @@ import scala.jdk.CollectionConverters._
 package object circe extends BsonCirceCodec
 
 trait BsonCirceCodec {
+  implicit def scalaCacheBsonEncoderFromCirceEncoder[A](implicit
+      encoder: io.circe.Encoder[A]
+  ): BsonEncoder[A] =
+    new BsonEncoder[A] {
+      override def encode(value: A): BsonValue = {
+        val json = encoder(value)
+        jsonToBson(json)
+      }
+    }
+
   implicit def scalaCacheBsonCodecFromCirceCodec[A](implicit
       encoder: io.circe.Encoder[A],
       decoder: io.circe.Decoder[A]

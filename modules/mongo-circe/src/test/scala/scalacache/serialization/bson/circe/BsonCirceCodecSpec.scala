@@ -22,6 +22,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import scalacache.serialization.bson.BsonCodec
+import scalacache.serialization.bson.BsonEncoder
 
 sealed abstract class Item                                            extends Product with Serializable
 case class Fruit(name: String, tastinessQuotient: Option[BigDecimal]) extends Item
@@ -32,6 +33,8 @@ case class Basket(contents: Set[Purchase])
 sealed abstract class FolderEntry                           extends Product with Serializable
 case class Folder(name: String, contents: Set[FolderEntry]) extends FolderEntry
 case class File(name: String)                               extends FolderEntry
+
+case class Wrapper(string: String) extends AnyVal
 
 class BsonCirceCodecSpec extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
@@ -44,6 +47,14 @@ class BsonCirceCodecSpec extends AnyFlatSpec with Matchers with ScalaCheckDriven
       val deserialised = codec.decode(codec.encode(a))
       deserialised.toOption.get shouldBe a
     }
+  }
+
+  it should "produce BSON encoders from Circe encoders" in {
+    import io.circe.generic.semiauto._
+
+    implicit val encoder: io.circe.Encoder[Wrapper] = deriveEncoder[Wrapper]
+
+    implicitly[BsonEncoder[Wrapper]]
   }
 
   it should "serialize and deserialize Ints" in {
