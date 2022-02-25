@@ -14,6 +14,7 @@ Use ScalaCache to add caching to any Scala app with the minimum of fuss.
 The following cache implementations are supported, and it's easy to plugin your own implementation:
 * Memcached
 * Redis
+* MongoDB
 * [Caffeine](https://github.com/ben-manes/caffeine)
 
 ## Compatibility

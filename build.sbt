@@ -159,7 +159,9 @@ lazy val docs = createModule("docs")
     memcached,
     redis,
     caffeine,
-    circe
+    circe,
+    mongo,
+    mongoCirce
   )
 
 lazy val benchmarks = createModule("benchmarks")

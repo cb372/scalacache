@@ -33,7 +33,7 @@ import scalacache.serialization.binary._
 import net.spy.memcached._
 
 val memcachedClient = new MemcachedClient(
-  new BinaryConnectionFactory(), 
+  new BinaryConnectionFactory(),
   AddrUtil.getAddresses("localhost:11211")
 )
 implicit val customisedMemcachedCache: Cache[IO, String, String] = MemcachedCache(memcachedClient)
@@ -47,7 +47,7 @@ ScalaCache provides two `KeySanitizer` implementations that convert your cache k
 
 * `ReplaceAndTruncateSanitizer` simply replaces non-ASCII characters with underscores and truncates long keys to 250 chars. This sanitizer is convenient because it keeps your keys human-readable. Use it if you only expect ASCII characters to appear in cache keys and you don't use any massively long keys.
 
-* `HashingMemcachedKeySanitizer` uses a hash of your cache key, so it can turn any string into a valid Memcached key. The only downside is that it turns your keys into gobbledigook, which can make debugging a pain. 
+* `HashingMemcachedKeySanitizer` uses a hash of your cache key, so it can turn any string into a valid Memcached key. The only downside is that it turns your keys into gobbledigook, which can make debugging a pain.
 
 ### Redis
 
@@ -82,6 +82,49 @@ implicit val customisedRedisCache: Cache[IO, String, String] = RedisCache(jedisP
 ```
 
 ScalaCache also supports [sharded Redis](https://github.com/xetorthio/jedis/wiki/AdvancedUsage#shardedjedis) and [Redis Sentinel](http://redis.io/topics/sentinel). Just create a `ShardedRedisCache` or `SentinelRedisCache` respectively.
+
+### MongoDB
+
+SBT:
+
+```
+libraryDependencies ++= Seq(
+  "com.github.cb372" %% "scalacache-mongo"       % "0.28.0",
+  "com.github.cb372" %% "scalacache-mongo-circe" % "0.28.0",
+)
+```
+
+Usage:
+
+```scala mdoc:silent
+import scalacache._
+import scalacache.mongo._
+import scalacache.serialization.bson.circe._
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+
+val databaseName = "scalacache"
+val collectionName = "cache"
+
+implicit val mongoCache: Cache[IO, String, String] =
+  MongoCache[IO, String, String]("mongodb://localhost:27017", databaseName, collectionName).unsafeRunSync()
+```
+
+or provide your own Mongo client, like this:
+
+```scala mdoc:silent
+import scalacache._
+import scalacache.mongo._
+import scalacache.serialization.bson.circe._
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+import com.mongodb.reactivestreams.client.MongoClients
+
+val mongoClient = MongoClients.create("mongodb://localhost:27017")
+
+implicit val customClientMongoCache: Cache[IO, String, String] =
+  MongoCache[IO, String, String](mongoClient, databaseName, collectionName).unsafeRunSync()
+```
 
 ### Caffeine
 
@@ -120,5 +163,5 @@ implicit val customisedCaffeineCache: Cache[IO, String, String] = CaffeineCache(
 ```scala mdoc:invisible
 for (cache <- List(redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache)) {
   cache.close.unsafeRunSync()
-} 
+}
 ```
