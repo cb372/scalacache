@@ -161,7 +161,7 @@ implicit val customisedCaffeineCache: Cache[IO, String, String] = CaffeineCache(
 ```
 
 ```scala mdoc:invisible
-for (cache <- List(redisCache, customisedRedisCache, memcachedCache, customisedMemcachedCache)) {
+for (cache <- List(redisCache, customisedRedisCache, mongoCache, customClientMongoCache, memcachedCache, customisedMemcachedCache)) {
   cache.close.unsafeRunSync()
 }
 ```
