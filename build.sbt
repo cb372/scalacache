@@ -16,7 +16,7 @@ inThisBuild(
   )
 )
 
-val CatsEffectVersion  = "3.3.6"
+val CatsEffectVersion  = "3.3.7"
 val CirceVersion       = "0.14.1"
 val MongoDriverVersion = "4.5.0"
 
