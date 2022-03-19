@@ -50,6 +50,41 @@ implicit val catDecoder: Decoder[Cat] = deriveDecoder[Cat]
 
 For more information, please consult the [circe docs](https://circe.github.io/circe/).
 
+### BSON codec
+
+If you are using the MongoDB cache implementation, you must provide a `BsonCodec` for serializing your data as BSON.
+
+You can do this manually, or use the ScalaCache integration module which converts [circe](https://circe.github.io/circe/) JSON into BSON.
+
+To do the latter you can add a dependency on the scalacache-mongo-circe module:
+
+```
+libraryDependencies += "com.github.cb372" %% "scalacache-mongo-circe" % "0.28.0"
+```
+
+Then import the codec:
+
+```scala mdoc:fail:silent
+import scalacache.serialization.bson.circe._
+```
+
+As with the circe JSON integration, if your cache holds values of type `Cat`, you will also need a Circe `Encoder[Cat]` and `Decoder[Cat]` in implicit scope. The easiest way to do this is to ask circe to automatically derive them:
+
+```scala
+import io.circe.generic.auto._
+```
+
+but if you are worried about performance, it's better to derive them semi-automatically:
+
+```scala
+import io.circe._
+import io.circe.generic.semiauto._
+implicit val catEncoder: Encoder[Cat] = deriveEncoder[Cat]
+implicit val catDecoder: Decoder[Cat] = deriveDecoder[Cat]
+```
+
+For more information, please consult the [circe docs](https://circe.github.io/circe/).
+
 ### Custom Codec
 
 If you want to use a custom `Codec` for your object of type `A`, simply implement an instance of `Codec[A]` and make sure it

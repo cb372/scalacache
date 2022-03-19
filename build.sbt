@@ -16,7 +16,9 @@ inThisBuild(
   )
 )
 
-val CatsEffectVersion = "3.3.7"
+val CatsEffectVersion  = "3.3.7"
+val CirceVersion       = "0.14.1"
+val MongoDriverVersion = "4.5.0"
 
 scalafmtOnCompile in ThisBuild := true
 
@@ -33,7 +35,9 @@ lazy val root: Project = Project(id = "scalacache", base = file("."))
     redis,
     caffeine,
     circe,
-    tests
+    tests,
+    mongo,
+    mongoCirce
   )
 
 lazy val core =
@@ -72,6 +76,25 @@ lazy val memcached = createModule("memcached")
     )
   )
 
+lazy val mongo = createModule("mongo")
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.mongodb" % "mongodb-driver-reactivestreams" % MongoDriverVersion,
+      "org.mongodb" % "mongodb-driver-sync"            % MongoDriverVersion % Test
+    )
+  )
+
+lazy val mongoCirce = createModule("mongo-circe")
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core"    % CirceVersion,
+      "io.circe" %% "circe-generic" % CirceVersion % Test,
+      scalacheck,
+      scalatestplus
+    )
+  )
+  .dependsOn(mongo)
+
 lazy val redis = createModule("redis")
   .settings(
     libraryDependencies ++= Seq(
@@ -95,9 +118,9 @@ lazy val caffeine = createModule("caffeine")
 lazy val circe = createModule("circe")
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core"    % "0.14.1",
-      "io.circe" %% "circe-parser"  % "0.14.1",
-      "io.circe" %% "circe-generic" % "0.14.1" % Test,
+      "io.circe" %% "circe-core"    % CirceVersion,
+      "io.circe" %% "circe-parser"  % CirceVersion,
+      "io.circe" %% "circe-generic" % CirceVersion % Test,
       scalacheck,
       scalatestplus
     ),
@@ -106,8 +129,13 @@ lazy val circe = createModule("circe")
   )
 
 lazy val tests = createModule("tests")
-  .settings(publishArtifact := false)
-  .dependsOn(caffeine, memcached, redis, circe)
+  .settings(
+    publishArtifact := false,
+    libraryDependencies ++= Seq(
+      "org.mongodb" % "mongodb-driver-sync" % MongoDriverVersion % Test
+    )
+  )
+  .dependsOn(caffeine, memcached, redis, circe, mongo, mongoCirce)
 
 lazy val docs = createModule("docs")
   .enablePlugins(MicrositesPlugin)
@@ -131,7 +159,9 @@ lazy val docs = createModule("docs")
     memcached,
     redis,
     caffeine,
-    circe
+    circe,
+    mongo,
+    mongoCirce
   )
 
 lazy val benchmarks = createModule("benchmarks")

@@ -16,22 +16,31 @@
 
 package integrationtests
 
-import java.util.UUID
-
-import org.scalatest._
+import cats.effect.Clock
+import cats.effect.unsafe.implicits.global
 import cats.effect.{IO => CatsIO}
-import net.spy.memcached.{AddrUtil, MemcachedClient}
+import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
+import com.mongodb.MongoException
+import com.mongodb.client.{MongoClients => MongoSync}
+import com.mongodb.reactivestreams.client.{MongoClients => MongoReactive}
+import net.spy.memcached.AddrUtil
+import net.spy.memcached.MemcachedClient
+import org.bson.BsonDocument
+import org.bson.BsonInt64
+import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import redis.clients.jedis.JedisPool
-
-import scala.util.control.NonFatal
 import scalacache._
 import scalacache.caffeine.CaffeineCache
 import scalacache.memcached.MemcachedCache
+import scalacache.mongo.MongoCache
 import scalacache.redis.RedisCache
-import cats.effect.Clock
-import cats.effect.unsafe.implicits.global
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+import scala.util.control.NonFatal
 
 class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
@@ -40,9 +49,19 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
   private val memcachedClient = new MemcachedClient(AddrUtil.getAddresses("localhost:11211"))
   private val jedisPool       = new JedisPool("localhost", 6379)
 
+  private val mongoClientSettings = MongoClientSettings
+    .builder()
+    .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
+    .applyToSocketSettings(_.connectTimeout(5, TimeUnit.SECONDS): Unit)
+    .applyToClusterSettings(_.serverSelectionTimeout(5, TimeUnit.SECONDS): Unit)
+    .build()
+
+  private val mongoClient = MongoReactive.create(mongoClientSettings)
+
   override def afterAll(): Unit = {
     memcachedClient.shutdown()
     jedisPool.close()
+    mongoClient.close()
   }
 
   private def memcachedIsRunning: Boolean = {
@@ -64,6 +83,18 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
     } catch {
       case NonFatal(_) => false
     }
+  }
+
+  private def mongoIsRunning = {
+    try {
+      val mongoClient = MongoSync.create(mongoClientSettings)
+      try {
+        mongoClient
+          .getDatabase("admin")
+          .runCommand(new BsonDocument("ping", new BsonInt64(1)))
+        true
+      } finally { mongoClient.close() }
+    } catch { case _: MongoException => false }
   }
 
   case class CacheBackend(name: String, cache: Cache[CatsIO, String, String])
@@ -101,7 +132,22 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
       Nil
     }
 
-  val backends: List[CacheBackend] = List(caffeine) ++ memcached ++ redis
+  private val mongo: Seq[CacheBackend] =
+    if (mongoIsRunning) {
+      Seq(
+        {
+          import scalacache.serialization.bson.circe._
+          CacheBackend(
+            "(Mongo) ⇔ (circe BSON codec)",
+            MongoCache[CatsIO, String, String](mongoClient, "scalacache-test", "cache").unsafeRunSync()
+          )
+        }
+      )
+    } else {
+      Seq.empty
+    }
+
+  val backends: List[CacheBackend] = List(caffeine) ++ memcached ++ redis ++ mongo
 
   for (CacheBackend(name, cache) <- backends) {
 
@@ -123,6 +169,7 @@ class IntegrationTests extends AnyFlatSpec with Matchers with BeforeAndAfterAll 
       checkComputationHasNotRun(key)
 
       val result: Option[String] = program.unsafeRunSync()
+
       assert(result.contains("prepended " + initialValue))
     }
   }
