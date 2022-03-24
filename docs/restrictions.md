@@ -1,8 +1,3 @@
----
-layout: docs
-title: Troubleshooting/Restrictions
----
-
 ## Troubleshooting/Restrictions
 
 Methods containing `memoize` blocks must have an explicit return type.

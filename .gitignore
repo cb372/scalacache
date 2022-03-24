@@ -11,3 +11,9 @@ logs
 .ensime
 .ensime_lucene
 .ensime_cache
+.bloop/
+.bsp/
+.metals/
+.vscode/
+metals.sbt
+.DS_Store

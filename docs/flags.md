@@ -1,13 +1,8 @@
----
-layout: docs
-title: Flags
----
-
 ### Flags
 
 Cache GETs and/or PUTs can be temporarily disabled using flags. This can be useful if for example you want to skip the cache and read a value from the DB under certain conditions.
 
-You can set flags by defining a [scalacache.Flags](https://github.com/cb372/scalacache/blob/master/modules/core/src/main/scala/scalacache/Flags.scala) instance in implicit scope.
+You can set flags by defining a @:api(scalacache.Flags) instance in implicit scope.
 
 The detailed behaviour of the flags is as follows:
 
@@ -47,5 +42,5 @@ Tip: Because the flags are passed as a parameter to your method, they will be in
 ```scala mdoc:invisible
 for (cache <- List(catsCache)) {
   cache.close.unsafeRunSync()
-} 
+}
 ```
