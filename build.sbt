@@ -60,9 +60,10 @@ lazy val scalacache = tlCrossRootProject.aggregate(
 def createModule(name: String) =
   Project(id = name, base = file(s"modules/$name"))
     .settings(
-      moduleName               := s"scalacache-$name",
-      Test / parallelExecution := false,
+      moduleName := s"scalacache-$name",
       libraryDependencies += scalatest,
+      scalacOptions += "-language:postfixOps",
+      Test / parallelExecution := false,
       apiURL := {
         if (githubIsWorkflowBuild.value)
           apiURL.value
