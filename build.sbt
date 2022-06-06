@@ -11,8 +11,8 @@ val ScalaTestVersion  = "3.2.12"
 val Slf4jVersion      = "1.7.26"
 
 lazy val scalatest     = "org.scalatest"     %% "scalatest"       % ScalaTestVersion         % Test
-lazy val scalacheck    = "org.scalacheck"    %% "scalacheck"      % "1.15.4"                 % Test
-lazy val scalatestplus = "org.scalatestplus" %% "scalacheck-1-15" % s"3.2.11.0" % Test // Cannot upgrade to 3.2.12.0 until Scalacheck 1.16.x
+lazy val scalacheck    = "org.scalacheck"    %% "scalacheck"      % "1.16.0"                 % Test
+lazy val scalatestplus = "org.scalatestplus" %% "scalacheck-1-16" % s"${ScalaTestVersion}.0" % Test
 
 inThisBuild(
   List(
