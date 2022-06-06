@@ -1,15 +1,10 @@
----
-layout: docs
-title: Serialization
----
-
 ## Serialization
 
-If you are using a cache implementation that does not store its data locally (like [Memcached](cache-implementations.html#memcached) and [Redis](cache-implementations.html#redis)), you will need to choose a codec in order to serialize your data to bytes.
+If you are using a cache implementation that does not store its data locally (like [Memcached](cache-implementations.md#memcached) and [Redis](cache-implementations.md#redis)), you will need to choose a codec in order to serialize your data to bytes.
 
 ### Binary codec
 
-ScalaCache provides efficient `Codec` instances for all primitive types, and also an implementation for objects based on Java serialization.
+ScalaCache provides efficient @:api(scalacache.serialization.Codec) instances for all primitive types, and also an implementation for objects based on Java serialization.
 
 To use this codec, you need one import:
 
@@ -52,14 +47,14 @@ For more information, please consult the [circe docs](https://circe.github.io/ci
 
 ### Custom Codec
 
-If you want to use a custom `Codec` for your object of type `A`, simply implement an instance of `Codec[A]` and make sure it
+If you want to use a custom @:api(scalacache.serialization.Codec) for your object of type `A`, simply implement an instance of `Codec[A]` and make sure it
 is in scope at your `get`/`put` call site.
 
 ### Compression of `Codec[A]`
 
-If you want to compress your serialized data before sending it to your cache, ScalaCache has a built-in `GZippingBinaryCodec[A]` mix-in
+If you want to compress your serialized data before sending it to your cache, ScalaCache has a built-in @:api(scalacache.serialization.gzip.GZippingBinaryCodec) mix-in
 trait that can be used to decorate another codec. It will automatically apply GZip compression to the encoded value if the `Array[Byte]` representation is above a `sizeThreshold`. It also takes care of properly decompressing data upon retrieval.
 
 To use it, simply extend your `Codec[A]` with `GZippingBinaryCodec[A]` **last** (it should be the right-most extended trait).
 
-If you want to use GZip compression with the standard ScalaCache binary codec can either `import scalacache.serialization.gzip.GZippingJavaSerializationCodec._` or provide an implicit `GZippingJavaAnyBinaryCodec` at the cache call site.
+If you want to use GZip compression with the standard ScalaCache binary codec can either `import scalacache.serialization.gzip.GZippingJavaSerializationCodec._` or provide an implicit @:api(scalacache.serialization.gzip.GZippingJavaAnyBinaryCodec) at the cache call site.

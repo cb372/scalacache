@@ -1,8 +1,3 @@
----
-layout: docs
-title: Getting started
----
-
 ## Getting Started
 
 ### Imports
@@ -68,7 +63,7 @@ caching("benjamin")(ttl = None) {
 
 // If the result of the block is wrapped in an effect, use cachingF
 cachingF("benjamin")(ttl = None) {
-  IO.pure { 
+  IO.pure {
     // e.g. call an external API ...
     Cat(2, "Benjamin", "ginger")
   }
@@ -79,5 +74,5 @@ cachingF("benjamin")(ttl = None) {
 import cats.effect.unsafe.implicits.global
 for (cache <- List(catsCache)) {
   cache.close.unsafeRunSync()
-} 
+}
 ```
