@@ -12,7 +12,7 @@ val Slf4jVersion      = "1.7.26"
 
 lazy val scalatest     = "org.scalatest"     %% "scalatest"       % ScalaTestVersion         % Test
 lazy val scalacheck    = "org.scalacheck"    %% "scalacheck"      % "1.15.4"                 % Test
-lazy val scalatestplus = "org.scalatestplus" %% "scalacheck-1-15" % s"${ScalaTestVersion}.0" % Test
+lazy val scalatestplus = "org.scalatestplus" %% "scalacheck-1-15" % s"3.2.11.0" % Test // Cannot upgrade to 3.2.12.0 until Scalacheck 1.16.x
 
 inThisBuild(
   List(
@@ -128,7 +128,6 @@ lazy val unidoc = createSubModule("unidoc")
 lazy val docs = createSubModule("docs")
   .enablePlugins(TypelevelSitePlugin)
   .settings(
-    tlSiteApiModule := Some((unidoc / projectID).value),
     tlSiteGenerate := {
       WorkflowStep.Run(
         List("docker-compose up -d"),
