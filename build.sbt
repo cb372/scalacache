@@ -63,13 +63,7 @@ def createModule(name: String) =
       moduleName := s"scalacache-$name",
       libraryDependencies += scalatest,
       scalacOptions += "-language:postfixOps",
-      Test / parallelExecution := false,
-      apiURL := {
-        if (githubIsWorkflowBuild.value)
-          apiURL.value
-        else
-          Some((crossTarget.value / "api").toURI.toURL)
-      }
+      Test / parallelExecution := false
     )
 
 def createSubModule(name: String) =
