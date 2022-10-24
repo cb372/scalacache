@@ -13,6 +13,11 @@ The following cache implementations are supported, and it's easy to plugin your 
 * Redis
 * [Caffeine](https://github.com/ben-manes/caffeine)
 
+## SBT imports
+
+1. Add core dependency: `libraryDependencies += "com.github.cb372" %% "scalacache-core" % <VERSION>"`
+2. Add any preferred cache implementation: [details](https://cb372.github.io/scalacache/docs/cache-implementations.html).
+
 ## Documentation
 
 Documentation is available on [the ScalaCache website](https://cb372.github.io/scalacache/).
