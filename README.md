@@ -22,7 +22,7 @@ Documentation is available on [the ScalaCache website](https://cb372.github.io/s
 ScalaCache is available for Scala 2.11.x, 2.12.x, and 2.13.x.
 
 The JVM must be Java 11 or newer.
-For Java 8, use `1.0.0-M5` is the last supported version.
+For Java 8, use `1.0.0-M5` which is the last supported version.
 
 
 ## Compiling the documentation
