@@ -96,26 +96,42 @@ trait AbstractCache[F[_], K, V] extends Cache[F, K, V] with LoggingSupport[F, K]
       key: K
   )(ttl: Option[Duration] = None)(f: => V)(implicit flags: Flags): F[V] = cachingF(key)(ttl)(Sync[F].delay(f))
 
+  final override def cachingOption(
+      key: K
+  )(ttl: Option[Duration] = None)(f: => Option[V])(implicit flags: Flags): F[Option[V]] =
+    cachingFOption(key)(ttl)(Sync[F].delay(f))
+
   override def cachingF(
       key: K
-  )(ttl: Option[Duration] = None)(f: F[V])(implicit flags: Flags): F[V] = {
-    checkFlagsAndGet(key)
-      .handleErrorWith { e =>
-        logger
-          .ifWarnEnabled(logger.warn(s"Failed to read from cache. Key = $key", e))
-          .as(None)
+  )(ttl: Option[Duration] = None)(f: F[V])(implicit flags: Flags): F[V] =
+    read(key).flatMap {
+      case Some(valueFromCache) => F.pure(valueFromCache)
+      case None                 => f.flatTap(write(key, _, ttl))
+    }
+
+  override def cachingFOption(
+      key: K
+  )(ttl: Option[Duration] = None)(f: F[Option[V]])(implicit flags: Flags): F[Option[V]] =
+    read(key).flatMap {
+      case Some(valueFromCache) => F.pure(Some(valueFromCache))
+      case None => f.flatTap {
+        case Some(calculatedValue) => write(key, calculatedValue, ttl)
+        case None => logger.ifDebugEnabled(logger.debug("Calculated value was empty, not writing into cache")).void
       }
-      .flatMap {
-        case Some(valueFromCache) => F.pure(valueFromCache)
-        case None =>
-          f.flatTap { calculatedValue =>
-            checkFlagsAndPut(key, calculatedValue, ttl)
-              .handleErrorWith { e =>
-                logger.ifWarnEnabled {
-                  logger.warn(s"Failed to write to cache. Key = $key", e)
-                }.void
-              }
-          }
-      }
-  }
+    }
+
+  private def read(key: K) =
+    checkFlagsAndGet(key).handleErrorWith { e =>
+      logger
+        .ifWarnEnabled(logger.warn(s"Failed to read from cache. Key = $key", e))
+        .as(None)
+    }
+
+  private def write(key: K, value: V, ttl: Option[Duration] = None)(implicit flags: Flags) =
+    checkFlagsAndPut(key, value, ttl).handleErrorWith { e =>
+      logger.ifWarnEnabled {
+        logger.warn(s"Failed to write to cache. Key = $key", e)
+      }.void
+    }
+
 }
