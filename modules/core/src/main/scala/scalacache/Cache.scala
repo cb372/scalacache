@@ -87,7 +87,7 @@ trait Cache[F[_], K, V] {
     * @param ttl
     *   The time-to-live to use when inserting into the cache. The cache entry will expire after this time has elapsed.
     * @param f
-    *   A block that computes the value
+    *   A block that computes the (optional) value
     * @param flags
     *   Flags used to conditionally alter the behaviour of ScalaCache
     * @return
@@ -117,7 +117,7 @@ trait Cache[F[_], K, V] {
     * @param ttl
     *   The time-to-live to use when inserting into the cache. The cache entry will expire after this time has elapsed.
     * @param f
-    *   A block that computes the value
+    *   A block that computes the (optional) value
     * @param flags
     *   Flags used to conditionally alter the behaviour of ScalaCache
     * @return
