@@ -80,7 +80,8 @@ trait Cache[F[_], K, V] {
     */
   def caching(key: K)(ttl: Option[Duration])(f: => V)(implicit flags: Flags): F[V]
 
-  /** Get a value from the cache if it exists. Otherwise compute it, insert it into the cache (only when it isn't None), and return it.
+  /** Get a value from the cache if it exists. Otherwise compute it, insert it into the cache (only when it isn't None),
+    * and return it.
     *
     * @param key
     *   The cache key
@@ -110,7 +111,8 @@ trait Cache[F[_], K, V] {
     */
   def cachingF(key: K)(ttl: Option[Duration])(f: F[V])(implicit flags: Flags): F[V]
 
-  /** Get a value from the cache if it exists. Otherwise compute it, insert it into the cache (only when it isn't None), and return it.
+  /** Get a value from the cache if it exists. Otherwise compute it, insert it into the cache (only when it isn't None),
+    * and return it.
     *
     * @param key
     *   The cache key

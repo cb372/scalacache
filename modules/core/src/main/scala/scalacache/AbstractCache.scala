@@ -114,10 +114,11 @@ trait AbstractCache[F[_], K, V] extends Cache[F, K, V] with LoggingSupport[F, K]
   )(ttl: Option[Duration] = None)(f: F[Option[V]])(implicit flags: Flags): F[Option[V]] =
     read(key).flatMap {
       case Some(valueFromCache) => F.pure(Some(valueFromCache))
-      case None => f.flatTap {
-        case Some(calculatedValue) => write(key, calculatedValue, ttl)
-        case None => logger.ifDebugEnabled(logger.debug("Calculated value was empty, not writing into cache")).void
-      }
+      case None =>
+        f.flatTap {
+          case Some(calculatedValue) => write(key, calculatedValue, ttl)
+          case None => logger.ifDebugEnabled(logger.debug("Calculated value was empty, not writing into cache")).void
+        }
     }
 
   private def read(key: K)(implicit flags: Flags) =
