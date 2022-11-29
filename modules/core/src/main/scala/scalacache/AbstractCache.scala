@@ -121,14 +121,14 @@ trait AbstractCache[F[_], K, V] extends Cache[F, K, V] with LoggingSupport[F, K]
         }
     }
 
-  private def read(key: K)(implicit flags: Flags) =
+  private def read(key: K)(implicit flags: Flags): F[Option[V]] =
     checkFlagsAndGet(key).handleErrorWith { e =>
       logger
         .ifWarnEnabled(logger.warn(s"Failed to read from cache. Key = $key", e))
         .as(None)
     }
 
-  private def write(key: K, value: V, ttl: Option[Duration])(implicit flags: Flags) =
+  private def write(key: K, value: V, ttl: Option[Duration])(implicit flags: Flags): F[Unit] =
     checkFlagsAndPut(key, value, ttl).handleErrorWith { e =>
       logger.ifWarnEnabled {
         logger.warn(s"Failed to write to cache. Key = $key", e)
