@@ -84,7 +84,7 @@ lazy val redis = createModule("redis")
 lazy val caffeine = createModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.ben-manes.caffeine" % "caffeine"            % "3.0.6",
+      "com.github.ben-manes.caffeine" % "caffeine"            % "3.1.4",
       "org.typelevel"                %% "cats-effect-testkit" % CatsEffectVersion % Test,
       "com.google.code.findbugs"      % "jsr305"              % "3.0.2"           % Provided
     ),
