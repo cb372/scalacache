@@ -158,7 +158,7 @@ lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.15" % Test
 
 lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.4" % Test
 
-lazy val scalatestplus = "org.scalatestplus" %% "scalacheck-1-15" % "3.2.10.0" % Test
+lazy val scalatestplus = "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test
 
 lazy val commonSettings =
   mavenSettings ++
