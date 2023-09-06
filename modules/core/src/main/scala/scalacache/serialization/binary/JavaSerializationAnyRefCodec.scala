@@ -31,10 +31,11 @@ class JavaSerializationAnyRefCodec[S <: Serializable](classTag: ClassTag[S]) ext
 
   def using[T <: Closeable, R](obj: T)(f: T => R): R =
     try f(obj)
-    finally try obj.close()
-    catch {
-      case NonFatal(_) => // does nothing
-    }
+    finally
+      try obj.close()
+      catch {
+        case NonFatal(_) => // does nothing
+      }
 
   def encode(value: S): Array[Byte] =
     using(new ByteArrayOutputStream()) { buf =>
