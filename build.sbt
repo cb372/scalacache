@@ -18,7 +18,7 @@ inThisBuild(
 
 val CatsEffectVersion = "3.3.14"
 
-scalafmtOnCompile in ThisBuild := true
+ThisBuild / scalafmtOnCompile := true
 
 lazy val root: Project = Project(id = "scalacache", base = file("."))
   .enablePlugins(SonatypeCiReleasePlugin)
@@ -52,7 +52,7 @@ lazy val core =
                 "org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0"
               )
             } else Nil),
-      coverageMinimum       := 60,
+      coverageMinimumStmtTotal := 60,
       coverageFailOnMinimum := true
     )
 
@@ -77,7 +77,7 @@ lazy val redis = createModule("redis")
     libraryDependencies ++= Seq(
       "redis.clients" % "jedis" % "3.7.1"
     ),
-    coverageMinimum       := 56,
+    coverageMinimumStmtTotal := 56,
     coverageFailOnMinimum := true
   )
 
@@ -85,10 +85,9 @@ lazy val caffeine = createModule("caffeine")
   .settings(
     libraryDependencies ++= Seq(
       "com.github.ben-manes.caffeine" % "caffeine"            % "3.0.6",
-      "org.typelevel"                %% "cats-effect-testkit" % CatsEffectVersion % Test,
-      "com.google.code.findbugs"      % "jsr305"              % "3.0.2"           % Provided
+      "org.typelevel"                %% "cats-effect-testkit" % CatsEffectVersion % Test
     ),
-    coverageMinimum       := 80,
+    coverageMinimumStmtTotal := 80,
     coverageFailOnMinimum := true
   )
 
@@ -101,7 +100,7 @@ lazy val circe = createModule("circe")
       scalacheck,
       scalatestplus
     ),
-    coverageMinimum       := 80,
+    coverageMinimumStmtTotal := 80,
     coverageFailOnMinimum := true
   )
 
@@ -124,7 +123,7 @@ lazy val docs = createModule("docs")
     micrositeGitterChannel    := true,
     micrositeTwitterCreator   := "@cbirchall",
     micrositeShareOnSocial    := true,
-    mdocIn                    := (sourceDirectory in Compile).value / "mdoc"
+    mdocIn                    := (Compile / sourceDirectory).value / "mdoc"
   )
   .dependsOn(
     core,
@@ -139,9 +138,9 @@ lazy val benchmarks = createModule("benchmarks")
   .settings(
     githubWorkflowArtifactUpload := false,
     publishArtifact              := false,
-    fork in (Compile, run)       := true,
-    javaOptions in Jmh ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking"),
-    javaOptions in (Test, run) ++= Seq(
+    Compile / run / fork         := true,
+    Jmh / javaOptions ++= Seq("-server", "-Xms2G", "-Xmx2G", "-XX:+UseG1GC", "-XX:-UseBiasedLocking"),
+    Test / run / javaOptions ++= Seq(
       "-XX:+UnlockCommercialFeatures",
       "-XX:+FlightRecorder",
       "-XX:StartFlightRecording=delay=20s,duration=60s,filename=memoize.jfr",
@@ -165,11 +164,11 @@ lazy val commonSettings =
     Seq(
       organization := "com.github.cb372",
       scalacOptions ++= Seq("-language:higherKinds", "-language:postfixOps"),
-      parallelExecution in Test := false
+      Test / parallelExecution := false
     )
 
 lazy val mavenSettings = Seq(
-  publishArtifact in Test := false,
+  Test / publishArtifact := false,
   pomIncludeRepository := { _ =>
     false
   }
