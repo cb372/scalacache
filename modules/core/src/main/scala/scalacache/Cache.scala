@@ -80,6 +80,22 @@ trait Cache[F[_], K, V] {
     */
   def caching(key: K)(ttl: Option[Duration])(f: => V)(implicit flags: Flags): F[V]
 
+  /** Get a value from the cache if it exists. Otherwise compute it, insert it into the cache (only when it isn't None),
+    * and return it.
+    *
+    * @param key
+    *   The cache key
+    * @param ttl
+    *   The time-to-live to use when inserting into the cache. The cache entry will expire after this time has elapsed.
+    * @param f
+    *   A block that computes the (optional) value
+    * @param flags
+    *   Flags used to conditionally alter the behaviour of ScalaCache
+    * @return
+    *   The value, either retrieved from the cache or computed
+    */
+  def cachingOption(key: K)(ttl: Option[Duration])(f: => Option[V])(implicit flags: Flags): F[Option[V]]
+
   /** Get a value from the cache if it exists. Otherwise compute it, insert it into the cache, and return it.
     *
     * @param key
@@ -94,6 +110,22 @@ trait Cache[F[_], K, V] {
     *   The value, either retrieved from the cache or computed
     */
   def cachingF(key: K)(ttl: Option[Duration])(f: F[V])(implicit flags: Flags): F[V]
+
+  /** Get a value from the cache if it exists. Otherwise compute it, insert it into the cache (only when it isn't None),
+    * and return it.
+    *
+    * @param key
+    *   The cache key
+    * @param ttl
+    *   The time-to-live to use when inserting into the cache. The cache entry will expire after this time has elapsed.
+    * @param f
+    *   A block that computes the (optional) value
+    * @param flags
+    *   Flags used to conditionally alter the behaviour of ScalaCache
+    * @return
+    *   The value, either retrieved from the cache or computed
+    */
+  def cachingFOption(key: K)(ttl: Option[Duration])(f: F[Option[V]])(implicit flags: Flags): F[Option[V]]
 
   /** You should call this when you have finished using this Cache. (e.g. when your application shuts down)
     *
