@@ -131,6 +131,36 @@ class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
     result should be("value from cache")
   }
 
+  it should "run the Option block and cache resulting Some value" in {
+    var called = false
+    val result = cache
+      .cachingOption("myKey")(None) {
+        called = true
+        Some("result of block")
+      }
+      .unsafeRunSync()
+
+    cache.getCalledWithArgs(0) should be("myKey")
+    cache.putCalledWithArgs(0) should be(("myKey", "result of block", None))
+    called should be(true)
+    result should be(Some("result of block"))
+  }
+
+  it should "run the Option block and not cache resulting None value" in {
+    var called = false
+    val result = cache
+      .cachingOption("myKey")(None) {
+        called = true
+        None
+      }
+      .unsafeRunSync()
+
+    cache.getCalledWithArgs(0) should be("myKey")
+    cache.putCalledWithArgs should be(empty)
+    called should be(true)
+    result should be(None)
+  }
+
   behavior of "#cachingF (Scala Try mode)"
 
   it should "run the block and cache its result with no TTL if the value is not found in the cache" in {
@@ -168,6 +198,40 @@ class AbstractCacheSpec extends AnyFlatSpec with Matchers with BeforeAndAfter {
     cache.getCalledWithArgs(0) should be("myKey")
     called should be(false)
     tResult should be("value from cache")
+  }
+
+  it should "run the Option block and cache resulting Some value" in {
+    var called = false
+    val result = cache
+      .cachingFOption("myKey")(None) {
+        SyncIO {
+          called = true
+          Some("result of block")
+        }
+      }
+      .unsafeRunSync()
+
+    cache.getCalledWithArgs(0) should be("myKey")
+    cache.putCalledWithArgs(0) should be(("myKey", "result of block", None))
+    called should be(true)
+    result should be(Some("result of block"))
+  }
+
+  it should "run the Option block and not cache resulting None value" in {
+    var called = false
+    val result = cache
+      .cachingFOption("myKey")(None) {
+        SyncIO {
+          called = true
+          None
+        }
+      }
+      .unsafeRunSync()
+
+    cache.getCalledWithArgs(0) should be("myKey")
+    cache.putCalledWithArgs should be(empty)
+    called should be(true)
+    result should be(None)
   }
 
   behavior of "#caching (sync mode)"
