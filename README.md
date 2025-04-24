@@ -1,5 +1,11 @@
 # ScalaCache
 
+## ⚠️ Project unmaintained
+
+ScalaCache is no longer actively maintained. If you're using it, please plan to migrate to a different library, e.g. [Scaffeine](https://github.com/blemale/scaffeine) or [Mules](https://github.com/davenverse/mules).
+
+---
+
 [![Join the chat at https://gitter.im/cb372/scalacache](https://badges.gitter.im/cb372/scalacache.svg)](https://gitter.im/cb372/scalacache?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![Build Status](https://github.com/cb372/scalacache/workflows/Continuous%20Integration/badge.svg)](https://github.com/cb372/scalacache/actions) [![Maven Central](https://img.shields.io/maven-central/v/com.github.cb372/scalacache-core_2.12.svg)](http://search.maven.org/#search%7Cga%7C1%7Cscalacache)
